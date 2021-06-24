@@ -1,4 +1,4 @@
-package router
+package main
 
 import (
 	"fmt"
@@ -6,10 +6,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/DmitriyVTitov/size"
 )
 
 func ShardHandler(conn net.Conn, message string) {
 	commands := strings.Split(message, " ")
+	var resault string
 	switch commands[0] {
 
 	case "groupadd":
@@ -18,9 +21,14 @@ func ShardHandler(conn net.Conn, message string) {
 	case "useradd":
 		useradd(conn, commands) // useradd [option] userName
 
+	case "size":
+		resault = string(getShardSize())
+
 	default:
 		fmt.Fprintln(conn, "Invalid")
+		return
 	}
+	fmt.Fprintln(conn, resault)
 }
 
 func groupadd(conn net.Conn, commands []string) { // option -g specified group id, -r system group
@@ -76,4 +84,8 @@ func useradd(conn net.Conn, commands []string) { // option -u specified user id,
 	}
 
 	shardData[group].(map[string]interface{})[username] = map[string]interface{}{"id": id, "issue_date": time.Now().String()}
+}
+
+func getShardSize() int {
+	return size.Of(shardData)
 }

@@ -1,4 +1,4 @@
-package router
+package main
 
 import (
 	"bufio"
@@ -9,13 +9,9 @@ import (
 	"time"
 )
 
-func dial_server(router_addr string, mycfg string, Handler func(net.Conn, string)) error {
+func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string), cfgfn interface{}) error {
 
 	conn, err := net.Dial("tcp", router_addr)
-
-	defer func() {
-		conn.Close()
-	}()
 
 	if err != nil {
 		return err
@@ -33,6 +29,24 @@ func dial_server(router_addr string, mycfg string, Handler func(net.Conn, string
 
 	var config map[string]interface{}
 	json.Unmarshal([]byte(config_json), &config)
+
+	switch v := cfgfn.(type) {
+	case func(map[string]interface{}) error:
+		err := v(config)
+		if err != nil {
+			log.Fatalln(err)
+			return err
+		}
+	}
+
+	if v, ok := config["mac"]; ok {
+		register_router(conn, v.(string))
+		defer func() {
+			conn.Close()
+			closed_router(conn, v.(string))
+		}()
+
+	}
 
 	for {
 		message, err := connbuff.ReadString('\n')

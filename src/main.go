@@ -1,9 +1,10 @@
-package router
+package main
 
 import (
 	"encoding/gob"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 )
 
@@ -11,7 +12,9 @@ var password string
 
 var role string
 
-var MAC_Address string = get_first_mac_addr()
+var mycfg []byte
+
+var MAC_Address string = get_first_mac_addr() // get.go
 
 func main() {
 	var router_addr string
@@ -22,7 +25,10 @@ func main() {
 	flag.StringVar(&password, "p", "", "Specify pass. Default is empty")
 	flag.Parse()
 	gob.Register(map[string]interface{}{})
+
+	fmt.Println("role: " + role + " listener ip: " + router_addr)
 	switch role {
+
 	case "router":
 		start_router(router_addr)
 
@@ -45,19 +51,30 @@ func main() {
 
 func start_router(dial_addr string) {
 
-	go start_listening() // router.go
-
 	cfg := map[string]interface{}{"role": "router", "pass": password}
 	mycfg, _ := json.Marshal(cfg)
 
 	if dial_addr != "" {
-		dial_server(dial_addr, string(mycfg), RouterHandler) // network.go
-	}
+		go start_listening() // router.go
 
+		dial_server(dial_addr, mycfg, RouterHandler, routerConfig) // network.go
+
+	} else {
+
+		fmt.Println("No ip specified, act as genesis router")
+
+		start_listening()
+	}
 }
 
 func start_shard(dial_addr string) {
+	cfg := map[string]interface{}{"role": "router", "pass": password}
+	mycfg, _ := json.Marshal(cfg)
 
+	err := dial_server(dial_addr, mycfg, ShardHandler, shardConfig) // network.go
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func start_client(dial_addr string) {

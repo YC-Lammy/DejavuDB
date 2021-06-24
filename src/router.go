@@ -1,4 +1,4 @@
-package router
+package main
 
 import (
 	"bufio"
@@ -10,8 +10,13 @@ import (
 	"time"
 )
 
+var command_query = map[string]string{}
+
 func start_listening() error { // main loop
+
 	ln, err := net.Listen("tcp", ":8080")
+	fmt.Println("[server] server start")
+
 	defer ln.Close()
 
 	if err != nil {
@@ -20,10 +25,11 @@ func start_listening() error { // main loop
 
 	for {
 		conn, err := ln.Accept()
+		fmt.Println("connection from " + conn.RemoteAddr().String())
 		if err != nil {
 			log.Fatal(err)
 		}
-		go router_handleConnection(conn)
+		go router_handleConnection(conn) // handle connection in new routine
 	}
 }
 
@@ -42,18 +48,23 @@ func router_handleConnection(conn net.Conn) { // this function handles a single 
 
 	role, mac, err := router_connection_config(conn, config) // handle client config and send config back to remote
 	CheckErr(err)
+
 	log.Println("[" + role + "]" + time.Now().String() + " connected")
 
 	switch role {
-	case "shard":
+	case "shard": // register shard
+
 		register_shard(conn, mac)
+
 		defer func() {
 			closed_shard(conn, mac)
 			conn.Close()
 		}()
 
-	case "router":
+	case "router": // register router
+
 		register_router(conn, mac)
+
 		defer func() {
 			closed_router(conn, mac)
 			conn.Close()
@@ -64,7 +75,7 @@ func router_handleConnection(conn net.Conn) { // this function handles a single 
 	for {
 		message, err := connbuff.ReadString('\n')
 		CheckErr(err)
-		go RouterHandler(conn, message)
+		go RouterHandler(conn, message) // handle map sync and shard data feed back
 	}
 }
 
@@ -81,7 +92,7 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 
 			if pass, ok := config["pass"]; ok {
 				if pass.(string) != password { // password is a global var, if not specified, default as ""
-					fmt.Fprintln(conn, "{Invalid password}")
+					fmt.Fprintln(conn, "Invalid password")
 					conn.Close()
 				}
 
@@ -97,7 +108,7 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 
 			if pass, ok := config["pass"]; ok {
 				if pass.(string) != password { // password is a global var, if not specified, default as ""
-					fmt.Fprintln(conn, "{Invalid password}")
+					fmt.Fprintln(conn, "Invalid password")
 					conn.Close()
 				}
 
@@ -126,8 +137,4 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 		}
 	}
 	return role, mac, nil
-}
-
-func RouterHandler(conn net.Conn, message string) { // this function handles any message recieved
-
 }

@@ -1,4 +1,4 @@
-package router
+package main
 
 import (
 	"fmt"
@@ -13,15 +13,15 @@ var router_connected = 0
 
 var data_map = map[string]interface{}{}
 
-var shard_map = map[string]interface{}{} // mac addr : net.Conn or false if disconnected
+var shard_map = map[string]net.Conn{} // mac addr : net.Conn or false if disconnected
 
-var router_map = map[string]interface{}{}
+var router_map = map[string]net.Conn{} //
 
 var router_load = map[string]int{}
 
-var current_router_ipv4 = []string{}
+var current_router_ipv4 = []string{} //
 
-var user_map = map[string]map[string]string{ // user_map will not be exposed to the out front
+var user_map = map[string]interface{}{ // user_map will not be exposed to the out front
 	/*
 		GID 1–99 are reserved for the system and application use.
 		GID 100+ allocated for the user’s group.
@@ -30,12 +30,12 @@ var user_map = map[string]map[string]string{ // user_map will not be exposed to 
 		UID 1000–10000 are occupied by applications account.
 		UID 10000+ are used for user accounts.
 	*/
-	"adm":     map[string]string{"id": "1"},    // admin, nearest to root
-	"sudo":    map[string]string{"id": "27"},   // config permission, upgrade and maintainance
-	"dev":     map[string]string{"id": "30"},   // developers, view logs and cofigs
-	"monitor": map[string]string{"id": "80"},   // analystics, no admin permissions
-	"user":    map[string]string{"id": "100"},  // regular user, no additional permissions
-	"public":  map[string]string{"id": "1000"}} // public access, no authorization needed
+	"adm":     map[string]interface{}{"id": "1"},    // admin, nearest to root
+	"sudo":    map[string]interface{}{"id": "27"},   // config permission, upgrade and maintainance
+	"dev":     map[string]interface{}{"id": "30"},   // developers, view logs and cofigs
+	"monitor": map[string]interface{}{"id": "80"},   // analystics, no admin permissions
+	"user":    map[string]interface{}{"id": "100"},  // regular user, no additional permissions
+	"public":  map[string]interface{}{"id": "1000"}} // public access, no authorization needed
 
 func register_shard(conn net.Conn, mac string) {
 
@@ -51,7 +51,7 @@ func closed_shard(conn net.Conn, mac string) {
 	remote := conn.RemoteAddr().String()
 
 	log.Println("[shard] " + time.Now().String() + " Client Address " + remote + " Disconnected")
-	shard_map[mac] = false
+	shard_map[mac] = nil
 
 	shard_connected -= 1
 }
@@ -72,14 +72,14 @@ func closed_router(conn net.Conn, mac string) {
 	remote := conn.RemoteAddr().String()
 
 	log.Println("[router] " + time.Now().String() + " Client Address " + remote + " Disconnected")
-	router_map[mac] = false
+	router_map[mac] = nil
 
 	router_connected -= 1
 }
 
 func send_to_all_router(message interface{}) {
 	for _, v := range router_map {
-		if v, ok := v.(net.Conn); ok {
+		if v != nil {
 			fmt.Fprintln(v, message)
 		}
 

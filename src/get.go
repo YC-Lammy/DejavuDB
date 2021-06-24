@@ -1,4 +1,4 @@
-package router
+package main
 
 import (
 	"log"
@@ -49,4 +49,55 @@ func getType(obj interface{}) string {
 	default:
 		return ""
 	}
+}
+
+func difference(a, b []string) []string {
+
+	ok := true
+	var list []string
+
+	for _, v := range b {
+		for _, x := range a {
+			if v == x {
+				ok = false
+				break
+			}
+		}
+		if ok {
+			list = append(list, v)
+		}
+		ok = true
+	}
+	return list
+}
+
+func removeItem(slice []string, item string) []string {
+	new := []string{}
+	for _, v := range slice {
+		if item != v {
+			new = append(new, v)
+		}
+	}
+	return new
+
+}
+
+func getMacFromIp(ipv4 string) string {
+	for key, v := range shard_map {
+		if v != nil {
+			if v.RemoteAddr().String() == ipv4 {
+				return key
+			}
+		}
+
+	}
+	for key, v := range router_map {
+		if v != nil {
+			if v.RemoteAddr().String() == ipv4 {
+				return key
+			}
+		}
+
+	}
+	return ""
 }
