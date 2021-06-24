@@ -11,11 +11,15 @@ import (
 
 func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string), cfgfn interface{}) error {
 
+	defer wg.Done()
+
 	conn, err := net.Dial("tcp", router_addr)
 
 	if err != nil {
 		return err
 	}
+
+	defer conn.Close()
 
 	fmt.Fprintln(conn, mycfg) // send my config to router, router reads and decides
 
@@ -41,10 +45,8 @@ func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string
 
 	if v, ok := config["mac"]; ok {
 		register_router(conn, v.(string))
-		defer func() {
-			conn.Close()
-			closed_router(conn, v.(string))
-		}()
+
+		defer closed_router(conn, v.(string))
 
 	}
 
@@ -57,5 +59,6 @@ func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string
 
 		log.Println(time.Now().String() + " Message from server: " + message)
 		go Handler(conn, message)
+		wg.Add(1)
 	}
 }

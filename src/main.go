@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
+	"sync"
 )
 
 var password string
@@ -15,6 +15,8 @@ var role string
 var mycfg []byte
 
 var MAC_Address string = get_first_mac_addr() // get.go
+
+var wg sync.WaitGroup // working group
 
 func main() {
 	var router_addr string
@@ -34,7 +36,7 @@ func main() {
 
 	case "shard":
 		if router_addr == "" {
-			log.Fatalln("must specific an address")
+			panic("must specific an address")
 			return
 		}
 		start_shard(router_addr)
@@ -43,9 +45,11 @@ func main() {
 		start_client(router_addr)
 
 	default:
-		log.Fatalln("Specified Role Invalid")
+		panic("Specified Role Invalid")
 
 	}
+
+	wg.Wait() // wait until all worker end
 
 }
 
@@ -57,13 +61,17 @@ func start_router(dial_addr string) {
 	if dial_addr != "" {
 		go start_listening() // router.go
 
-		dial_server(dial_addr, mycfg, RouterHandler, routerConfig) // network.go
+		go dial_server(dial_addr, mycfg, RouterHandler, routerConfig) // network.go
+
+		wg.Add(2)
 
 	} else {
 
 		fmt.Println("No ip specified, act as genesis router")
 
-		start_listening()
+		go start_listening()
+
+		wg.Add(1)
 	}
 }
 
@@ -71,10 +79,9 @@ func start_shard(dial_addr string) {
 	cfg := map[string]interface{}{"role": "router", "pass": password}
 	mycfg, _ := json.Marshal(cfg)
 
-	err := dial_server(dial_addr, mycfg, ShardHandler, shardConfig) // network.go
-	if err != nil {
-		fmt.Println(err)
-	}
+	go dial_server(dial_addr, mycfg, ShardHandler, shardConfig) // network.go
+
+	wg.Add(1)
 }
 
 func start_client(dial_addr string) {

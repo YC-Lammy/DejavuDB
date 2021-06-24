@@ -17,7 +17,10 @@ func start_listening() error { // main loop
 	ln, err := net.Listen("tcp", ":8080")
 	fmt.Println("[server] server start")
 
-	defer ln.Close()
+	defer func() {
+		ln.Close()
+		wg.Done()
+	}()
 
 	if err != nil {
 		return err
@@ -30,10 +33,15 @@ func start_listening() error { // main loop
 			log.Fatal(err)
 		}
 		go router_handleConnection(conn) // handle connection in new routine
+		wg.Add(1)
+
 	}
 }
 
 func router_handleConnection(conn net.Conn) { // this function handles a single connection
+
+	defer conn.Close()
+	defer wg.Done()
 
 	connbuff := bufio.NewReader(conn)
 
@@ -56,19 +64,13 @@ func router_handleConnection(conn net.Conn) { // this function handles a single 
 
 		register_shard(conn, mac)
 
-		defer func() {
-			closed_shard(conn, mac)
-			conn.Close()
-		}()
+		defer closed_shard(conn, mac)
 
 	case "router": // register router
 
 		register_router(conn, mac)
 
-		defer func() {
-			closed_router(conn, mac)
-			conn.Close()
-		}()
+		defer closed_router(conn, mac)
 
 	}
 
@@ -76,6 +78,7 @@ func router_handleConnection(conn net.Conn) { // this function handles a single 
 		message, err := connbuff.ReadString('\n')
 		CheckErr(err)
 		go RouterHandler(conn, message) // handle map sync and shard data feed back
+		wg.Add(1)
 	}
 }
 

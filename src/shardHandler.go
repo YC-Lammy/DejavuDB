@@ -11,6 +11,8 @@ import (
 )
 
 func ShardHandler(conn net.Conn, message string) {
+	defer wg.Done()
+
 	commands := strings.Split(message, " ")
 	var resault string
 	switch commands[0] {
