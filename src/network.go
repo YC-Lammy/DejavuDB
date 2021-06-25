@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"time"
 )
 
 func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string), cfgfn func(map[string]interface{}) error) error {
@@ -21,8 +20,6 @@ func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string
 	}
 
 	defer conn.Close()
-
-	time.Sleep(10 * time.Millisecond)
 
 	fmt.Fprintln(conn, string(mycfg)) // send my config to router, router reads and decides
 
