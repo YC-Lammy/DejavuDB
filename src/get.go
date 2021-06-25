@@ -28,7 +28,7 @@ func get_first_mac_addr() string {
 
 func CheckErr(err error) {
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 }
 
@@ -63,10 +63,26 @@ func difference(a, b []string) []string {
 				break
 			}
 		}
-		if ok {
+		if ok != false {
 			list = append(list, v)
 		}
 		ok = true
+	}
+	return list
+}
+
+func removeDuplicateStrings(stringSlice []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+
+	// If the key(values of the slice) is not equal
+	// to the already present value in new slice (list)
+	// then we append it. else we jump on another element.
+	for _, entry := range stringSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
 	}
 	return list
 }
@@ -82,11 +98,11 @@ func removeItem(slice []string, item string) []string {
 
 }
 
-func getMacFromIp(ipv4 string) string {
+func getMacFromIp(ipv4 string) *string {
 	for key, v := range shard_map {
 		if v != nil {
 			if v.RemoteAddr().String() == ipv4 {
-				return key
+				return &key
 			}
 		}
 
@@ -94,10 +110,26 @@ func getMacFromIp(ipv4 string) string {
 	for key, v := range router_map {
 		if v != nil {
 			if v.RemoteAddr().String() == ipv4 {
-				return key
+				return &key
 			}
 		}
 
 	}
-	return ""
+	return nil
+}
+
+func getIpFromMac(mac string) *string {
+	if v, ok := shard_map[mac]; ok {
+		if v != nil {
+			ip := v.RemoteAddr().String()
+			return &ip
+		}
+	}
+	if v, ok := router_map[mac]; ok {
+		if v != nil {
+			ip := v.RemoteAddr().String()
+			return &ip
+		}
+	}
+	return nil
 }

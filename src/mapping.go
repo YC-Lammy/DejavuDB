@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"time"
 )
 
 var shard_connected = 0
@@ -41,7 +40,7 @@ func register_shard(conn net.Conn, mac string) {
 
 	remote := conn.RemoteAddr().String()
 
-	log.Println("[shard] " + time.Now().String() + " Client Address " + remote + " Connected")
+	log.Println("[shard] " + remote + " Connected")
 	shard_map[mac] = conn
 	shard_connected += 1
 }
@@ -50,31 +49,33 @@ func closed_shard(conn net.Conn, mac string) {
 
 	remote := conn.RemoteAddr().String()
 
-	log.Println("[shard] " + time.Now().String() + " Client Address " + remote + " Disconnected")
+	log.Println("[shard] " + remote + " Disconnected")
 	shard_map[mac] = nil
 
 	shard_connected -= 1
 }
 
-func register_router(conn net.Conn, mac string) {
+func register_router(conn net.Conn, mac string, port string) {
 
 	remote := conn.RemoteAddr().String()
 
-	log.Println("[router] " + time.Now().String() + " Client Address " + remote + " Connected")
+	log.Println("[router] " + remote + " Connected")
 	router_map[mac] = conn
 	router_connected += 1
 
-	current_router_ipv4 = append(current_router_ipv4, conn.RemoteAddr().String())
+	current_router_ipv4 = append(current_router_ipv4, port)
 }
 
-func closed_router(conn net.Conn, mac string) {
+func closed_router(conn net.Conn, mac string, port string) {
 
 	remote := conn.RemoteAddr().String()
 
-	log.Println("[router] " + time.Now().String() + " Client Address " + remote + " Disconnected")
+	log.Println("[router] " + remote + " Disconnected")
 	router_map[mac] = nil
 
 	router_connected -= 1
+
+	current_router_ipv4 = removeItem(current_router_ipv4, port)
 }
 
 func send_to_all_router(message interface{}) {
@@ -83,5 +84,13 @@ func send_to_all_router(message interface{}) {
 			fmt.Fprintln(v, message)
 		}
 
+	}
+}
+
+func send_to_all_shard(message interface{}) {
+	for _, v := range shard_map {
+		if v != nil {
+			fmt.Fprintln(v, message)
+		}
 	}
 }

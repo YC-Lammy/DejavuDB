@@ -14,6 +14,7 @@ func ShardHandler(conn net.Conn, message string) {
 	defer wg.Done()
 
 	commands := strings.Split(message, " ")
+	commands[len(commands)-1] = strings.Split(commands[len(commands)-1], "\n")[0]
 	var resault string
 	switch commands[0] {
 
@@ -25,6 +26,12 @@ func ShardHandler(conn net.Conn, message string) {
 
 	case "size":
 		resault = string(getShardSize())
+
+	case "new":
+
+	case "connect":
+		go dial_server(commands[len(commands)-1], mycfg, ShardHandler, shardConfig)
+		wg.Add(1)
 
 	default:
 		fmt.Fprintln(conn, "Invalid")
