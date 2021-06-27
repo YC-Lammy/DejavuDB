@@ -11,6 +11,8 @@ import (
 
 var command_query = map[string]string{}
 
+var invalid_password = map[string]int{} // wrong password mac, attemp times
+
 func start_listening() error { // main loop
 	defer wg.Done()
 
@@ -106,6 +108,11 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 			if pass, ok := config["pass"]; ok {
 				if pass.(string) != password { // password is a global var, if not specified, default as ""
 					fmt.Fprintln(conn, "Invalid password")
+					if _, ok := invalid_password[mac]; ok {
+						invalid_password[mac] += 1
+					} else {
+						invalid_password[mac] = 1
+					}
 					conn.Close()
 					return "", "", "", errors.New("Invalid password from " + mac)
 				}
