@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -42,11 +43,19 @@ func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string
 		return err
 	}
 
+	if contains(current_router_ipv4, router_addr) { // make sure each router and shard only connected onece
+		return errors.New("router has connected")
+	}
+
 	if v, ok := config["mac"]; ok {
 		register_router(conn, v.(string), router_addr)
 
 		defer closed_router(conn, v.(string), router_addr)
 
+	} else {
+		shard_register_router(conn, router_addr)
+
+		defer shard_closed_router(conn, router_addr)
 	}
 
 	for {

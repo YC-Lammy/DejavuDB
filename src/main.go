@@ -18,7 +18,7 @@ var MAC_Address string = get_first_mac_addr() // get.go
 
 var hostport string = ""
 
-var dial_ip string
+var dial_ip string = ""
 
 var wg sync.WaitGroup // working group
 

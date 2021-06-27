@@ -76,7 +76,7 @@ func router_handleConnection(conn net.Conn) { // this function handles a single 
 
 		defer closed_router(conn, mac, port)
 
-		send_to_all_shard("connect " + port)
+		send_to_all_shard("connect " + port) // call all shards to connect to new router
 
 	}
 

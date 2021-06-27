@@ -98,6 +98,25 @@ func removeItem(slice []string, item string) []string {
 
 }
 
+func contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
+}
+
+func stringSliceIndex(s []string, str string) int {
+	for i, v := range s {
+		if v == str {
+			return i
+		}
+	}
+	return -1
+}
+
 func getMacFromIp(ipv4 string) *string {
 	for key, v := range shard_map {
 		if v != nil {

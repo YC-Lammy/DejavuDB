@@ -66,12 +66,33 @@ func register_router(conn net.Conn, mac string, port string) {
 	current_router_ipv4 = append(current_router_ipv4, port)
 }
 
+func shard_register_router(conn net.Conn, port string) {
+
+	remote := conn.RemoteAddr().String()
+
+	log.Println("[router] " + remote + " Connected")
+	router_connected += 1
+
+	current_router_ipv4 = append(current_router_ipv4, port)
+}
+
 func closed_router(conn net.Conn, mac string, port string) {
 
 	remote := conn.RemoteAddr().String()
 
 	log.Println("[router] " + remote + " Disconnected")
 	router_map[mac] = nil
+
+	router_connected -= 1
+
+	current_router_ipv4 = removeItem(current_router_ipv4, port)
+}
+
+func shard_closed_router(conn net.Conn, port string) {
+
+	remote := conn.RemoteAddr().String()
+
+	log.Println("[router] " + remote + " Disconnected")
 
 	router_connected -= 1
 

@@ -8,9 +8,10 @@ func shardConfig(config map[string]interface{}) error {
 		for _, v := range v.([]interface{}) { // convert []interface{} to []string
 			list = append(list, v.(string))
 		}
-		current_router_ipv4 = list
+		current_router_ipv4 = removeDuplicateStrings(list)
+
 		for _, ip := range current_router_ipv4 {
-			if ip != dial_ip {
+			if ip != dial_ip && ip != hostport {
 				go dial_server(ip, mycfg, ShardHandler, secondConfig)
 				wg.Add(1)
 			}

@@ -24,15 +24,28 @@ func ShardHandler(conn net.Conn, message string) {
 	case "useradd":
 		useradd(conn, commands) // useradd [option] userName
 
-	case "size":
+	case "shardsize":
 		resault = string(getShardSize())
 
-	case "new":
+	case "set":
+
+	case "SELECT":
+
+	case "UPDATE":
+
+	case "DELETE":
+
+	case "INSERT":
+
+	case "WHERE":
+
+	case "CREATE":
 
 	case "connect":
-		go dial_server(commands[len(commands)-1], mycfg, ShardHandler, shardConfig)
-		wg.Add(1)
-
+		if !(contains(current_router_ipv4, commands[len(commands)-1])) {
+			go dial_server(commands[len(commands)-1], mycfg, ShardHandler, secondConfig)
+			wg.Add(1)
+		}
 	default:
 		fmt.Fprintln(conn, "Invalid")
 		return
