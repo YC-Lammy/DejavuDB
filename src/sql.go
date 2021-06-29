@@ -53,7 +53,7 @@ func Sql_Handler(commands []string) (*string, map[string]interface{}, error) { /
 			if err != nil {
 				return nil, nil, err
 			}
-			shardData[tabelename] = tmp_table
+			shardData[tablename] = tmp_table
 			defer delete(shardData, tablename)
 		}
 
@@ -99,17 +99,29 @@ func Sql_Handler(commands []string) (*string, map[string]interface{}, error) { /
 						headings = append(headings, s[1])
 						heading = s[1]
 					}
-					if strings.Count(value, "(") <= 1 {
+
+					if strings.Count(value, "(") == 1 {
 						function_split := strings.Split(value, "(")
 
 						haveFunc := sql_func_register(function_split[0], apply_function_on_column, column_index)
+
+						if haveFunc != nil {
+							value = strings.Replace(function_split[1], ")", "", 1)
+						} else {
+							return nil, nil, errors.New("sql: function not found")
+						}
+					} else if strings.Count(value, "(") == 0 {
+
 					} else {
 
-					}
+						function_split := strings.Split(value, "(")
 
-					if haveFunc != nil {
-						value = strings.Replace(function_split[1], ")", "", 1)
+						for _, v := range function_split[:len(function_split)-1] {
 
+							sql_func_register(v, apply_function_on_column, column_index)
+						}
+
+						value = strings.Replace(function_split[len(function_split)-1], ")", "", -1)
 					}
 
 					if value[0] == '*' {
@@ -199,7 +211,7 @@ func Sql_Handler(commands []string) (*string, map[string]interface{}, error) { /
 							if a, ok := maps[columns[i]]; ok {
 
 								if _, ok := table_type_map[table]; !(ok) { // check if is table
-									return nil, errors.New("table not exist")
+									return nil, nil, errors.New("table not exist")
 								}
 								switch table_type_map[table][columns[i]] {
 								case "[]string":
