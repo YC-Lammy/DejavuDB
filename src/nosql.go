@@ -255,6 +255,80 @@ func Nosql_Handler(commands []string) (*string, error) {
 		}
 
 		delete(pointer, keys[len(keys)-1])
+
+	case "Clone":
+		pointer := shardData
+
+		keys := strings.Split(commands[1], ".")
+
+		for _, v := range keys[:len(keys)-1] {
+			if a, ok := pointer[v]; ok {
+				pointer = a.(map[string]interface{})
+			} else {
+				return nil, errors.New("key not exist")
+			}
+
+		}
+		pointer1 := shardData
+
+		keys1 := strings.Split(commands[1], ".")
+
+		for _, v := range keys1[:len(keys1)-1] {
+			if a, ok := pointer1[v]; ok {
+				pointer1 = a.(map[string]interface{})
+			} else {
+				return nil, errors.New("key not exist")
+			}
+
+		}
+
+		switch v := pointer[keys[len(keys)-1]].(type) {
+
+		case string:
+			a := v
+			pointer1[keys1[len(keys1)-1]] = a
+
+		case int:
+			a := v
+			pointer1[keys1[len(keys1)-1]] = a
+
+		case float64:
+			a := v
+			pointer1[keys1[len(keys1)-1]] = a
+
+		case bool:
+			a := v
+			pointer1[keys1[len(keys1)-1]] = a
+
+		case []byte:
+			a := v
+			pointer1[keys1[len(keys1)-1]] = a
+
+		case []string:
+			a := v
+			pointer1[keys1[len(keys1)-1]] = a
+
+		case []int:
+			a := v
+			pointer1[keys1[len(keys1)-1]] = a
+
+		case [][]byte:
+			a := v
+			pointer1[keys1[len(keys1)-1]] = a
+
+		case []float64:
+			a := v
+			pointer1[keys1[len(keys1)-1]] = a
+
+		case []bool:
+			a := v
+			pointer1[keys1[len(keys1)-1]] = a
+
+		case map[string]interface{}:
+			a := v
+			pointer1[keys1[len(keys1)-1]] = a
+		}
+
 	}
 	return nil, nil
 }

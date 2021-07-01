@@ -28,12 +28,16 @@ func ShardHandler(conn net.Conn, message string) {
 		resault = string(getShardSize())
 
 	case "Set": // non-sql
-
+		Nosql_Handler(commands)
 	case "Update": // non-sql
-
+		Nosql_Handler(commands)
 	case "Delete": // non-sql
-
+		Nosql_Handler(commands)
 	case "Get": // non-sql
+		Nosql_Handler(commands)
+
+	case "Clone":
+		Nosql_Handler(commands)
 
 	case "SELECT":
 
