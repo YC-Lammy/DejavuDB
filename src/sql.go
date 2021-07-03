@@ -1,20 +1,29 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/json"
 	"errors"
 	"log"
 	"regexp"
 	"strings"
 )
 
-func Sql_Handler(commands []string) (*string, map[string]interface{}, error) { // asume syntax checked
+func Sql_Handler(commands []string) (*string, map[string]interface{}, error) {
+
+	/* syntax check
+	// data key check
+	// seperate process columns
+	// register clauses
+	// register functions
+	// interprete to native nosql and golang func
+	// register task flow nodes
+	// execute nodes in order
+	// todo: optimization by monitering each node
 
 	type node struct { // use a node struct to clearify task order
 		name string
 		next *node
 	}
+	*/
 
 	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
 	if err != nil {
@@ -23,6 +32,10 @@ func Sql_Handler(commands []string) (*string, map[string]interface{}, error) { /
 	}
 
 	length := len(commands)
+
+	//sqlcode := strings.Join(commands, " ")
+
+	//sqlcodeLines := strings.Split(sqlcode, ";")
 
 	switch commands[0] {
 
@@ -40,138 +53,9 @@ func Sql_Handler(commands []string) (*string, map[string]interface{}, error) { /
 
 		*/
 
-		resaultmap := map[string]interface{}{}
+		//resaultmap := map[string]interface{}{}
 
-		tablename := commands[stringSliceIndex(commands, "FROM")+1]
-
-		if tablename == "(SELECT" {
-			n := 5
-			b := make([]byte, n)
-			if _, err := rand.Read(b); err != nil {
-				return nil, nil, err
-			}
-			tablename = string(b)
-			//                               split to []string           join to split ")"                                             remove "("
-			_, tmp_table, err := Sql_Handler(strings.Split(strings.Split(strings.Join(commands[stringSliceIndex(commands, "FROM")+1:], " ")[1:], ")")[0], " "))
-			if err != nil {
-				return nil, nil, err
-			}
-			shardData[tablename] = tmp_table
-			defer delete(shardData, tablename)
-		}
-
-		if v, ok := shardData[tablename]; ok {
-
-			if table, ok := v.(map[string]interface{}); ok {
-
-				operation_columns := strings.Split(strings.Join(commands[1:stringSliceIndex(commands, "FROM")-1], ""), ",")
-
-				var step_map = map[string]int{}
-
-				var distinct_all_columns = false
-
-				var apply_function_on_column = map[int]string{}
-
-				var distinct_on_single_column = map[int]string{}
-
-				var headings = []string{}
-
-				for _, key := range []string{"ORDER", "WHERE", "INNER", "LEFT", "RIGHT", "FULL", "GROUP", "UNION", "ORDER", "HAVING"} {
-					if i := stringSliceIndex(commands, key); i != -1 {
-						step_map[key] = i
-					}
-				}
-
-				for column_index, value := range operation_columns {
-
-					if value[0:8] == "DISTINCT" && column_index == 0 { // syntax: SELECT DISTINCT coumn FROM name
-
-						distinct_all_columns = true
-						value = strings.Replace(value, "DISTINCT", "", -1)
-
-					}
-
-					s := strings.Split(value, "AS")
-					heading := ""
-
-					if len(s) > 2 {
-						return nil, nil, errors.New("sql: syntax error")
-					}
-
-					if len(s) == 2 {
-						headings = append(headings, s[1])
-						heading = s[1]
-					}
-
-					if strings.Count(value, "(") == 1 {
-						function_split := strings.Split(value, "(")
-
-						haveFunc := sql_func_register(function_split[0], apply_function_on_column, column_index)
-
-						if haveFunc != nil {
-							value = strings.Replace(function_split[1], ")", "", 1)
-						} else {
-							return nil, nil, errors.New("sql: function not found")
-						}
-					} else if strings.Count(value, "(") == 0 {
-
-					} else {
-
-						function_split := strings.Split(value, "(")
-
-						for _, v := range function_split[:len(function_split)-1] {
-
-							sql_func_register(v, apply_function_on_column, column_index)
-						}
-
-						value = strings.Replace(function_split[len(function_split)-1], ")", "", -1)
-					}
-
-					if value[0] == '*' {
-						resaultmap = table
-						break
-					}
-
-					if a, ok := table[value]; ok {
-
-						switch v := a.(type) {
-
-						case []string:
-							resaultmap[value] = v
-						case []int:
-							resaultmap[value] = v
-						case []bool:
-							resaultmap[value] = v
-						case []float64:
-							resaultmap[value] = v
-						case [][]byte:
-							resaultmap[value] = v
-						default:
-							return nil, nil, errors.New("sql: invalid data type")
-
-						}
-					}
-
-				} // end loop
-
-				a, err := json.Marshal(resaultmap)
-
-				if err != nil {
-					return nil, nil, err
-				}
-
-				result := string(a)
-
-				return &result, resaultmap, nil
-
-			} else {
-				return nil, nil, errors.New("invalid type of interface")
-			} // end if
-
-		} else {
-			return nil, nil, errors.New("table not exist")
-		}
-		//end if
+		//tablename := commands[stringSliceIndex(commands, "FROM")+1]
 
 	case "UPDATE":
 

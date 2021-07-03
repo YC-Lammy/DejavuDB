@@ -33,9 +33,18 @@ func main() {
 	flag.Parse()
 	gob.Register(map[string]interface{}{})
 
+	//fmt.Println("enter your password:")
+
+	//fmt.Scanln(&password)
+
 	if password != "a empty password" {
-		if len(password) != 16 && len(password) != 24 && len(password) != 32 {
-			panic("password must be length of 16, 24 or 32")
+		for {
+			if len(password) != 16 && len(password) != 24 && len(password) != 32 {
+				fmt.Println("password must be length of 16, 24 or 32")
+				fmt.Scanln(&password)
+			} else {
+				break
+			}
 		}
 
 	}
