@@ -19,7 +19,7 @@ func start_listening() error { // main loop
 	ln, err := net.Listen("tcp", hostport)
 	fmt.Println("[server] server start")
 
-	defer ln.Close()
+	//defer ln.Close()
 
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func router_handleConnection(conn net.Conn) { // this function handles a single 
 
 	connbuff := bufio.NewReader(conn)
 
-	conf_json, err := connbuff.ReadBytes('\n') // read config from client
+	conf_json, err := recieve(connbuff) // read config from client
 
 	if err != nil {
 		log.Println(err)
@@ -53,7 +53,7 @@ func router_handleConnection(conn net.Conn) { // this function handles a single 
 
 	var config map[string]interface{}
 
-	err = json.Unmarshal(conf_json, &config) // decode client config
+	err = json.Unmarshal([]byte(conf_json), &config) // decode client config
 	if err != nil {
 		log.Println(err.(*json.SyntaxError))
 		return
@@ -78,7 +78,7 @@ func router_handleConnection(conn net.Conn) { // this function handles a single 
 
 		defer closed_router(conn, mac, port)
 
-		send_to_all_shard("connect " + port) // call all shards to connect to new router
+		send_to_all_shard([]byte("connect " + port)) // call all shards to connect to new router
 
 	case "client":
 
@@ -89,7 +89,7 @@ func router_handleConnection(conn net.Conn) { // this function handles a single 
 	}
 
 	for {
-		message, err := connbuff.ReadString('\n')
+		message, err := recieve(connbuff)
 		if err != nil {
 			return
 		}
@@ -113,7 +113,7 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 
 			if pass, ok := config["pass"]; ok {
 				if pass.(string) != password { // password is a global var, if not specified, default as ""
-					fmt.Fprintln(conn, "Invalid password")
+					send(conn, []byte("Invalid password"))
 					if _, ok := invalid_password[mac]; ok {
 						invalid_password[mac] += 1
 					} else {
@@ -130,7 +130,7 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 
 			mycfg, _ := json.Marshal(mycfgmap)
 
-			fmt.Fprintln(conn, string(mycfg)) // send config to remote
+			send(conn, mycfg) // send config to remote
 			return rol, mac, port, nil
 
 		case "router":
@@ -140,7 +140,7 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 
 			if pass, ok := config["pass"]; ok {
 				if pass.(string) != password { // password is a global var, if not specified, default as ""
-					fmt.Fprintln(conn, "Invalid password")
+					send(conn, []byte("Invalid password"))
 					conn.Close()
 					return "", "", "", errors.New("Invalid password from " + mac)
 				}
@@ -153,7 +153,7 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 
 			mycfg, _ := json.Marshal(mycfgmap)
 
-			fmt.Fprintln(conn, string(mycfg)) // send mycfg to remote
+			send(conn, mycfg) // send mycfg to remote
 			return rol, mac, port, nil
 
 		case "client":
@@ -163,7 +163,7 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 
 			mycfg, _ := json.Marshal(mycfgmap)
 
-			fmt.Fprintln(conn, string(mycfg))
+			send(conn, mycfg)
 
 			return rol, "", "", nil
 
@@ -173,24 +173,24 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 
 			if pass, ok := config["pass"]; ok {
 				if pass.(string) != password { // password is a global var, if not specified, default as ""
-					fmt.Fprintln(conn, "Invalid password")
+					send(conn, []byte("Invalid password"))
 					if _, ok := invalid_password[mac]; ok {
 						invalid_password[mac] += 1
 					} else {
 						invalid_password[mac] = 1
 					}
 					conn.Close()
-					return "", "", "", errors.New("Invalid password")
+					return "", "", "", errors.New("invalid password")
 				}
 
 			}
-			rol := "shard"
+			rol := "log"
 
 			mycfgmap := map[string]interface{}{"router_ipv4": current_router_ipv4}
 
 			mycfg, _ := json.Marshal(mycfgmap)
 
-			fmt.Fprintln(conn, string(mycfg)) // send config to remote
+			send(conn, mycfg) // send config to remote
 			return rol, "", port, nil
 
 		default:

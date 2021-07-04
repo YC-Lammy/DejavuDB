@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 )
@@ -131,25 +130,25 @@ func closed_log(conn net.Conn) {
 	log.Println("[log] " + remote + " Disconnected")
 }
 
-func send_to_all_router(message interface{}) {
+func send_to_all_router(message []byte) {
 	for _, v := range router_map {
 		if v != nil {
-			fmt.Fprintln(v, message)
+			send(v, message)
 		}
 
 	}
 }
 
-func send_to_all_shard(message interface{}) {
+func send_to_all_shard(message []byte) {
 	for _, v := range shard_map {
 		if v != nil {
-			fmt.Fprintln(v, message)
+			send(v, message)
 		}
 	}
 }
 
-func sendLog(message string) {
+func sendLog(message []byte) {
 	for _, conn := range log_servers {
-		fmt.Fprintln(conn, message)
+		send(conn, message)
 	}
 }

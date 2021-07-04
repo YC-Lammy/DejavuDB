@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -15,7 +14,7 @@ func ShardHandler(conn net.Conn, message string) {
 
 	commands := strings.Split(message, " ")
 	commands[len(commands)-1] = strings.Split(commands[len(commands)-1], "\n")[0]
-	var resault string
+	var result []byte
 	switch commands[0] {
 
 	case "groupadd":
@@ -25,7 +24,7 @@ func ShardHandler(conn net.Conn, message string) {
 		useradd(conn, commands) // useradd [option] userName
 
 	case "shardsize":
-		resault = string(getShardSize())
+		result = []byte(strconv.FormatInt(int64(getShardSize()), 10))
 
 	case "Set": // non-sql
 		Nosql_Handler(commands)
@@ -63,10 +62,10 @@ func ShardHandler(conn net.Conn, message string) {
 			wg.Add(1)
 		}
 	default:
-		fmt.Fprintln(conn, "Invalid")
+		send(conn, []byte("Invalid"))
 		return
 	}
-	fmt.Fprintln(conn, resault)
+	send(conn, result)
 }
 
 func groupadd(conn net.Conn, commands []string) { // option -g specified group id, -r system group
@@ -77,7 +76,7 @@ func groupadd(conn net.Conn, commands []string) { // option -g specified group i
 	var err error
 
 	if exist { // group name exist
-		fmt.Fprintln(conn, "Invalid")
+		send(conn, []byte("Invalid"))
 		return
 	}
 	if len(commands) > 2 {
@@ -117,7 +116,7 @@ func useradd(conn net.Conn, commands []string) { // option -u specified user id,
 	_, exist := shardData[group].(map[string]interface{})[username]
 
 	if exist { // username name exist
-		fmt.Fprintln(conn, "Invalid")
+		send(conn, []byte("Invalid"))
 		return
 	}
 

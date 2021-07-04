@@ -126,8 +126,12 @@ func start_client(dial_addr string) { // start as a client
 }
 
 func start_full(dial_addr string) {
+
 	fmt.Println("starting router...")
 	start_router(dial_addr)
+	time.Sleep(1 * time.Second)
+	fmt.Println("starting log server...")
+	start_log(hostport)
 	time.Sleep(1 * time.Second)
 	fmt.Println("starting shard...")
 	start_shard(hostport)

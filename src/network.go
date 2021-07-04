@@ -9,6 +9,19 @@ import (
 	"net"
 )
 
+func send(conn net.Conn, message []byte) {
+	message = append(message, 0x00) // nul to mark end of section
+	fmt.Fprint(conn, string(message))
+}
+
+func recieve(buffer *bufio.Reader) (string, error) {
+	message, err := buffer.ReadBytes(0x00)
+	if err != nil {
+		return "", err
+	}
+	return string(message[:len(message)-1]), nil
+}
+
 func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string), cfgfn func(map[string]interface{}) error) error {
 
 	defer wg.Done()
@@ -22,11 +35,11 @@ func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string
 
 	defer conn.Close()
 
-	fmt.Fprintln(conn, string(mycfg)) // send my config to router, router reads and decides
+	send(conn, mycfg) // send my config to router, router reads and decides
 
 	connbuff := bufio.NewReader(conn)
 
-	config_json, err := connbuff.ReadString('\n') // read config sent from router
+	config_json, err := recieve(connbuff) // read config sent from router
 
 	if err != nil {
 		log.Println(err)
@@ -59,7 +72,7 @@ func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string
 	}
 
 	for {
-		message, err := connbuff.ReadString('\n')
+		message, err := recieve(connbuff)
 
 		if err != nil {
 			return err
