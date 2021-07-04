@@ -6,19 +6,33 @@ import (
 	"net"
 )
 
+type shardDetail struct {
+	size      int
+	conn      net.Conn
+	mem_load  int
+	cpu_load  int
+	disk_load int
+	mem_size  int
+	disk_size int
+}
+
 var shard_connected = 0
 
 var router_connected = 0
 
-var data_map = map[string]interface{}{}
+var data_map = map[string]interface{}{} // key.key.key = []string, only map[string]interface{} and []string
 
 var shard_map = map[string]net.Conn{} // mac addr : net.Conn or false if disconnected
+
+var shard_size = map[string]int{}
 
 var router_map = map[string]net.Conn{} //
 
 var router_load = map[string]int{}
 
 var current_router_ipv4 = []string{} //
+
+var log_servers = []net.Conn{}
 
 var user_map = map[string]interface{}{ // user_map will not be exposed to the out front
 	/*
@@ -99,6 +113,24 @@ func shard_closed_router(conn net.Conn, port string) {
 	current_router_ipv4 = removeItem(current_router_ipv4, port)
 }
 
+func register_log(conn net.Conn) {
+	remote := conn.RemoteAddr().String()
+	log_servers = append(log_servers, conn)
+	log.Println("[log] " + remote + " Connected")
+}
+
+func closed_log(conn net.Conn) {
+
+	remote := conn.RemoteAddr().String()
+
+	for i, v := range log_servers {
+		if v == conn {
+			log_servers = append(log_servers[:i], log_servers[i+1:]...)
+		}
+	}
+	log.Println("[log] " + remote + " Disconnected")
+}
+
 func send_to_all_router(message interface{}) {
 	for _, v := range router_map {
 		if v != nil {
@@ -113,5 +145,11 @@ func send_to_all_shard(message interface{}) {
 		if v != nil {
 			fmt.Fprintln(v, message)
 		}
+	}
+}
+
+func sendLog(message string) {
+	for _, conn := range log_servers {
+		fmt.Fprintln(conn, message)
 	}
 }

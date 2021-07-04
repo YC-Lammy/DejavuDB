@@ -42,6 +42,9 @@ func ShardHandler(conn net.Conn, message string) {
 	case "Clone":
 		Nosql_Handler(commands)
 
+	case "Move":
+		Nosql_Handler(commands)
+
 	case "SELECT":
 
 	case "UPDATE":

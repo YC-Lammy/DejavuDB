@@ -82,6 +82,10 @@ func router_handleConnection(conn net.Conn) { // this function handles a single 
 
 	case "client":
 
+	case "log":
+		register_log(conn)
+		defer closed_log(conn)
+
 	}
 
 	for {
@@ -162,6 +166,32 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 			fmt.Fprintln(conn, string(mycfg))
 
 			return rol, "", "", nil
+
+		case "log":
+
+			port := config["port"].(string)
+
+			if pass, ok := config["pass"]; ok {
+				if pass.(string) != password { // password is a global var, if not specified, default as ""
+					fmt.Fprintln(conn, "Invalid password")
+					if _, ok := invalid_password[mac]; ok {
+						invalid_password[mac] += 1
+					} else {
+						invalid_password[mac] = 1
+					}
+					conn.Close()
+					return "", "", "", errors.New("Invalid password")
+				}
+
+			}
+			rol := "shard"
+
+			mycfgmap := map[string]interface{}{"router_ipv4": current_router_ipv4}
+
+			mycfg, _ := json.Marshal(mycfgmap)
+
+			fmt.Fprintln(conn, string(mycfg)) // send config to remote
+			return rol, "", port, nil
 
 		default:
 			return "", "", "", errors.New(conn.RemoteAddr().String() + " no role specified")

@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"sync"
+	"time"
 )
 
 var password string = ""
@@ -63,6 +64,12 @@ func main() {
 	case "client":
 		start_client(router_addr)
 
+	case "full":
+		start_full(router_addr)
+
+	case "log":
+		start_log(router_addr)
+
 	default:
 		panic("Specified Role Invalid")
 
@@ -116,4 +123,29 @@ func start_shard(dial_addr string) { // start as a shard
 
 func start_client(dial_addr string) { // start as a client
 
+}
+
+func start_full(dial_addr string) {
+	fmt.Println("starting router...")
+	start_router(dial_addr)
+	time.Sleep(1 * time.Second)
+	fmt.Println("starting shard...")
+	start_shard(hostport)
+	fmt.Println("starting client...")
+	start_client(hostport)
+}
+
+func start_log(dial_addr string) {
+	if dial_addr == "" {
+		panic("must specific an address")
+		return
+	}
+	cfg := map[string]interface{}{"role": "log", "pass": password, "port": hostport}
+	mycfg, _ = json.Marshal(cfg)
+
+	go log_file_date()
+
+	go dial_server(dial_addr, mycfg, logHandler, shardConfig) // network.go
+
+	wg.Add(2)
 }

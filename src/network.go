@@ -52,7 +52,7 @@ func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string
 
 		defer closed_router(conn, v.(string), router_addr)
 
-	} else {
+	} else if config["role"] == "shard" {
 		shard_register_router(conn, router_addr)
 
 		defer shard_closed_router(conn, router_addr)

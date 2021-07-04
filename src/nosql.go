@@ -149,9 +149,7 @@ func Nosql_Handler(commands []string) (*string, error) {
 
 			a := strings.Split(str, ",")
 
-			for _, v := range a {
-				result = append(result, v)
-			}
+			result = append(result, a...)
 
 			pointer[keys[len(keys)-1]] = result
 
@@ -277,9 +275,9 @@ func Nosql_Handler(commands []string) (*string, error) {
 			if a, ok := pointer1[v]; ok {
 				pointer1 = a.(map[string]interface{})
 			} else {
-				return nil, errors.New("key not exist")
+				pointer1[v] = map[string]interface{}{} // create a new key
+				pointer1 = pointer1[v].(map[string]interface{})
 			}
-
 		}
 
 		switch v := pointer[keys[len(keys)-1]].(type) {
@@ -329,6 +327,9 @@ func Nosql_Handler(commands []string) (*string, error) {
 			pointer1[keys1[len(keys1)-1]] = a
 		}
 
+	case "Move":
+		Nosql_Handler([]string{"Clone", commands[1], commands[2]}) // Move can be done by two process
+		Nosql_Handler([]string{"Delete", commands[1]})
 	}
 	return nil, nil
 }
