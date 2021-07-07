@@ -95,7 +95,7 @@ func Nosql_Handler(commands []string) (*string, error) {
 			return &a, nil
 		}
 
-	case "Update": // syntax: "Update name.name1.name2 value type" e.g. "Update User.John.id 23740 int"
+	case "Update": // syntax: "Update name.name1.name2 value" e.g. "Update User.John.id 23740"
 
 		pointer := shardData
 
@@ -109,35 +109,35 @@ func Nosql_Handler(commands []string) (*string, error) {
 			}
 		}
 
-		switch commands[3] {
-		case "int":
+		switch pointer[keys[len(keys)-1]].(type) {
+		case int:
 			v, err := strconv.ParseInt(commands[2], 10, 64)
 			if err != nil {
 				return nil, err
 			}
 			pointer[keys[len(keys)-1]] = int(v)
 
-		case "float":
+		case float64:
 			v, err := strconv.ParseFloat(commands[2], 64)
 			if err != nil {
 				return nil, err
 			}
 			pointer[keys[len(keys)-1]] = v
 
-		case "string":
+		case string:
 			pointer[keys[len(keys)-1]] = commands[2]
 
-		case "bool":
+		case bool:
 			v, err := strconv.ParseBool(commands[2])
 			if err != nil {
 				return nil, err
 			}
 			pointer[keys[len(keys)-1]] = v
 
-		case "[]byte":
+		case []byte:
 			pointer[keys[len(keys)-1]] = []byte(commands[2])
 
-		case "[]string":
+		case []string:
 
 			str := commands[2]
 			result := []string{}
@@ -153,7 +153,7 @@ func Nosql_Handler(commands []string) (*string, error) {
 
 			pointer[keys[len(keys)-1]] = result
 
-		case "[]int":
+		case []int:
 			str := commands[2]
 			result := []int{}
 
@@ -174,7 +174,7 @@ func Nosql_Handler(commands []string) (*string, error) {
 
 			pointer[keys[len(keys)-1]] = result
 
-		case "[]float":
+		case []float64:
 			str := commands[2]
 			result := []float64{}
 
@@ -195,7 +195,7 @@ func Nosql_Handler(commands []string) (*string, error) {
 
 			pointer[keys[len(keys)-1]] = result
 
-		case "[][]byte":
+		case [][]byte:
 			str := commands[2]
 			result := [][]byte{}
 
@@ -212,7 +212,7 @@ func Nosql_Handler(commands []string) (*string, error) {
 
 			pointer[keys[len(keys)-1]] = result
 
-		case "[]bool":
+		case []bool:
 			str := commands[2]
 			result := []bool{}
 

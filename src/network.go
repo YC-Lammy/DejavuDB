@@ -9,9 +9,9 @@ import (
 	"net"
 )
 
-func send(conn net.Conn, message []byte) {
+func send(conn net.Conn, message []byte) (int, error) {
 	message = append(message, 0x00) // nul to mark end of section
-	fmt.Fprint(conn, string(message))
+	return fmt.Fprint(conn, string(message))
 }
 
 func recieve(buffer *bufio.Reader) (string, error) {

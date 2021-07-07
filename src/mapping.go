@@ -146,9 +146,3 @@ func send_to_all_shard(message []byte) {
 		}
 	}
 }
-
-func sendLog(message []byte) {
-	for _, conn := range log_servers {
-		send(conn, message)
-	}
-}

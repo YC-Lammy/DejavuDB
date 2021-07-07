@@ -20,11 +20,7 @@ func RouterHandler(conn net.Conn, message string) { // this function handles any
 func router_clientHandler(conn net.Conn, message string) {
 	splited_message := strings.Split(message, " ")
 	switch splited_message[0] {
-	case "Set":
-	case "Get":
-	case "Update":
-	case "Clone":
-	case "Delete":
-	case "Move":
+	case "Set", "Get", "Update", "Clone", "Delete", "Move":
+
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 )
@@ -37,6 +38,17 @@ func main() {
 	//fmt.Println("enter your password:")
 
 	//fmt.Scanln(&password)
+
+	os.Chdir(home_dir)
+
+	os.Mkdir("dejavuDB", os.ModePerm)
+
+	os.Chdir("dejavuDB")
+
+	os.Mkdir("log", os.ModePerm)
+	os.Mkdir("database", os.ModePerm)
+
+	setupLog()
 
 	if password != "a empty password" {
 		for {
