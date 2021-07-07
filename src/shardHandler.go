@@ -4,7 +4,6 @@ import (
 	"net"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/DmitriyVTitov/size"
 )
@@ -13,48 +12,23 @@ func ShardHandler(conn net.Conn, message string) {
 	defer wg.Done()
 
 	commands := strings.Split(message, " ")
-	commands[len(commands)-1] = strings.Split(commands[len(commands)-1], "\n")[0]
+	id := commands[0]
+	commands = commands[1:]
 	var result []byte
 	switch commands[0] {
-
-	case "groupadd":
-		groupadd(conn, commands) // groupadd [option] groupName
-
-	case "useradd":
-		useradd(conn, commands) // useradd [option] userName
 
 	case "shardsize":
 		result = []byte(strconv.FormatInt(int64(getShardSize()), 10))
 
-	case "Set": // non-sql
-		Nosql_Handler(commands)
+	case "Set", "Update", "Delete", "Get", "Clone", "Move": // non-sql
+		v, err := Nosql_Handler(commands)
+		if err != nil {
+			send(conn, []byte("processID "+id+" "+err.Error()))
+		} else {
+			send(conn, []byte("processID "+id+" "+*v))
+		}
 
-	case "Update": // non-sql
-		Nosql_Handler(commands)
-
-	case "Delete": // non-sql
-		Nosql_Handler(commands)
-
-	case "Get": // non-sql
-		Nosql_Handler(commands)
-
-	case "Clone":
-		Nosql_Handler(commands)
-
-	case "Move":
-		Nosql_Handler(commands)
-
-	case "SELECT":
-
-	case "UPDATE":
-
-	case "DELETE":
-
-	case "INSERT":
-
-	case "WHERE":
-
-	case "CREATE":
+	case "SQL":
 
 	case "connect":
 		if !(contains(current_router_ipv4, commands[len(commands)-1])) {
@@ -62,65 +36,10 @@ func ShardHandler(conn net.Conn, message string) {
 			wg.Add(1)
 		}
 	default:
-		send(conn, []byte("Invalid"))
+		send(conn, []byte("processID "+id+" Invalid"))
 		return
 	}
 	send(conn, result)
-}
-
-func groupadd(conn net.Conn, commands []string) { // option -g specified group id, -r system group
-
-	_, exist := shardData[commands[len(commands)-1]]
-
-	var id int64 = 1001
-	var err error
-
-	if exist { // group name exist
-		send(conn, []byte("Invalid"))
-		return
-	}
-	if len(commands) > 2 {
-		for i := 0; i < len(commands); i++ {
-			if commands[i] == "-g" {
-				id, err = strconv.ParseInt(commands[i+1], 10, 64)
-				CheckErr(err)
-			}
-			if commands[i] == "-r" {
-				id = 50
-			}
-		}
-	}
-
-	shardData[commands[len(commands)-1]] = map[string]interface{}{"id": id}
-
-}
-
-func useradd(conn net.Conn, commands []string) { // option -u specified user id, -G add to group
-
-	var id int64 = 1001
-	var err error
-	var group string = "user"
-	var username string = commands[len(commands)-1]
-
-	if len(commands) > 2 {
-		for i := 0; i < len(commands); i++ {
-			if commands[i] == "-u" {
-				id, err = strconv.ParseInt(commands[i+1], 10, 64)
-				CheckErr(err)
-			}
-			if commands[i] == "-G" {
-				group = commands[i+1]
-			}
-		}
-	}
-	_, exist := shardData[group].(map[string]interface{})[username]
-
-	if exist { // username name exist
-		send(conn, []byte("Invalid"))
-		return
-	}
-
-	shardData[group].(map[string]interface{})[username] = map[string]interface{}{"id": id, "issue_date": time.Now().String()}
 }
 
 func getShardSize() int {

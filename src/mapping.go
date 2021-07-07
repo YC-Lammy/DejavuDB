@@ -33,22 +33,6 @@ var current_router_ipv4 = []string{} //
 
 var log_servers = []net.Conn{}
 
-var user_map = map[string]interface{}{ // user_map will not be exposed to the out front
-	/*
-		GID 1–99 are reserved for the system and application use.
-		GID 100+ allocated for the user’s group.
-		UIDs 1–99 are reserved for other predefined accounts.
-		UID 100–999 are reserved by system for administrative and system accounts/groups.
-		UID 1000–10000 are occupied by applications account.
-		UID 10000+ are used for user accounts.
-	*/
-	"adm":     map[string]interface{}{"id": "1"},    // admin, nearest to root
-	"sudo":    map[string]interface{}{"id": "27"},   // config permission, upgrade and maintainance
-	"dev":     map[string]interface{}{"id": "30"},   // developers, view logs and cofigs
-	"monitor": map[string]interface{}{"id": "80"},   // analystics, no admin permissions
-	"user":    map[string]interface{}{"id": "100"},  // regular user, no additional permissions
-	"public":  map[string]interface{}{"id": "1000"}} // public access, no authorization needed
-
 func register_shard(conn net.Conn, mac string) {
 
 	remote := conn.RemoteAddr().String()

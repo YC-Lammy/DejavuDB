@@ -20,7 +20,8 @@ func logHandler(conn net.Conn, message string) {
 
 	case "log":
 		log_logfile.WriteString(message[3:] + "\n")
-	case "monitor":
+	case "getMonitor":
+		send_to_all_router([]byte("monitor"))
 
 	}
 	log.Println(message)
