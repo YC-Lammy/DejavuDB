@@ -20,7 +20,7 @@ type user_group struct {
 	users map[string]user // name of user
 }
 
-number_of_users := 0
+var number_of_users int = 0
 var user_map = map[string]user_group{ // user_map will not be exposed to the out front
 	/*
 		GID 1–99 are reserved for the system and application use.
@@ -44,25 +44,25 @@ func useradd(message string) error { //this function can only be executed on rou
 	name := splited[len(splited)-1]
 	group := "user"
 	id := 1000 + number_of_users
-	var expire time.Time = nil
+	var expire time.Time = time.Now().AddDate(100, 0, 0)
 	if len(splited) > 1 {
-		for i, v := range splited{
-			switch v{
+		for i, v := range splited {
+			switch v {
 			case "-G":
 				group = splited[i+1]
 			case "-u":
-				a,_ := strconv.ParseInt(splited[i+1],10,64)
+				a, _ := strconv.ParseInt(splited[i+1], 10, 64)
 				id = int(a)
 
-			case "-e": //expiry date YYYY-MM-DD 
-				datestr := strings.Split(splited[i+1],"-")
+			case "-e": //expiry date YYYY-MM-DD
+				datestr := strings.Split(splited[i+1], "-")
 				var date []int
-				for _,v:= range datestr{
-					a,_ :=strconv.ParseInt(v,10,64)
+				for _, v := range datestr {
+					a, _ := strconv.ParseInt(v, 10, 64)
 					date = append(date, int(a))
 				}
-				
-				expire = time.Date(date[0],date[1],date[2],0,0,0,0,time.Local)
+
+				expire = time.Date(date[0], time.Month(date[1]), date[2], 0, 0, 0, 0, time.Local)
 			}
 		}
 
