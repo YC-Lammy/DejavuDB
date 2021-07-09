@@ -21,6 +21,7 @@ type user_group struct {
 }
 
 var number_of_users int = 0
+
 var user_map = map[string]user_group{ // user_map will not be exposed to the out front
 	/*
 		GID 1–99 are reserved for the system and application use.
@@ -72,5 +73,16 @@ func useradd(message string) error { //this function can only be executed on rou
 	}
 	user_map[group].users[name] = user{name: name, id: id, issue_date: time.Now().String(),
 		expiry_time: expire}
+	return nil
+}
+
+func groupadd(message string) error {
+	message = strings.Replace(message, "groupadd ", "", 1)
+	splited := strings.Split(message, " ")
+	name := splited[len(splited)-1]
+	id := 1000 + number_of_users
+
+	user_map[name] = user_group{id: id, users: map[string]user{}}
+
 	return nil
 }

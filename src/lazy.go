@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"time"
 )
 
 // a common go file to get information
@@ -45,6 +46,9 @@ func getType(obj interface{}) string {
 		return "bool"
 	case uint:
 		return "uint"
+
+	case float64:
+		return "float64"
 
 	default:
 		return ""
@@ -124,7 +128,6 @@ func getMacFromIp(ipv4 string) *string {
 				return &key
 			}
 		}
-
 	}
 	for key, v := range router_map {
 		if v != nil {
@@ -151,4 +154,14 @@ func getIpFromMac(mac string) *string {
 		}
 	}
 	return nil
+}
+
+func waitUntil(condition func() bool, execute func(), duration time.Duration) {
+	for {
+		if condition() {
+			execute()
+			break
+		}
+		time.Sleep(duration)
+	}
 }

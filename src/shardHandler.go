@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -35,6 +37,15 @@ func ShardHandler(conn net.Conn, message string) {
 			go dial_server(commands[len(commands)-1], mycfg, ShardHandler, secondConfig)
 			wg.Add(1)
 		}
+
+	case "monitor":
+		arr, err := json.Marshal(monitor())
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		send(conn, []byte("monitorResult "+string(arr)))
+
 	default:
 		send(conn, []byte("processID "+id+" Invalid"))
 		return

@@ -23,6 +23,9 @@ func logHandler(conn net.Conn, message string) {
 	case "getMonitor":
 		send_to_all_router([]byte("monitor"))
 
+	case "monitorResult": // recieve moniter values
+		register_monitor_value(message[14:])
+
 	}
 	log.Println(message)
 }

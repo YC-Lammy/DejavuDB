@@ -134,7 +134,11 @@ func start_shard(dial_addr string) { // start as a shard
 ////////////////////////////////////////////////////////////////////////////////////////
 
 func start_client(dial_addr string) { // start as a client
+	cfg := map[string]interface{}{"role": "client"}
+	mycfg, _ = json.Marshal(cfg)
+	go Client_dial(dial_addr, mycfg)
 
+	wg.Add(1)
 }
 
 func start_full(dial_addr string) {
