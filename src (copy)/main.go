@@ -24,10 +24,6 @@ var hostport string = ""
 
 var dial_ip string = ""
 
-var save_to_disk bool = false
-
-var securite_connection int = 0
-
 var wg sync.WaitGroup // working group
 
 func main() {
@@ -37,17 +33,13 @@ func main() {
 	flag.StringVar(&role, "r", "router", "Specify role. Default is router, option: shard, client")
 	flag.StringVar(&router_addr, "ip", "", "Specify router ip. Default is stand alone router")
 	flag.StringVar(&password, "p", "a empty password", "Specify password. Default is empty")
-	flag.StringVar(&hostport, "host", "localhost:8080", "specify hosting port")
-	flag.BoolVar(&save_to_disk, "disk", false, "save copy to disk")
-	flag.IntVar(&securite_connection, "sc", 0, "specify to use securite connection and the bit width")
+	flag.StringVar(&hostport, "port", "localhost:8080", "specify hosting port")
 	flag.Parse()
 	gob.Register(map[string]interface{}{})
 
 	//fmt.Println("enter your password:")
 
 	//fmt.Scanln(&password)
-
-	fmt.Println(save_to_disk)
 
 	os.Chdir(home_dir)
 
