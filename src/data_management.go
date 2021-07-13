@@ -5,12 +5,13 @@ import "net"
 type data_replicates_group struct {
 	connections []net.Conn
 	size        int
+	macs        []string
 }
 
 func (gp *data_replicates_group) ActiveCount() int {
 	count := 0
 	for i, v := range gp.connections {
-		_, err := v.Read(make([]byte, 0))
+		_, err := v.Read(make([]byte, 0)) // remove closed connections
 		if err != nil {
 			gp.connections = append(gp.connections[:i], gp.connections[i+1:]...)
 		} else {

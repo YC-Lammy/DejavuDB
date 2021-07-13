@@ -11,7 +11,7 @@ type user struct {
 	name        string
 	password    []byte
 	id          int
-	issue_date  string
+	issue_date  time.Time
 	expiry_time time.Time
 }
 
@@ -29,14 +29,13 @@ var user_map = map[string]user_group{ // user_map will not be exposed to the out
 		UIDs 1–99 are reserved for other predefined accounts.
 		UID 100–999 are reserved by system for administrative and system accounts/groups.
 		UID 1000–10000 are occupied by applications account.
-		UID 10000+ are used for user accounts.
 	*/
-	"adm":     user_group{id: 1, users: map[string]user{}},    // admin, nearest to root
-	"sudo":    user_group{id: 27, users: map[string]user{}},   // config permission, upgrade and maintainance
-	"dev":     user_group{id: 30, users: map[string]user{}},   // developers, view logs and cofigs
-	"monitor": user_group{id: 80, users: map[string]user{}},   // analystics, no admin permissions
-	"user":    user_group{id: 100, users: map[string]user{}},  // regular user, no additional permissions
-	"public":  user_group{id: 1000, users: map[string]user{}}, // public access, no authorization needed
+	"adm":      user_group{id: 1, users: map[string]user{}},    // admin, nearest to root
+	"sudo":     user_group{id: 27, users: map[string]user{}},   // config permission, upgrade and maintainance
+	"dev":      user_group{id: 30, users: map[string]user{}},   // developers, view logs and cofigs
+	"analysts": user_group{id: 80, users: map[string]user{}},   // analystics, no admin permissions
+	"user":     user_group{id: 100, users: map[string]user{}},  // regular user, no additional permissions
+	"public":   user_group{id: 1000, users: map[string]user{}}, // public access, for application account
 }
 
 func useradd(message string) error { //this function can only be executed on router
@@ -71,7 +70,7 @@ func useradd(message string) error { //this function can only be executed on rou
 	if _, ok := user_map[group]; !ok {
 		return errors.New("user group does not exist")
 	}
-	user_map[group].users[name] = user{name: name, id: id, issue_date: time.Now().String(),
+	user_map[group].users[name] = user{name: name, id: id, issue_date: time.Now(),
 		expiry_time: expire}
 	return nil
 }
@@ -84,5 +83,9 @@ func groupadd(message string) error {
 
 	user_map[name] = user_group{id: id, users: map[string]user{}}
 
+	return nil
+}
+
+func chmod(command string) error {
 	return nil
 }

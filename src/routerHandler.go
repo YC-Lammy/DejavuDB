@@ -19,7 +19,7 @@ func RouterHandler(conn net.Conn, message string) { // this function handles any
 
 	switch splited[0] {
 
-	case "CLIENT":
+	case "CLIENT": // admin api command
 		if splited[1] == "RSA" {
 			priv, _ := rsa.GenerateKey(rand.Reader, 128) // skipped error checking for brevity
 			pub, err := x509.MarshalPKIXPublicKey(&priv.PublicKey)
@@ -31,7 +31,7 @@ func RouterHandler(conn net.Conn, message string) { // this function handles any
 		}
 		router_clientHandler(conn, message[7:]) // handle system console users
 
-	case "processID": // shard returns value
+	case "processID": // shard returns result
 
 		id, err := strconv.ParseInt(strings.Split(message, " ")[1], 10, 64)
 
@@ -41,7 +41,7 @@ func RouterHandler(conn net.Conn, message string) { // this function handles any
 		}
 		send(process_query[int(id)].client, []byte(strings.Join(strings.Split(message, " ")[2:], " ")))
 
-	case "monitor":
+	case "monitor": // request to send monitor values
 		arr, err := json.Marshal(monitor())
 		if err != nil {
 			log.Println(err)
@@ -53,7 +53,7 @@ func RouterHandler(conn net.Conn, message string) { // this function handles any
 
 		register_monitor_value(message[14:]) // monitor.go
 
-	default: // send to shard
+	default: // send to shard, common api handler
 		router_apiHandler(conn, message) // handle request to shard
 	}
 
@@ -61,12 +61,14 @@ func RouterHandler(conn net.Conn, message string) { // this function handles any
 
 func router_apiHandler(conn net.Conn, message string) {
 	splited_message := strings.Split(message, " ")
+
 	switch splited_message[0] {
+
 	case "Get", "Update", "Delete":
 
 		id := add_process(conn) // register process
 
-		macs, err := getShardMac(splited_message[1])
+		conns, err := getShardConn(splited_message[1])
 		if err != nil {
 			delete(process_query, id)
 			log.Println(err)
@@ -75,13 +77,12 @@ func router_apiHandler(conn net.Conn, message string) {
 		id_str := strconv.FormatInt(int64(id), 10)
 		counter := 0
 
-		for _, v := range macs {
-			if v, ok := shard_map[v]; ok { // get net.Conn
-				if v != nil {
-					send(v, []byte("processID "+id_str+" "+message)) // send to shard
-					counter += 1
-				}
+		for _, v := range conns {
+			_, err := send(v, []byte("processID "+id_str+" "+message)) // send to shard
+			if err != nil {
+				continue
 			}
+			counter += 1
 		}
 		if counter == 0 {
 			delete(process_query, id)
@@ -96,7 +97,7 @@ func router_apiHandler(conn net.Conn, message string) {
 	}
 }
 
-func router_clientHandler(conn net.Conn, message string) {
+func router_clientHandler(conn net.Conn, message string) { // execute logged in commands
 
 	result, err := execute_command(conn, message) // console command.go
 

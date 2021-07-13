@@ -9,13 +9,15 @@ import (
 // commands can only executed by a console client
 // a full list of the commands
 var list_of_commands = []string{"useradd", "groupadd", "Login", "Logout",
-	"atop", "cat", "cp", "df", "dstat", "find", "free", "last", "mv", "netstat", "rm", "sort", "w", "top", "tar"}
+	"atop", "cat", "cp", "chmod", "chown", "chgrp", "df", "dstat", "find",
+	"free", "last", "mv", "netstat", "rm", "sort", "w", "top", "tar"}
 
 var command_result string
 
 func execute_command(conn net.Conn, message string) (string, error) {
 	command_result = "" // reset result
 	splited := strings.Split(message, " ")
+	var err error = nil
 	switch splited[0] {
 	case "Login":
 	case "df":
@@ -24,6 +26,9 @@ func execute_command(conn net.Conn, message string) (string, error) {
 		console_monitor(message, console_dstat_exec)
 	case "free":
 		console_monitor(message, console_free_exec)
+	}
+	if err != nil {
+		return "", err
 	}
 	return command_result, nil
 }
