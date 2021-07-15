@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net"
 	"strings"
 	"time"
@@ -8,9 +9,10 @@ import (
 
 // commands can only executed by a console client
 // a full list of the commands
-var list_of_commands = []string{"useradd", "groupadd", "Login", "Logout",
+var list_of_commands = []string{"Set", "Get", "Delete", "Update", "Clone", "Move",
+	"useradd", "groupadd", "Login", "Logout",
 	"atop", "cat", "cp", "chmod", "chown", "chgrp", "df", "dstat", "find",
-	"free", "last", "mv", "netstat", "rm", "sort", "w", "top", "tar"}
+	"free", "id", "last", "mv", "netstat", "rm", "sort", "w", "top", "tar"}
 
 var command_result string
 
@@ -19,13 +21,31 @@ func execute_command(conn net.Conn, message string) (string, error) {
 	splited := strings.Split(message, " ")
 	var err error = nil
 	switch splited[0] {
+	case "Set", "Get", "Update", "Clone", "Move", "Delete":
+		router_apiHandler(conn, message)
+		err = errors.New("do not send")
+	case "useradd":
+		err = useradd(message)
+	case "groupadd":
+		err = groupadd(message)
 	case "Login":
+	case "chmod":
+		err = chmod(message)
+	case "chown":
+		err = chown(message)
+	case "chgrp":
+		err = chgrp(message)
 	case "df":
 		console_monitor(message, console_df_exec)
 	case "dstat":
 		console_monitor(message, console_dstat_exec)
 	case "free":
 		console_monitor(message, console_free_exec)
+	case "id":
+		err = userid(message)
+
+	default:
+		err = errors.New("command not found")
 	}
 	if err != nil {
 		return "", err
@@ -37,6 +57,9 @@ func execute_command(conn net.Conn, message string) (string, error) {
 // groupadd in user.go
 // Login in user.go
 // Logout in user.go
+// chmod data_mapping.go
+// chown data_mapping.go
+// chgrp data_mapping.go
 
 func all_monitor_recieved() bool {
 	return len(monitor_values) == router_connected+1
@@ -80,5 +103,4 @@ func console_free_exec() { // exec of the df command
 
 	}
 	command_result = str
-
 }

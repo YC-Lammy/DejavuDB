@@ -1,6 +1,8 @@
 package main
 
-func shardConfig(config map[string]interface{}) error {
+import "net"
+
+func shardConfig(config map[string]interface{}, handler func(net.Conn, string)) error {
 
 	if v, ok := config["router_ipv4"]; ok {
 
@@ -21,7 +23,7 @@ func shardConfig(config map[string]interface{}) error {
 	return nil
 }
 
-func routerConfig(config map[string]interface{}) error {
+func routerConfig(config map[string]interface{}, handler func(net.Conn, string)) error {
 	if v, ok := config["router_ipv4"]; ok {
 
 		var list []string
@@ -32,7 +34,7 @@ func routerConfig(config map[string]interface{}) error {
 		current_router_ipv4 = removeDuplicateStrings(list)
 		for _, ip := range current_router_ipv4 {
 			if ip != dial_ip && ip != hostport {
-				go dial_server(ip, mycfg, ShardHandler, secondConfig)
+				go dial_server(ip, mycfg, RouterHandler, secondConfig)
 				wg.Add(1)
 			}
 
@@ -41,7 +43,7 @@ func routerConfig(config map[string]interface{}) error {
 	return nil
 }
 
-func secondConfig(config map[string]interface{}) error { // secondary configaration, connect to all routers
+func secondConfig(config map[string]interface{}, handler func(net.Conn, string)) error { // secondary configaration, connect to all routers
 	if v, ok := config["router_ipv4"]; ok {
 		var list []string
 		for _, v := range v.([]interface{}) { // convert []interface{} to []string
@@ -55,7 +57,7 @@ func secondConfig(config map[string]interface{}) error { // secondary configarat
 		for _, ip := range more_ip {
 
 			if ip != dial_ip {
-				go dial_server(ip, mycfg, ShardHandler, secondConfig)
+				go dial_server(ip, mycfg, handler, secondConfig)
 				wg.Add(1)
 			}
 

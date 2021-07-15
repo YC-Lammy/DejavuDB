@@ -16,15 +16,16 @@ func ShardHandler(conn net.Conn, message string) {
 	processID := ""
 
 	commands := strings.Split(message, " ")
+	//fmt.Println(message)
 	if commands[0] == "processID" {
-		commands = commands[2:]
 		processID = commands[0] + " " + commands[1]
+		commands = commands[2:]
 	}
 	var result []byte
 	switch commands[0] {
 
 	case "shardsize":
-		result = []byte(strconv.FormatInt(int64(getShardSize()), 10))
+		result = []byte(strconv.Itoa(getShardSize()))
 
 	case "Set", "Update", "Delete", "Get", "Clone", "Move": // non-sql
 		v, err := Nosql_Handler(commands)
@@ -33,6 +34,8 @@ func ShardHandler(conn net.Conn, message string) {
 		} else {
 			send(conn, []byte(processID+" "+*v))
 		}
+
+		return
 
 	case "SQL":
 

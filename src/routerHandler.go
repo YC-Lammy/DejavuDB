@@ -33,13 +33,20 @@ func RouterHandler(conn net.Conn, message string) { // this function handles any
 
 	case "processID": // shard returns result
 
-		id, err := strconv.ParseInt(strings.Split(message, " ")[1], 10, 64)
+		id, err := strconv.ParseInt(splited[1], 10, 64)
 
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		send(process_query[int(id)].client, []byte(strings.Join(strings.Split(message, " ")[2:], " ")))
+		if p, ok := process_query[int(id)]; ok {
+			send(*p.client, []byte(strings.Join(strings.Split(message, " ")[2:], " ")))
+			p.responses -= 1
+
+			if p.responses == 0 { // all shard responsed
+				delete(process_query, int(id))
+			}
+		}
 
 	case "monitor": // request to send monitor values
 		arr, err := json.Marshal(monitor())
@@ -60,15 +67,25 @@ func RouterHandler(conn net.Conn, message string) { // this function handles any
 }
 
 func router_apiHandler(conn net.Conn, message string) {
+
+	if shard_connected == 1 { // skip all mapping process if only one shard
+		id := add_process(conn, 1)
+		id_str := strconv.Itoa(id)
+		if message == "" {
+			return
+		}
+		send_to_all_shard([]byte("processID " + id_str + " " + message))
+		return
+	}
+
 	splited_message := strings.Split(message, " ")
 
 	switch splited_message[0] {
 
-	case "Get", "Update", "Delete":
-
-		id := add_process(conn) // register process
-
+	case "Get", "Update", "Delete": // only one address needed to be checked, no interaction involved
 		conns, err := getShardConn(splited_message[1])
+		id := add_process(conn, len(conns)) // register process
+
 		if err != nil {
 			delete(process_query, id)
 			log.Println(err)
@@ -88,7 +105,7 @@ func router_apiHandler(conn net.Conn, message string) {
 			delete(process_query, id)
 		}
 
-	case "Set":
+	case "Set": // one address to be checked if key has been used or not
 
 	case "Clone", "Move":
 
@@ -102,6 +119,9 @@ func router_clientHandler(conn net.Conn, message string) { // execute logged in 
 	result, err := execute_command(conn, message) // console command.go
 
 	if err != nil {
+		if err.Error() == "do not send" {
+			return
+		}
 		send(conn, []byte(err.Error()))
 		return
 	}

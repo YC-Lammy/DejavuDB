@@ -110,6 +110,9 @@ func start_router(dial_addr string) { // start as a router
 	cfg := map[string]interface{}{"role": "router", "pass": password, "mac": MAC_Address, "port": hostport}
 	mycfg, _ = json.Marshal(cfg)
 
+	go process_timeout_checker()
+	wg.Add(1)
+
 	if dial_addr != "" {
 		go start_listening() // router.go
 

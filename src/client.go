@@ -74,18 +74,19 @@ func Client_dial(router_addr string, mycfg []byte) error {
 
 		err = command_syntax_checker(text)
 
-		if text == "man" {
+		switch text {
+
+		case "man":
 			fmt.Print(manual_desc)
 			continue
-		}
 
-		if text == "help" {
+		case "help", "--help":
 			fmt.Println("dejavuDB, version: None\nUse `man' to find out more about commands")
 			continue
-		}
 
-		if text == "exit" {
+		case "exit":
 			os.Exit(0)
+
 		}
 
 		if strings.Replace(text, " ", "", -1) == "" {

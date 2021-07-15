@@ -22,7 +22,7 @@ func recieve(buffer *bufio.Reader) (string, error) {
 	return string(message[:len(message)-1]), nil
 }
 
-func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string), cfgfn func(map[string]interface{}) error) error {
+func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string), cfgfn func(map[string]interface{}, func(net.Conn, string)) error) error {
 
 	defer wg.Done()
 
@@ -49,7 +49,7 @@ func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string
 	var config map[string]interface{}
 	json.Unmarshal([]byte(config_json), &config)
 
-	err = cfgfn(config)
+	err = cfgfn(config, Handler)
 
 	if err != nil {
 		log.Println(err)
