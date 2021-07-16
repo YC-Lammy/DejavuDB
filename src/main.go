@@ -6,6 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -27,6 +29,8 @@ var dial_ip string = ""
 var save_to_disk bool = false
 
 var securite_connection int = 0
+
+var sql_file string = ""
 
 var wg sync.WaitGroup // working group
 
@@ -57,6 +61,13 @@ func main() {
 
 	os.Mkdir("log", os.ModePerm)
 	os.Mkdir("database", os.ModePerm)
+	os.Chdir("database")
+	if _, err := os.Stat("dejavu.db"); os.IsNotExist(err) {
+		f, _ := os.Create("dejavu.db")
+		f.Close()
+	}
+	sql_file = filepath.Join(home_dir, "dejavuDB", "dejavu.db")
+	os.Chdir(path.Join(home_dir, "dejavuDB"))
 
 	setupLog()
 
