@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+var default_SQL_server *data_replicates_group
+
 func RouterHandler(conn net.Conn, message string) { // this function handles any message recieved from client
 
 	splited := strings.Split(message, " ")
@@ -40,10 +42,12 @@ func RouterHandler(conn net.Conn, message string) { // this function handles any
 			return
 		}
 		if p, ok := process_query[int(id)]; ok {
-			send(*p.client, []byte(strings.Join(strings.Split(message, " ")[2:], " ")))
-			p.responses -= 1
+			p.result = append(p.result, []byte(strings.Join(strings.Split(message, " ")[2:], " ")+"\n")...)
+
+			p.responses = p.responses - 1
 
 			if p.responses == 0 { // all shard responsed
+				send(*p.client, p.result)
 				delete(process_query, int(id))
 			}
 		}
@@ -110,6 +114,11 @@ func router_apiHandler(conn net.Conn, message string) {
 	case "Clone", "Move":
 
 	case "SQL":
+		id := add_process(conn, 1)
+		id_str := strconv.Itoa(id)
+		for _, v := range default_SQL_server.connections {
+			send(v, []byte("processID "+id_str+" "+message))
+		}
 
 	}
 }

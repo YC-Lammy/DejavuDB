@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"strconv"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 /*
@@ -34,7 +36,7 @@ var ownerPermission = [3]int8{7, 0, 0}
 var SQLDB = map[string]*sql_database{}
 var defaultSQLDB *sql_database
 
-var sqliteDB *sql.DB
+var sqliteDB *sql.DB //, _ = sql.Open("sqlite3", ":memory:")
 
 type sql_database struct {
 	name           string // name of database
@@ -233,7 +235,11 @@ func read_SQL_Rows(rs *sql.Rows) (sql_dataset, error) {
 
 func SQL_init() {
 
-	sqliteDB, _ = sql.Open("sqlite3", ":memory:") // alternative sql_file
+	d, err := sql.Open("sqlite3", ":memory:") // alternative sql_file
+	if err != nil {
+		panic(err)
+	}
+	sqliteDB = d // save pointer to global
 
 	is := schema{}
 	dbo := schema{permission: publicPermission}

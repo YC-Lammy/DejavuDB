@@ -39,6 +39,46 @@ func ShardHandler(conn net.Conn, message string) {
 
 	case "SQL":
 
+		message = message[4:] // remove "SQL "
+		result := ""
+
+		if strings.Contains(strings.ToUpper(message), "SELECT ") {
+
+			rows, err := sqliteDB.Query(strings.Join(commands[1:], " "))
+			if err != nil {
+				send(conn, []byte(processID+" "+err.Error()))
+				return
+			}
+
+			if rows == nil {
+				send(conn, []byte(processID+" variable name does ot exist"))
+				return
+			}
+
+			table, err := read_SQL_Rows(rows)
+			rows.Close()
+			if err != nil {
+				send(conn, []byte(processID+" "+err.Error()))
+				return
+			}
+			result, err = table.Json()
+			if err != nil {
+				send(conn, []byte(processID+" "+err.Error()))
+				return
+			}
+
+		} else {
+
+			_, err := sqliteDB.Exec(strings.Join(commands[1:], " "))
+			if err != nil {
+				send(conn, []byte(processID+" "+err.Error()))
+				return
+			}
+		}
+
+		send(conn, []byte(processID+" "+result))
+		return
+
 	case "connect":
 		if !(contains(current_router_ipv4, commands[len(commands)-1])) {
 			go dial_server(commands[len(commands)-1], mycfg, ShardHandler, secondConfig)

@@ -10,6 +10,7 @@ type process struct {
 	time      time.Time // time when create process
 	responses int       // expected number of shard to be responding
 	timeout   time.Time
+	result    []byte
 }
 
 var process_id int = 0 // process id is a router specific id, it does not represent the global process number
@@ -18,7 +19,7 @@ var process_query = map[int]*process{}
 
 func add_process(client net.Conn, responses int) int { // create process and return the id
 	now := time.Now()
-	newprocess := process{client: &client, timeout: now.Add(10 * time.Minute)}
+	newprocess := process{client: &client, timeout: now.Add(10 * time.Minute), result: []byte{}, responses: responses}
 	id := get_process_id()
 	process_query[id] = &newprocess
 	return id

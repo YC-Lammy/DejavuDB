@@ -164,6 +164,8 @@ func start_client(dial_addr string) { // start as a client
 	mycfg, _ = json.Marshal(cfg)
 	go Client_dial(dial_addr, mycfg)
 
+	go SQL_init()
+
 	wg.Add(1)
 }
 

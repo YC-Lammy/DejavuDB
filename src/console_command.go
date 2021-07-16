@@ -9,7 +9,7 @@ import (
 
 // commands can only executed by a console client
 // a full list of the commands
-var list_of_commands = []string{"Set", "Get", "Delete", "Update", "Clone", "Move", "Sizeof", "SizeOf", "Typeof", "TypeOf",
+var list_of_commands = []string{"Set", "Get", "Delete", "Update", "Clone", "Move", "Sizeof", "SizeOf", "Typeof", "TypeOf", "SQL",
 	"useradd", "groupadd", "Login", "Logout",
 	"atop", "cat", "cp", "chmod", "chown", "chgrp", "df", "dstat", "find",
 	"free", "id", "last", "mv", "netstat", "rm", "sort", "w", "top", "tar"}
@@ -21,7 +21,7 @@ func execute_command(conn net.Conn, message string) (string, error) {
 	splited := strings.Split(message, " ")
 	var err error = nil
 	switch splited[0] {
-	case "Set", "Get", "Update", "Clone", "Move", "Delete", "Sizeof", "SizeOf", "Typeof", "TypeOf":
+	case "Set", "Get", "Update", "Clone", "Move", "Delete", "Sizeof", "SizeOf", "Typeof", "TypeOf", "SQL":
 		router_apiHandler(conn, message)
 		err = errors.New("do not send")
 	case "useradd":
