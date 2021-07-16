@@ -10,18 +10,16 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"syscall"
 	"text/tabwriter"
 
 	"github.com/fatih/color"
-	"golang.org/x/term"
 )
 
 type Database struct {
 	connection net.Conn
-	token      string
 	connbuff   *bufio.Reader
-	Admin      *admin
+	Admin      *admin // every connection can login once
+	Closed     bool
 }
 
 func (db *Database) Send(message string) error {
@@ -31,6 +29,10 @@ func (db *Database) Send(message string) error {
 
 func (db *Database) Recieve() (string, error) {
 	return recieve(db.connbuff)
+}
+
+func (db *Database) Close() {
+	db.connection.Close()
 }
 
 func (db *Database) Set(location string, value interface{}, datatype ...string) error {
@@ -55,6 +57,7 @@ func (db *Database) Set(location string, value interface{}, datatype ...string) 
 
 	case string:
 		dtype = "str"
+		strvalue = v
 
 	case float64:
 		dtype = "float64"
@@ -77,27 +80,54 @@ func (db *Database) Set(location string, value interface{}, datatype ...string) 
 
 	case []int:
 		dtype = "[]int"
+		strvalue = strings.Replace(fmt.Sprintf("%v", v), " ", ",", -1)
+	case []int64:
+		dtype = "[]int"
+		strvalue = strings.Replace(fmt.Sprintf("%v", v), " ", ",", -1)
+	case []int32:
+		dtype = "[]int"
+		strvalue = strings.Replace(fmt.Sprintf("%v", v), " ", ",", -1)
+	case []int16:
+		dtype = "[]int"
+		strvalue = strings.Replace(fmt.Sprintf("%v", v), " ", ",", -1)
+	case []int8:
+		dtype = "[]int"
+		strvalue = strings.Replace(fmt.Sprintf("%v", v), " ", ",", -1)
 
 	case []float64:
 		dtype = "[]float64"
+		strvalue = strings.Replace(fmt.Sprintf("%v", v), " ", ",", -1)
+	case []float32:
+		dtype = "[]float64"
+		strvalue = strings.Replace(fmt.Sprintf("%v", v), " ", ",", -1)
 
 	case []bool:
 		dtype = "[]bool"
+		strvalue = strings.Replace(fmt.Sprintf("%v", v), " ", ",", -1)
 
 	case [][]byte:
 		dtype = "[][]byte"
-
+		r := []string{}
+		for _, a := range v {
+			r = append(r, string(a))
+		}
+		strvalue = strings.Replace(strings.Join(r, ","), " ", "", -1)
 	}
 
-	a, err := json.Marshal(value)
-
-	if a[0] == '{' && a[len(a)-1] == '}' {
-		if strings.Contains(string(a), `":`) {
-			dtype = "json"
-			strvalue = string(a)
+	a, _ := json.Marshal(value)
+	if len(a) > 2 {
+		if a[0] == '{' && a[len(a)-1] == '}' {
+			if strings.Contains(string(a), `":`) {
+				dtype = "json"
+				strvalue = string(a)
+			}
 		}
 	}
-	err = db.Send("Set " + location + " " + strvalue + " " + dtype)
+
+	err := db.Send("Set " + location + " " + strvalue + " " + dtype)
+	if err != nil {
+		return err
+	}
 	r, err := db.Recieve()
 	if err != nil {
 		return err
@@ -108,104 +138,26 @@ func (db *Database) Set(location string, value interface{}, datatype ...string) 
 	return nil
 }
 
-var list_of_commands = []string{"Set", "Get", "Delete", "Update", "Clone", "Move",
-	"useradd", "groupadd", "Login", "Logout",
-	"atop", "cat", "cp", "chmod", "chown", "chgrp", "df", "dstat", "find",
-	"free", "id", "last", "mv", "netstat", "rm", "sort", "w", "top", "tar"}
-
-func send(conn net.Conn, message []byte) (int, error) {
-	message = append(message, 0x00) // nul to mark end of section
-	return fmt.Fprint(conn, string(message))
-}
-
-func recieve(buffer *bufio.Reader) (string, error) {
-	message, err := buffer.ReadBytes(0x00)
-	if err != nil {
-		return "", err
-	}
-	return string(message[:len(message)-1]), nil
-}
-
-func Connect(router_addr string, mycfg []byte) error {
+func Connect(router_addr string) (*Database, error) {
 
 	conn, err := net.Dial("tcp", router_addr)
 
 	if err != nil {
 		log.Println(err)
-		return err
+		return nil, err
 	}
 
-	defer conn.Close()
-
-	send(conn, mycfg) // send my config to router, router reads and decides
+	send(conn, []byte(`{"role":"client"}`)) // send my config to router, router reads and decides
 
 	connbuff := bufio.NewReader(conn)
 
 	_, err = recieve(connbuff) // ignore config
 
 	if err != nil {
-		log.Println(err)
-		return err
+		return nil, err
 	}
 
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Print("Enter username: ")
-	scanner.Scan()
-	user := scanner.Text()
-
-	fmt.Print("Enter password: ")
-
-	bytepw, err := term.ReadPassword(int(syscall.Stdin))
-	if err != nil {
-		os.Exit(1)
-	}
-	pass := string(bytepw)
-	fmt.Println("\nLogging in...\n")
-	//fmt.Println("Establishing secure connect...")
-
-	send(conn, []byte(("CLIENT Login " + user + " " + pass)))
-	recieve(connbuff)
-
-	green := color.New(color.FgHiGreen, color.Bold)
-	blue := color.New(color.FgHiBlue, color.Bold)
-
-	for {
-
-		green.Print(user)
-		fmt.Print(":")
-		blue.Print("~")
-		fmt.Print("$ ")
-		// Scans a line from Stdin(Console)
-		scanner.Scan()
-		// Holds the string that scanned
-		text := scanner.Text()
-
-		err = command_syntax_checker(text)
-
-		if strings.Replace(text, " ", "", -1) == "" {
-			continue
-		}
-
-		if err == nil {
-			if len(text) != 0 {
-
-				send(conn, []byte("CLIENT "+text))
-
-				result, err := recieve(connbuff) // wait for message to recieve
-
-				if err != nil {
-					log.Println(err)
-
-				} else {
-
-					command_result_output(text, result)
-				}
-			}
-		} else {
-			fmt.Println(err)
-		}
-
-	}
+	return &Database{connection: conn, connbuff: connbuff, Admin: &admin{connection: conn, connbuf: connbuff, token: ""}}, nil
 }
 
 func command_syntax_checker(text string) error {
@@ -214,15 +166,6 @@ func command_syntax_checker(text string) error {
 		return errors.New(splited[0] + ": command not found")
 	}
 	return nil
-}
-
-func contains(arr []string, elem string) bool {
-	for _, v := range arr {
-		if v == elem {
-			return true
-		}
-	}
-	return false
 }
 
 func command_result_output(command string, result string) {

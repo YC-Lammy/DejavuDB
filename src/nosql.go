@@ -1,10 +1,15 @@
 package main
 
+import "C"
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
+
+	"github.com/DmitriyVTitov/size"
 )
 
 func Nosql_Handler(commands []string) (*string, error) {
@@ -26,7 +31,12 @@ func Nosql_Handler(commands []string) (*string, error) {
 		if len(keys) != 1 {
 			for _, v := range keys[:len(keys)-1] {
 				if a, ok := pointer[v]; ok {
-					pointer = a.(map[string]interface{})
+					if b, ok := a.(map[string]interface{}); ok {
+						pointer = b
+					} else {
+						pointer[v] = map[string]interface{}{} // overwrite key store value
+						pointer = pointer[v].(map[string]interface{})
+					}
 				} else {
 					pointer[v] = map[string]interface{}{} // create a new key
 					pointer = pointer[v].(map[string]interface{})
@@ -36,19 +46,47 @@ func Nosql_Handler(commands []string) (*string, error) {
 
 		switch commands[3] {
 
-		case "int":
-			v, err := strconv.ParseInt(commands[2], 10, 64)
+		case "int", "int64":
+			v, err := strconv.Atoi(commands[2])
 			if err != nil {
 				return nil, err
 			}
 			pointer[keys[len(keys)-1]] = int(v)
 
-		case "float64", "float":
+		case "int128":
+			v, err := strToInt128(commands[2])
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = v
+
+		case "int256":
+			v, err := strToInt256(commands[2])
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = v
+
+		case "float64", "float", "ft", "ft64":
 			v, err := strconv.ParseFloat(commands[2], 64)
 			if err != nil {
 				return nil, err
 			}
 			pointer[keys[len(keys)-1]] = v
+
+		case "bigfloat", "big_float", "bf":
+			f, _, err := new(big.Float).Parse(commands[2], 10)
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = f
+
+		case "longdouble", "long_double", "float128", "ft128": // store value in c.longdouble
+			f, err := strToFloat128(commands[2])
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = f
 
 		case "string", "str":
 			pointer[keys[len(keys)-1]] = commands[2]
@@ -193,7 +231,11 @@ func Nosql_Handler(commands []string) (*string, error) {
 		} else {
 			for _, v := range keys[:len(keys)-1] {
 				if a, ok := pointer[v]; ok {
-					pointer = a.(map[string]interface{})
+					if b, ok := a.(map[string]interface{}); ok {
+						pointer = b
+					} else {
+						return nil, errors.New("key not exist")
+					}
 				} else {
 					return nil, errors.New("key not exist")
 				}
@@ -207,11 +249,40 @@ func Nosql_Handler(commands []string) (*string, error) {
 			return &a, nil
 
 		case int:
-			a := strconv.FormatInt(int64(v), 10)
+			a := strconv.Itoa(v)
+			return &a, nil
+
+		case int8:
+			a := strconv.Itoa(int(v))
+			return &a, nil
+		case int16:
+			a := strconv.Itoa(int(v))
+			return &a, nil
+		case int32:
+			a := strconv.Itoa(int(v))
+			return &a, nil
+		case int64:
+			a := strconv.Itoa(int(v))
+			return &a, nil
+
+		case int128:
+			a := v.String()
+			return &a, nil
+
+		case int256:
+			a := v.String()
 			return &a, nil
 
 		case float64:
-			a := strconv.FormatFloat(v, 'g', -1, 64)
+			a := fmt.Sprintf("%v", v)
+			return &a, nil
+
+		case float128:
+			a := v.String()
+			return &a, nil
+
+		case *big.Float:
+			a := v.Text('g', int(v.Prec()))
 			return &a, nil
 
 		case bool:
@@ -284,7 +355,11 @@ func Nosql_Handler(commands []string) (*string, error) {
 		} else {
 			for _, v := range keys[:len(keys)-1] {
 				if a, ok := pointer[v]; ok {
-					pointer = a.(map[string]interface{})
+					if b, ok := a.(map[string]interface{}); ok {
+						pointer = b
+					} else {
+						return nil, errors.New("key " + v + " is not a map")
+					}
 				} else {
 					return nil, errors.New("key " + v + " not exist")
 				}
@@ -301,12 +376,74 @@ func Nosql_Handler(commands []string) (*string, error) {
 			}
 			pointer[keys[len(keys)-1]] = int(v)
 
+		case int8:
+			v, err := strconv.ParseInt(commands[2], 10, 8)
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = int8(v)
+
+		case int16:
+			v, err := strconv.ParseInt(commands[2], 10, 16)
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = int16(v)
+
+		case int32:
+			v, err := strconv.ParseInt(commands[2], 10, 32)
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = int32(v)
+
+		case int64:
+			v, err := strconv.ParseInt(commands[2], 10, 64)
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = int64(v)
+
+		case int128:
+			v, err := strToInt128(commands[2])
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = v
+		case int256:
+			v, err := strToInt256(commands[2])
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = v
+
+		case float32:
+			v, err := strconv.ParseFloat(commands[2], 32)
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = float32(v)
+
 		case float64:
 			v, err := strconv.ParseFloat(commands[2], 64)
 			if err != nil {
 				return nil, err
 			}
 			pointer[keys[len(keys)-1]] = v
+
+		case float128:
+			v, err := strToFloat128(commands[2])
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = v
+
+		case *big.Float:
+			f, _, err := new(big.Float).Parse(commands[2], 10)
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = f
 
 		case string:
 			pointer[keys[len(keys)-1]] = commands[2]
@@ -354,6 +491,27 @@ func Nosql_Handler(commands []string) (*string, error) {
 					return nil, err
 				}
 				result = append(result, int(b))
+			}
+
+			pointer[keys[len(keys)-1]] = result
+
+		case []float32:
+			str := commands[2]
+			result := []float32{}
+
+			if commands[2][0] == '[' {
+				str = commands[2][1 : len(commands[2])-1]
+			}
+			str = strings.Replace(str, ", ", ",", -1)
+
+			a := strings.Split(str, ",")
+
+			for _, v := range a {
+				b, err := strconv.ParseFloat(v, 32)
+				if err != nil {
+					return nil, err
+				}
+				result = append(result, float32(b))
 			}
 
 			pointer[keys[len(keys)-1]] = result
@@ -447,7 +605,11 @@ func Nosql_Handler(commands []string) (*string, error) {
 		} else {
 			for _, v := range keys[:len(keys)-1] {
 				if a, ok := pointer[v]; ok {
-					pointer = a.(map[string]interface{})
+					if b, ok := a.(map[string]interface{}); ok {
+						pointer = b
+					} else {
+						return nil, errors.New("key " + v + " is not a map")
+					}
 				} else {
 					return nil, errors.New("key not exist")
 				}
@@ -471,27 +633,33 @@ func Nosql_Handler(commands []string) (*string, error) {
 
 			for _, v := range keys[:len(keys)-1] {
 				if a, ok := pointer[v]; ok {
-					pointer = a.(map[string]interface{})
+					if b, ok := a.(map[string]interface{}); ok {
+						pointer = b
+					} else {
+						return nil, errors.New("key " + v + " is not a map")
+					}
 				} else {
 					return nil, errors.New("key not exist")
 				}
 
 			}
 		}
+		value := pointer[keys[len(keys)-1]]
 		pointer1 := shardData
 
-		keys1 := strings.Split(commands[1], ".")
+		keys1 := strings.Split(commands[2], ".")
 
-		if len(keys1) == 1 {
-			if _, ok := pointer[keys1[0]]; !ok {
-				pointer1[keys1[0]] = map[string]interface{}{} // create a new key
-				pointer1 = pointer1[keys1[0]].(map[string]interface{})
-			}
-		} else {
+		if len(keys1) != 1 {
 
 			for _, v := range keys1[:len(keys1)-1] {
 				if a, ok := pointer1[v]; ok {
-					pointer1 = a.(map[string]interface{})
+					if b, ok := a.(map[string]interface{}); ok {
+						pointer1 = b
+
+					} else { // this key stores a value
+						pointer1[v] = map[string]interface{}{} // overwrite the key
+						pointer1 = pointer1[v].(map[string]interface{})
+					}
 				} else {
 					pointer1[v] = map[string]interface{}{} // create a new key
 					pointer1 = pointer1[v].(map[string]interface{})
@@ -499,10 +667,12 @@ func Nosql_Handler(commands []string) (*string, error) {
 			}
 		}
 
-		switch v := pointer[keys[len(keys)-1]].(type) {
+		switch v := value.(type) {
 
-		case string, int, float64, bool, []byte, []string, []int, [][]byte, []float64, []bool, map[string]interface{}:
+		case string, int, int8, int16, int32, int64, int128, int256, float32, float64, float128, *big.Float, bool, []byte, []string, []int, [][]byte, []float64, []bool, map[string]interface{}:
 			pointer1[keys1[len(keys1)-1]] = v
+		default:
+			return nil, errors.New("type not match")
 		}
 		return &sucess, nil
 
@@ -520,6 +690,60 @@ func Nosql_Handler(commands []string) (*string, error) {
 		}
 
 		return &sucess, nil
+
+	case "Sizeof", "SizeOf": // stntax: Sizeof location
+		if len(commands) < 2 {
+			return nil, errors.New("1 argument required")
+		}
+
+		v, err := getPointer(commands[1])
+		if err != nil {
+			return nil, err
+		}
+		a := strconv.Itoa(size.Of(v)) + " byte"
+		return &a, nil
+
+	case "Typeof", "TypeOf":
+		if len(commands) < 2 {
+			return nil, errors.New("1 argument required")
+		}
+		return getTypeByLocation(commands[1])
+
 	}
 	return nil, errors.New("command not found")
+}
+
+func getPointer(location string) (interface{}, error) {
+	pointer := shardData
+
+	keys := strings.Split(location, ".")
+
+	if len(keys) == 1 {
+		if _, ok := pointer[keys[0]]; !ok {
+			return nil, errors.New("key " + keys[0] + " not exist")
+		}
+	} else {
+		for _, v := range keys[:len(keys)-1] {
+			if a, ok := pointer[v]; ok {
+				if b, ok := a.(map[string]interface{}); ok {
+					pointer = b
+				} else {
+					return nil, errors.New("key " + v + " is not a map")
+				}
+			} else {
+				return nil, errors.New("key " + v + " not exist")
+			}
+		}
+
+	}
+	return pointer[keys[len(keys)-1]], nil
+}
+
+func getTypeByLocation(location string) (*string, error) {
+	v, err := getPointer(location)
+	if err != nil {
+		return nil, err
+	}
+	a := fmt.Sprintf("%T", v)
+	return &a, nil
 }

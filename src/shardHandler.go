@@ -27,7 +27,7 @@ func ShardHandler(conn net.Conn, message string) {
 	case "shardsize":
 		result = []byte(strconv.Itoa(getShardSize()))
 
-	case "Set", "Update", "Delete", "Get", "Clone", "Move": // non-sql
+	case "Set", "Update", "Delete", "Get", "Clone", "Move", "Sizeof", "SizeOf", "Typeof", "TypeOf": // non-sql
 		v, err := Nosql_Handler(commands)
 		if err != nil {
 			send(conn, []byte(processID+" "+err.Error()))
