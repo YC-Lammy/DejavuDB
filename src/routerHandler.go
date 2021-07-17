@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-var default_SQL_server *data_replicates_group
+var default_SQL_server = 0
 
 func RouterHandler(conn net.Conn, message string) { // this function handles any message recieved from client
 
@@ -116,7 +116,7 @@ func router_apiHandler(conn net.Conn, message string) {
 	case "SQL":
 		id := add_process(conn, 1)
 		id_str := strconv.Itoa(id)
-		for _, v := range default_SQL_server.connections {
+		for _, v := range data_replicates_groups[default_SQL_server].connections {
 			send(v, []byte("processID "+id_str+" "+message))
 		}
 

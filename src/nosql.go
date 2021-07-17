@@ -82,7 +82,26 @@ func Nosql_Handler(commands []string) (*string, error) {
 			pointer[keys[len(keys)-1]] = f
 
 		case "longdouble", "long_double", "float128", "ft128": // store value in c.longdouble
-			f, err := strToFloat128(commands[2])
+			f, _ := strToFloat128(commands[2])
+
+			pointer[keys[len(keys)-1]] = f
+
+		case "decimal", "decimal64", "decimals", "ds", "ds64":
+			f, err := strToDecimal64(commands[2])
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = f
+
+		case "decimal128", "ds128":
+			f, err := strToDecimal128(commands[2])
+			if err != nil {
+				return nil, err
+			}
+			pointer[keys[len(keys)-1]] = f
+
+		case "decimal192", "ds192":
+			f, err := strToDecimal192(commands[2])
 			if err != nil {
 				return nil, err
 			}
@@ -283,6 +302,18 @@ func Nosql_Handler(commands []string) (*string, error) {
 
 		case *big.Float:
 			a := v.Text('g', int(v.Prec()))
+			return &a, nil
+
+		case decimal64:
+			a := v.String()
+			return &a, nil
+
+		case decimal128:
+			a := v.String()
+			return &a, nil
+
+		case decimal192:
+			a := v.String()
 			return &a, nil
 
 		case bool:

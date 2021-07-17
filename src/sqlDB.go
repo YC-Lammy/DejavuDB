@@ -166,15 +166,18 @@ type sql_table map[string][]string // column name: [column data]
 type sql_dataset []map[string][]string
 
 func (ds sql_dataset) Json() (string, error) {
-	re := map[string]map[string][]string{}
-	for i, v := range ds {
-		re["ResultSet"+strconv.Itoa(i+1)] = v
+	re := ""
+	if len(ds) == 0 {
+		return "", nil
 	}
-	json, err := json.Marshal(re)
-	if err != nil {
-		return "", err
+	for _, v := range ds {
+		json, err := json.Marshal(v)
+		if err != nil {
+			return "", err
+		}
+		re += string(json) + "\n"
 	}
-	return string(json), nil
+	return re, nil
 }
 
 func read_SQL_Rows(rs *sql.Rows) (sql_dataset, error) {
@@ -239,6 +242,7 @@ func SQL_init() {
 	if err != nil {
 		panic(err)
 	}
+	_, err = d.Exec("SQLITE_MAX_PAGE_COUNT = 4294967294")
 	sqliteDB = d // save pointer to global
 
 	is := schema{}

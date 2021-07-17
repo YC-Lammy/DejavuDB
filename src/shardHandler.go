@@ -42,7 +42,7 @@ func ShardHandler(conn net.Conn, message string) {
 		message = message[4:] // remove "SQL "
 		result := ""
 
-		if strings.Contains(strings.ToUpper(message), "SELECT ") {
+		if strings.Contains(strings.ToUpper(message), "SELECT") {
 
 			rows, err := sqliteDB.Query(strings.Join(commands[1:], " "))
 			if err != nil {
