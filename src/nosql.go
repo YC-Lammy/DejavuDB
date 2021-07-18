@@ -51,74 +51,74 @@ func Nosql_Handler(commands []string) (*string, error) {
 			if err != nil {
 				return nil, err
 			}
-			pointer[keys[len(keys)-1]] = int(v)
+			register_data(pointer, keys[len(keys)-1], int(v))
 
 		case "int128":
 			v, err := strToInt128(commands[2])
 			if err != nil {
 				return nil, err
 			}
-			pointer[keys[len(keys)-1]] = v
+			register_data(pointer, keys[len(keys)-1], v)
 
 		case "int256":
 			v, err := strToInt256(commands[2])
 			if err != nil {
 				return nil, err
 			}
-			pointer[keys[len(keys)-1]] = v
+			register_data(pointer, keys[len(keys)-1], v)
 
 		case "float64", "float", "ft", "ft64":
 			v, err := strconv.ParseFloat(commands[2], 64)
 			if err != nil {
 				return nil, err
 			}
-			pointer[keys[len(keys)-1]] = v
+			register_data(pointer, keys[len(keys)-1], v)
 
 		case "bigfloat", "big_float", "bf":
 			f, _, err := new(big.Float).Parse(commands[2], 10)
 			if err != nil {
 				return nil, err
 			}
-			pointer[keys[len(keys)-1]] = f
+			register_data(pointer, keys[len(keys)-1], f)
 
 		case "longdouble", "long_double", "float128", "ft128": // store value in c.longdouble
 			f, _ := strToFloat128(commands[2])
 
-			pointer[keys[len(keys)-1]] = f
+			register_data(pointer, keys[len(keys)-1], f)
 
 		case "decimal", "decimal64", "decimals", "ds", "ds64":
 			f, err := strToDecimal64(commands[2])
 			if err != nil {
 				return nil, err
 			}
-			pointer[keys[len(keys)-1]] = f
+			register_data(pointer, keys[len(keys)-1], f)
 
 		case "decimal128", "ds128":
 			f, err := strToDecimal128(commands[2])
 			if err != nil {
 				return nil, err
 			}
-			pointer[keys[len(keys)-1]] = f
+			register_data(pointer, keys[len(keys)-1], f)
 
 		case "decimal192", "ds192":
 			f, err := strToDecimal192(commands[2])
 			if err != nil {
 				return nil, err
 			}
-			pointer[keys[len(keys)-1]] = f
+			register_data(pointer, keys[len(keys)-1], f)
 
 		case "string", "str":
-			pointer[keys[len(keys)-1]] = commands[2]
+			register_data(pointer, keys[len(keys)-1], commands[2])
 
 		case "bool":
 			v, err := strconv.ParseBool(commands[2])
 			if err != nil {
 				return nil, err
 			}
-			pointer[keys[len(keys)-1]] = v
+			register_data(pointer, keys[len(keys)-1], v)
 
 		case "[]byte", "bytes":
-			pointer[keys[len(keys)-1]] = []byte(commands[2])
+			register_data(pointer, keys[len(keys)-1], []byte(commands[2]))
 
 		case "[]string", "str_arr":
 
@@ -134,7 +134,7 @@ func Nosql_Handler(commands []string) (*string, error) {
 
 			result = append(result, a...)
 
-			pointer[keys[len(keys)-1]] = result
+			register_data(pointer, keys[len(keys)-1], result)
 
 		case "[]int", "int_arr":
 			str := commands[2]
@@ -155,7 +155,7 @@ func Nosql_Handler(commands []string) (*string, error) {
 				result = append(result, int(b))
 			}
 
-			pointer[keys[len(keys)-1]] = result
+			register_data(pointer, keys[len(keys)-1], result)
 
 		case "[]float64", "[]float", "float_arr":
 			str := commands[2]
@@ -176,7 +176,7 @@ func Nosql_Handler(commands []string) (*string, error) {
 				result = append(result, b)
 			}
 
-			pointer[keys[len(keys)-1]] = result
+			register_data(pointer, keys[len(keys)-1], result)
 
 		case "[][]byte", "bytes_arr":
 			str := commands[2]
@@ -193,7 +193,7 @@ func Nosql_Handler(commands []string) (*string, error) {
 				result = append(result, []byte(v))
 			}
 
-			pointer[keys[len(keys)-1]] = result
+			register_data(pointer, keys[len(keys)-1], result)
 
 		case "[]bool", "bool_arr":
 			str := commands[2]
@@ -214,7 +214,7 @@ func Nosql_Handler(commands []string) (*string, error) {
 				result = append(result, b)
 			}
 
-			pointer[keys[len(keys)-1]] = result
+			register_data(pointer, keys[len(keys)-1], result)
 
 		case "json":
 			var result = map[string]interface{}{}
@@ -222,7 +222,7 @@ func Nosql_Handler(commands []string) (*string, error) {
 			if err != nil {
 				return nil, err
 			}
-			pointer[keys[len(keys)-1]] = result
+			register_data(pointer, keys[len(keys)-1], result)
 
 		default:
 			return nil, errors.New("invalid type " + commands[3])

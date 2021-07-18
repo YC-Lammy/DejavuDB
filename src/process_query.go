@@ -6,6 +6,7 @@ import (
 )
 
 type process struct {
+	id        int
 	client    *net.Conn // reply to client using this field
 	time      time.Time // time when create process
 	responses int       // expected number of shard to be responding
@@ -17,11 +18,21 @@ var process_id int = 0 // process id is a router specific id, it does not repres
 
 var process_query = map[int]*process{}
 
+var process_sync = make(chan *process)
+
+// a map can only be written once every time, this is to prevent concurrent map writting
+func process_query_sync() {
+	for {
+		newprocess := <-process_sync
+		process_query[newprocess.id] = newprocess
+	}
+}
+
 func add_process(client net.Conn, responses int) int { // create process and return the id
 	now := time.Now()
-	newprocess := process{client: &client, timeout: now.Add(10 * time.Minute), result: []byte{}, responses: responses}
 	id := get_process_id()
-	process_query[id] = &newprocess
+	newprocess := process{id: id, client: &client, timeout: now.Add(10 * time.Minute), result: []byte{}, responses: responses}
+	process_sync <- &newprocess
 	return id
 }
 

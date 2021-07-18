@@ -64,6 +64,8 @@ func RouterHandler(conn net.Conn, message string) { // this function handles any
 
 		register_monitor_value(message[14:]) // monitor.go
 
+	case "registerKey":
+
 	default: // send to shard, common api handler
 		router_apiHandler(conn, message) // handle request to shard
 	}

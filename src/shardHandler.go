@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net"
 	"strconv"
@@ -21,81 +22,131 @@ func ShardHandler(conn net.Conn, message string) {
 		processID = commands[0] + " " + commands[1]
 		commands = commands[2:]
 	}
-	var result []byte
-	switch commands[0] {
+	processes := strings.Split(strings.Join(commands, " "), "&&")
+	var result = []byte{}
+	for i, v := range processes {
 
-	case "shardsize":
-		result = []byte(strconv.Itoa(getShardSize()))
-
-	case "Set", "Update", "Delete", "Get", "Clone", "Move", "Sizeof", "SizeOf", "Typeof", "TypeOf": // non-sql
-		v, err := Nosql_Handler(commands)
-		if err != nil {
-			send(conn, []byte(processID+" "+err.Error()))
-		} else {
-			send(conn, []byte(processID+" "+*v))
+		if DEBUG {
+			fmt.Println(v)
+		}
+		commands = strings.Split(v, " ")
+		if len(commands) == 0 {
+			continue
 		}
 
-		return
-
-	case "SQL":
-
-		message = message[4:] // remove "SQL "
-		result := ""
-
-		if strings.Contains(strings.ToUpper(message), "SELECT") {
-
-			rows, err := sqliteDB.Query(strings.Join(commands[1:], " "))
-			if err != nil {
-				send(conn, []byte(processID+" "+err.Error()))
-				return
-			}
-
-			if rows == nil {
-				send(conn, []byte(processID+" variable name does ot exist"))
-				return
-			}
-
-			table, err := read_SQL_Rows(rows)
-			rows.Close()
-			if err != nil {
-				send(conn, []byte(processID+" "+err.Error()))
-				return
-			}
-			result, err = table.Json()
-			if err != nil {
-				send(conn, []byte(processID+" "+err.Error()))
-				return
-			}
-
-		} else {
-
-			_, err := sqliteDB.Exec(strings.Join(commands[1:], " "))
-			if err != nil {
-				send(conn, []byte(processID+" "+err.Error()))
-				return
+		for commands[0] == "" { // remove all empty string
+			commands = commands[1:]
+			if len(commands) == 0 {
+				continue
 			}
 		}
 
-		send(conn, []byte(processID+" "+result))
-		return
+		switch commands[0] {
 
-	case "connect":
-		if !(contains(current_router_ipv4, commands[len(commands)-1])) {
-			go dial_server(commands[len(commands)-1], mycfg, ShardHandler, secondConfig)
-			wg.Add(1)
-		}
+		case "shardsize":
+			result = append(result, []byte(strconv.Itoa(getShardSize()))...)
 
-	case "monitor":
-		arr, err := json.Marshal(monitor())
-		if err != nil {
-			log.Println(err)
+		case "Set", "Update", "Delete", "Get", "Clone", "Move", "Sizeof", "SizeOf", "Typeof", "TypeOf": // non-sql
+
+			v, err := Nosql_Handler(commands) // nosql handler will handlers all the execution
+			if err != nil {
+				send(conn, []byte(processID+" "+err.Error()))
+				return
+			}
+
+			result = append(result, []byte(processID+" "+*v+"\n")...)
+			processID = "" // purge the process id
+
+		case "SQL":
+
+			message = message[4:] // remove "SQL "
+
+			if strings.Contains(strings.ToUpper(message), "SELECT") { // if it contains select statement, a table will be return
+
+				rows, err := sqliteDB.Query(strings.Join(commands[1:], " "))
+				if err != nil {
+					send(conn, []byte(processID+" "+err.Error()))
+					return
+				}
+
+				if rows == nil {
+					send(conn, []byte(processID+" variable name does ot exist"))
+					return
+				}
+
+				table, err := read_SQL_Rows(rows)
+				rows.Close()
+				if err != nil {
+					send(conn, []byte(processID+" "+err.Error()))
+					return
+				}
+				json, err := table.Json()
+				if err != nil {
+					send(conn, []byte(processID+" "+err.Error()))
+					return
+				}
+				if i != 0 {
+					result = append(result, []byte(json+"\n")...)
+				} else {
+					result = append(result, []byte(processID+" "+json+"\n")...)
+				}
+
+			} else {
+
+				r, err := sqliteDB.Exec(strings.Join(commands[1:], " "))
+				if err != nil {
+					send(conn, []byte(processID+" "+err.Error()))
+					return
+				}
+				a, err := r.RowsAffected()
+				if err != nil {
+					send(conn, []byte(processID+" "+err.Error()))
+					return
+				}
+				var b string
+
+				if DEBUG {
+					c, err := r.LastInsertId()
+					if err != nil {
+						b = ""
+					} else {
+						b = " last insert Id:" + strconv.Itoa(int(c))
+					}
+				}
+				if i != 0 {
+					result = append(result, []byte(" rows affected:"+strconv.Itoa(int(a))+b+"\n")...)
+				} else {
+					result = append(result, []byte(processID+" rows affected:"+strconv.Itoa(int(a))+b+"\n")...)
+				}
+
+			}
+
+		case "connect":
+			if !(contains(current_router_ipv4, commands[len(commands)-1])) {
+				go dial_server(commands[len(commands)-1], mycfg, ShardHandler, secondConfig)
+				wg.Add(1)
+			}
+
+		case "monitor":
+			arr, err := json.Marshal(monitor())
+
+			result = []byte("monitorResult " + string(arr))
+			if err != nil {
+				log.Println(err)
+				result = []byte("monitorResult {}")
+			}
+
+		case "":
+			continue
+
+		default:
+			send(conn, []byte(processID+" Invalid operation "+v))
 			return
-		}
-		send(conn, []byte("monitorResult "+string(arr)))
 
-	default:
-		send(conn, []byte(processID+" Invalid"))
-		return
+		}
+		if i > 40 {
+			break
+		}
 	}
 	send(conn, result)
 }

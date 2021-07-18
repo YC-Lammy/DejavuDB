@@ -10,8 +10,6 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
-
-	"github.com/fatih/color"
 )
 
 var password string = ""
@@ -32,6 +30,8 @@ var securite_connection int = 0
 
 var sql_file string = ""
 
+var DEBUG bool = false
+
 var wg sync.WaitGroup // working group
 
 func main() {
@@ -43,6 +43,7 @@ func main() {
 	flag.StringVar(&password, "p", "a empty password", "Specify password. Default is empty")
 	flag.StringVar(&hostport, "host", "localhost:8080", "specify hosting port")
 	flag.BoolVar(&save_to_disk, "disk", false, "save copy to disk")
+	flag.BoolVar(&DEBUG, "debug", false, "debug")
 	flag.IntVar(&securite_connection, "sc", 0, "specify to use securite connection and the bit width")
 	flag.Parse()
 	gob.Register(map[string]interface{}{})
@@ -51,7 +52,7 @@ func main() {
 
 	//fmt.Scanln(&password)
 
-	fmt.Println(save_to_disk)
+	fmt.Println("save to disk: ", save_to_disk)
 
 	os.Chdir(home_dir)
 
@@ -86,8 +87,6 @@ func main() {
 	dial_ip = router_addr
 
 	fmt.Println("role: " + role + " listener ip: " + router_addr)
-	c := color.New(color.FgHiRed).Add(color.Bold)
-	c.Println("\nListening at " + hostport + "\n")
 	switch role {
 
 	case "router":
@@ -139,6 +138,7 @@ func start_router(dial_addr string) { // start as a router
 
 		wg.Add(1)
 	}
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -151,6 +151,8 @@ func start_shard(dial_addr string) { // start as a shard
 	}
 	cfg := map[string]interface{}{"role": "shard", "pass": password, "mac": MAC_Address, "port": hostport}
 	mycfg, _ = json.Marshal(cfg)
+
+	go process_query_sync()
 
 	go dial_server(dial_addr, mycfg, ShardHandler, shardConfig) // network.go
 
@@ -169,20 +171,6 @@ func start_client(dial_addr string) { // start as a client
 	wg.Add(1)
 }
 
-func start_full(dial_addr string) {
-
-	fmt.Println("starting router...")
-	start_router(dial_addr)
-	time.Sleep(1 * time.Second)
-	fmt.Println("starting log server...")
-	start_log(hostport)
-	time.Sleep(1 * time.Second)
-	fmt.Println("starting shard...")
-	start_shard(hostport)
-	fmt.Println("starting client...")
-	start_client(hostport)
-}
-
 func start_log(dial_addr string) {
 	if dial_addr == "" {
 		panic("must specific an address")
@@ -196,4 +184,18 @@ func start_log(dial_addr string) {
 	go dial_server(dial_addr, mycfg, logHandler, shardConfig) // network.go
 
 	wg.Add(2)
+}
+
+func start_full(dial_addr string) {
+
+	fmt.Println("starting router...")
+	start_router(dial_addr)
+	time.Sleep(1 * time.Second)
+	fmt.Println("starting log server...")
+	start_log(hostport)
+	time.Sleep(1 * time.Second)
+	fmt.Println("starting shard...")
+	start_shard(hostport)
+	fmt.Println("starting client...")
+	start_client(hostport)
 }

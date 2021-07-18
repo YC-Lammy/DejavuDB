@@ -6,6 +6,7 @@ func sqlvmExec(vdbe *Vdbe) (int, error) {
 
 	case Op_Goto:
 
+	case Op_Gosub:
 	}
 	return 1, nil
 }

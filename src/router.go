@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+
+	"github.com/fatih/color"
 )
 
 var command_query = map[string]string{}
@@ -24,6 +26,9 @@ func start_listening() error { // main loop
 	if err != nil {
 		return err
 	}
+
+	c := color.New(color.FgHiRed).Add(color.Bold)
+	c.Println("\nListening at " + hostport + "\n")
 
 	for {
 		conn, err := ln.Accept()
