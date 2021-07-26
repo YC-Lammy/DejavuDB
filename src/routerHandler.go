@@ -41,14 +41,32 @@ func RouterHandler(conn net.Conn, message string) { // this function handles any
 			log.Println(err)
 			return
 		}
-		if p, ok := process_query[int(id)]; ok {
-			p.result = append(p.result, []byte(strings.Join(strings.Split(message, " ")[2:], " ")+"\n")...)
+		for i, queries := range []*map[int]*process{&process_query, &process_query1, &process_query2, &process_query3} {
+			query := *queries
+			switch i {
+			case 0:
+				defer process_query_lock.Unlock()
+				process_query_lock.Lock()
+			case 1:
+				defer process_query_lock1.Unlock()
+				process_query_lock1.Lock()
+			case 2:
+				defer process_query_lock2.Unlock()
+				process_query_lock2.Lock()
+			case 3:
+				defer process_query_lock3.Unlock()
+				process_query_lock3.Lock()
+			}
+			if p, ok := query[int(id)]; ok {
+				p.result = append(p.result, []byte(strings.Join(strings.Split(message, " ")[2:], " ")+"\n")...)
 
-			p.responses = p.responses - 1
+				p.responses = p.responses - 1
 
-			if p.responses == 0 { // all shard responsed
-				send(*p.client, p.result)
-				delete(process_query, int(id))
+				if p.responses == 0 { // all shard responsed
+					send(*p.client, p.result)
+					delete(*queries, int(id))
+				}
+				return
 			}
 		}
 

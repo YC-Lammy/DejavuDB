@@ -66,34 +66,6 @@ type schema struct {
 	group      int
 }
 
-type table struct {
-	name          string
-	column_dtypes map[string]string  // map [column name] "data type"
-	columns       map[string]*column // map [column name] pointer to column
-	rows          []*row
-
-	permission [3]int8 // 0-7, 3 digit permission number owner, group, others e.g. 770
-	owner      int     // owner id
-	group      int     // group id
-}
-
-// columns and rows in the same table shares the same set of cells in different direction
-type column struct {
-	name     string
-	datatype byte
-	data     []*cell // pointer to cell
-}
-
-type row struct {
-	datatype []byte
-	data     []*cell
-}
-
-type cell struct {
-	data     interface{}
-	datatype byte
-}
-
 type views struct {
 }
 
@@ -104,11 +76,10 @@ type procedure struct {
 
 func SQL_init() {
 
-	d, err := sql.Open("sqlite3", ":memory:") // alternative sql_file
+	d, err := sql.Open("sqlite3", sql_file) // alternative sql_file
 	if err != nil {
 		panic(err)
 	}
-	_, err = d.Exec("SQLITE_MAX_PAGE_COUNT = 4294967294")
 	sqliteDB = d // save pointer to global
 
 	is := schema{}

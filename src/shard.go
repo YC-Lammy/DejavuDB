@@ -1,85 +1,26 @@
 package main
 
-type Tree struct {
-	Next  *Tree
-	Value int
+import (
+	"sync"
+)
+
+type Node struct {
+	key  map[string]*Node
+	lock sync.Mutex  // each node has its own mutex
+	data interface{} // if data is not nil, key map should be empty
+
+	pipline *streamcell // allow user to stream data to other location when Node is modified
 }
 
-var shardData = map[string]interface{}{}
+var shardData = map[string]interface{}{"tables": map[string]*table{}}
 
-var shardData_sync = make(chan *data_register_block)
+var test_shardData = map[string]*Node{}
 
-type data_register_block struct {
-	location map[string]interface{}
-	data     interface{}
-	key      string
-}
+var shardData_lock = sync.Mutex{}
 
 func register_data(loc map[string]interface{}, key string, data interface{}) { // send data to channel
-	shardData_sync <- &data_register_block{location: loc, data: data, key: key}
-}
-func data_sync() {
-	for {
-		block := <-shardData_sync
-		block.location[block.key] = block.data
-		/*
-			switch v := block.data.(type) {
-			case string:
-				block.location[block.key] = v
-			case int:
-				block.location[block.key] = v
-			case int8:
-				block.location[block.key] = v
-			case int16:
-				block.location[block.key] = v
-			case int32:
-				block.location[block.key] = v
-			case int64:
-				block.location[block.key] = v
-			case int128:
-				block.location[block.key] = v
-			case float32:
-				block.location[block.key] = v
-			case float64:
-				block.location[block.key] = v
-			case float128:
-				block.location[block.key] = v
-			case decimal64:
-				block.location[block.key] = v
-			case decimal128:
-				block.location[block.key] = v
-			case decimal192:
-				block.location[block.key] = v
-			case bool:
-				block.location[block.key] = v
-			case byte:
-				block.location[block.key] = v
-			case []byte:
-				block.location[block.key] = v
-			case [][]byte:
-				block.location[block.key] = v
-			case []string:
-				block.location[block.key] = v
-			case []int:
-				block.location[block.key] = v
-			case []int8:
-				block.location[block.key] = v
-			case []int16:
-				block.location[block.key] = v
-			case []int32:
-				block.location[block.key] = v
-			case []int64:
-				block.location[block.key] = v
-			case []float32:
-				block.location[block.key] = v
-			case []float64:
-				block.location[block.key] = v
-			case []bool:
-				block.location[block.key] = v
-			case map[string]interface{}:
-				block.location[block.key] = v
-			}
-		*/
-	}
 
+	shardData_lock.Lock() // more testing needed, but adding a lock makes the assignment faster
+	loc[key] = data
+	shardData_lock.Unlock()
 }

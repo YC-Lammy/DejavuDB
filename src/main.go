@@ -28,6 +28,8 @@ var save_to_disk bool = false
 
 var securite_connection int = 0
 
+var ML = false
+
 var sql_file string = ""
 
 var DEBUG bool = false
@@ -42,8 +44,10 @@ func main() {
 	flag.StringVar(&router_addr, "ip", "", "Specify router ip. Default is stand alone router")
 	flag.StringVar(&password, "p", "a empty password", "Specify password. Default is empty")
 	flag.StringVar(&hostport, "host", "localhost:8080", "specify hosting port")
+	flag.StringVar(&sql_file, "sqlfile", ":memory:", "specify sql file path")
 	flag.BoolVar(&save_to_disk, "disk", false, "save copy to disk")
-	flag.BoolVar(&DEBUG, "debug", false, "debug")
+	flag.BoolVar(&DEBUG, "debug", false, "developer debug option")
+	flag.BoolVar(&ML, "Machine Learning", false, "Enable built in machine learning service")
 	flag.IntVar(&securite_connection, "sc", 0, "specify to use securite connection and the bit width")
 	flag.Parse()
 	gob.Register(map[string]interface{}{})
@@ -62,10 +66,12 @@ func main() {
 
 	os.Mkdir("log", os.ModePerm)
 	os.Mkdir("database", os.ModePerm)
+	os.Mkdir("ML", os.ModePerm)
 	os.Chdir("database")
 	if _, err := os.Stat("dejavu.db"); os.IsNotExist(err) {
 		f, _ := os.Create("dejavu.db")
 		f.Close()
+
 	}
 	sql_file = filepath.Join(home_dir, "dejavuDB", "dejavu.db")
 	os.Chdir(path.Join(home_dir, "dejavuDB"))
@@ -151,8 +157,6 @@ func start_shard(dial_addr string) { // start as a shard
 	}
 	cfg := map[string]interface{}{"role": "shard", "pass": password, "mac": MAC_Address, "port": hostport}
 	mycfg, _ = json.Marshal(cfg)
-
-	go process_query_sync()
 
 	go dial_server(dial_addr, mycfg, ShardHandler, shardConfig) // network.go
 

@@ -98,13 +98,16 @@ char *itoa128(char *buf, __int128_t v, int base) {
     return buf;
 }
 
+
 */
 import "C"
 import (
 	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
+	"time"
 	"unsafe"
 )
 
@@ -127,6 +130,8 @@ type decimal192 struct {
 
 type float128 []byte
 
+type bigfloat big.Float
+
 type int128 [16]byte
 
 type int256 struct {
@@ -135,6 +140,16 @@ type int256 struct {
 	p3 int64
 	p4 int64
 }
+
+type smallint uint16
+
+type tinyint uint8
+
+type bigint big.Int
+
+type Time time.Time
+
+type duration time.Duration
 
 func (f decimal64) String() string {
 	return fmt.Sprintf("%v.%v", f.int, f.p1)
@@ -283,7 +298,6 @@ func (i int128) String() string {
 	b := C.itoa128(a, [16]byte(i), 10)
 	c := C.GoString(b)
 	C.free(unsafe.Pointer(a))
-	C.free(unsafe.Pointer(b))
 	return c
 }
 
