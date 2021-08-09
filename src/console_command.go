@@ -9,7 +9,8 @@ import (
 
 // commands can only executed by a console client
 // a full list of the commands
-var list_of_commands = []string{"Set", "Get", "Delete", "Update", "Clone", "Move", "Sizeof", "SizeOf", "Typeof", "TypeOf", "SQL",
+var list_of_commands = []string{
+	"Set", "Get", "Delete", "Update", "Clone", "Move", "Sizeof", "SizeOf", "Typeof", "TypeOf", "SQL",
 	"useradd", "groupadd", "Login", "Logout",
 	"atop", "cat", "cp", "chmod", "chown", "chgrp", "df", "dstat", "find",
 	"free", "id", "last", "mv", "netstat", "rm", "sort", "w", "top", "tar"}
@@ -25,9 +26,9 @@ func execute_command(conn net.Conn, message string) (string, error) {
 		router_apiHandler(conn, message)
 		err = errors.New("do not send")
 	case "useradd":
-		err = useradd(message)
+		err = useradd(message) // user.go
 	case "groupadd":
-		err = groupadd(message)
+		err = groupadd(message) // user.go
 	case "Login":
 	case "chmod":
 		err = chmod(message)

@@ -225,3 +225,15 @@ func userid(message string) error {
 
 	return nil
 }
+
+func chmod(command string) error {
+	return nil
+}
+
+func chown(command string) error {
+	return nil
+}
+
+func chgrp(command string) error {
+	return nil
+}

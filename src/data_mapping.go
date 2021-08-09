@@ -34,18 +34,6 @@ func getKey(location string) (*data_map_key, error) {
 	return mapkey, nil
 }
 
-func chmod(command string) error {
-	return nil
-}
-
-func chown(command string) error {
-	return nil
-}
-
-func chgrp(command string) error {
-	return nil
-}
-
 func getShardConn(location string) ([]net.Conn, error) {
 
 	keys := strings.Split(location, ".")
