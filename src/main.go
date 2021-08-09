@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"sync"
 	"time"
 )
@@ -40,16 +39,31 @@ func main() {
 	var router_addr string
 
 	// flags declaration using flag package
-	flag.StringVar(&role, "r", "router", "Specify role. Default is router, option: shard, client")
+	flag.StringVar(&role, "r", "full", "Specify role. Default is router, option: shard, client")
 	flag.StringVar(&router_addr, "ip", "", "Specify router ip. Default is stand alone router")
 	flag.StringVar(&password, "p", "a empty password", "Specify password. Default is empty")
 	flag.StringVar(&hostport, "host", "localhost:8080", "specify hosting port")
 	flag.StringVar(&sql_file, "sqlfile", ":memory:", "specify sql file path")
 	flag.BoolVar(&save_to_disk, "disk", false, "save copy to disk")
 	flag.BoolVar(&DEBUG, "debug", false, "developer debug option")
-	flag.BoolVar(&ML, "Machine Learning", false, "Enable built in machine learning service")
+	flag.BoolVar(&ML, "ML", false, "Enable built in machine learning service")
 	flag.IntVar(&securite_connection, "sc", 0, "specify to use securite connection and the bit width")
 	flag.Parse()
+
+	for i, v := range os.Args {
+		switch v {
+		case "help":
+			fmt.Println(manual_desc)
+			return
+		case "install":
+			if _, err := os.Stat(os.Args[i+1]); os.IsNotExist(err) {
+				// path/to/whatever does not exist
+				panic(err)
+			}
+			return
+		}
+	}
+
 	gob.Register(map[string]interface{}{})
 
 	//fmt.Println("enter your password:")
@@ -75,12 +89,8 @@ func main() {
 	os.Chdir("database")
 
 	os.Mkdir("tables", os.ModePerm)
-	if _, err := os.Stat("dejavu.db"); os.IsNotExist(err) {
-		f, _ := os.Create("dejavu.db")
-		f.Close()
 
-	}
-	sql_file = filepath.Join(home_dir, "dejavuDB", "dejavu.db")
+	//sql_file = filepath.Join(home_dir, "dejavuDB", "dejavu.db")
 	os.Chdir(path.Join(home_dir, "dejavuDB"))
 
 	setupLog()

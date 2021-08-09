@@ -21,7 +21,7 @@ func execute_command(conn net.Conn, message string) (string, error) {
 	splited := strings.Split(message, " ")
 	var err error = nil
 	switch splited[0] {
-	case "Set", "Get", "Update", "Clone", "Move", "Delete", "Sizeof", "SizeOf", "Typeof", "TypeOf", "SQL":
+	case "Set", "Get", "Update", "Clone", "Move", "Delete", "Batch", "Sizeof", "SizeOf", "Typeof", "TypeOf", "SQL":
 		router_apiHandler(conn, message)
 		err = errors.New("do not send")
 	case "useradd":

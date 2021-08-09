@@ -754,7 +754,7 @@ func getPointer(location string) (map[string]interface{}, string, error) {
 	//shardData_lock.Lock()
 	if v, ok := pointer[keys[0]]; !ok {
 		return nil, "", errors.New("key " + keys[0] + " not exist")
-	} else {
+	} else if len(keys) > 1 {
 		if b, ok := v.(map[string]interface{}); ok {
 			pointer = b
 		} else {
@@ -765,17 +765,20 @@ func getPointer(location string) (map[string]interface{}, string, error) {
 		}
 	}
 	//shardData_lock.Unlock()
-	for _, v := range keys[1 : len(keys)-1] {
-		if a, ok := pointer[v]; ok {
-			if b, ok := a.(map[string]interface{}); ok {
-				pointer = b
+	if len(keys) > 1 {
+		for _, v := range keys[1 : len(keys)-1] {
+			if a, ok := pointer[v]; ok {
+				if b, ok := a.(map[string]interface{}); ok {
+					pointer = b
+				} else {
+					return nil, "", errors.New("key " + v + " is not a map")
+				}
 			} else {
-				return nil, "", errors.New("key " + v + " is not a map")
+				return nil, "", errors.New("key " + v + " not exist")
 			}
-		} else {
-			return nil, "", errors.New("key " + v + " not exist")
 		}
 	}
+
 	if _, ok := pointer[keys[len(keys)-1]]; !ok {
 		return nil, "", errors.New("key " + keys[len(keys)-1] + " not exist")
 	}

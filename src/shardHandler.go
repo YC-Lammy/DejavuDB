@@ -46,17 +46,6 @@ func ShardHandler(conn net.Conn, message string) {
 		case "shardsize":
 			result = append(result, []byte(strconv.Itoa(getShardSize()))...)
 
-		case "Set", "Update", "Delete", "Get", "Clone", "Move", "Sizeof", "SizeOf", "Typeof", "TypeOf": // non-sql
-
-			v, err := Nosql_Handler(commands) // nosql handler will handlers all the execution
-			if err != nil {
-				send(conn, []byte(processID+" "+err.Error()))
-				return
-			}
-
-			result = append(result, []byte(processID+" "+*v+"\n")...)
-			processID = "" // purge the process id
-
 		case "SQL":
 
 			message = message[4:] // remove "SQL "
@@ -139,9 +128,15 @@ func ShardHandler(conn net.Conn, message string) {
 		case "":
 			continue
 
-		default:
-			send(conn, []byte(processID+" Invalid operation "+v))
-			return
+		default: // nosql
+			v, err := Nosql_Handler(commands) // nosql handler will handlers all the execution
+			if err != nil {
+				send(conn, []byte(processID+" "+err.Error()))
+				return
+			}
+
+			result = append(result, []byte(processID+" "+*v+"\n")...)
+			processID = "" // purge the process id
 
 		}
 		if i > 40 {

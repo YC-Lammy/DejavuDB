@@ -3,7 +3,7 @@ package main
 import "C"
 import "rogchap.com/v8go"
 
-// plugins written in python or javascript
+// plugins written in javascript
 
 type plugin struct {
 	plugin_name            string

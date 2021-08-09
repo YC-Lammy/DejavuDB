@@ -29,7 +29,7 @@ type user struct {
 	Issue_date     time.Time
 	Expiry_time    time.Time
 	Domain         string
-	token          *user_token
+	//token          *user_token
 }
 
 type user_group struct {
@@ -86,7 +86,7 @@ func init_users() {
 		h := sha256.New()
 		h.Write(sauce)
 		h.Write([]byte(""))
-		root := user{Name: "root", Id: 1, Domain: "localhost", Password_sauce: sauce, Password_sum: h.Sum(nil)}
+		root := user{Name: "root", Id: 1, Group: "adm", Domain: "localhost", Password_sauce: sauce, Password_sum: h.Sum(nil)}
 		user_map["adm"].Users["root"] = &root
 		f, _ := os.Create("root")
 		b, _ := json.Marshal(root)
@@ -99,17 +99,22 @@ func init_users() {
 	arr, _ := ioutil.ReadDir(path.Join(origin, "users"))
 	fmt.Println(arr)
 	for _, v := range arr {
-		var new user
+		var new = user{}
 		f, err := os.Open(v.Name())
 		if err != nil {
 			fmt.Println(err)
+			panic(err)
 		}
-		dec := gob.NewDecoder(f)
-		err = dec.Decode(&new)
+		v, _ := ioutil.ReadAll(f)
+		err = json.Unmarshal(v, &new)
 		if err != nil {
 			fmt.Println(err)
+			panic(err)
 		}
 		users[new.Name] = &new
+		if new.Group == "" {
+			panic("group not exist")
+		}
 		user_map[new.Group].Users[new.Name] = &new
 		fmt.Println(new.Name)
 	}
