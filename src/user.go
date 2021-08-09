@@ -2,8 +2,14 @@ package main
 
 import (
 	"crypto/sha256"
+	"encoding/gob"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -15,17 +21,20 @@ import (
 */
 
 type user struct {
-	name           string
-	password_sum   []byte
-	password_sauce []byte // some random bytes to secure the password sum
-	id             int
-	issue_date     time.Time
-	expiry_time    time.Time
+	Name           string
+	Password_sum   []byte
+	Password_sauce []byte // some random bytes to secure the password sum
+	Id             int
+	Group          string
+	Issue_date     time.Time
+	Expiry_time    time.Time
+	Domain         string
+	token          *user_token
 }
 
 type user_group struct {
-	id    int
-	users map[string]*user // name of user
+	Id    int
+	Users map[string]*user // name of user
 }
 
 type user_token struct {
@@ -36,7 +45,9 @@ type user_token struct {
 
 var user_tokens = map[string]*user_token{}
 
-var number_of_users int = 0
+var number_of_users int = 1
+
+var users = map[string]*user{}
 
 var user_map = map[string]*user_group{ // user_map will not be exposed to the out front
 	/*
@@ -46,17 +57,69 @@ var user_map = map[string]*user_group{ // user_map will not be exposed to the ou
 		UID 100–999 are reserved by system for administrative and system accounts/groups.
 		UID 1000–10000 are occupied by applications account.
 	*/
-	"adm":      &user_group{id: 1, users: map[string]*user{}},    // admin, nearest to root
-	"sudo":     &user_group{id: 27, users: map[string]*user{}},   // config permission, upgrade and maintainance
-	"dev":      &user_group{id: 30, users: map[string]*user{}},   // developers, view logs and cofigs
-	"analysts": &user_group{id: 80, users: map[string]*user{}},   // analystics, no admin permissions
-	"user":     &user_group{id: 100, users: map[string]*user{}},  // regular user, no additional permissions
-	"public":   &user_group{id: 1000, users: map[string]*user{}}, // public access, for application account
+	"adm":      &user_group{Id: 1, Users: map[string]*user{}},    // admin, nearest to root
+	"sudo":     &user_group{Id: 27, Users: map[string]*user{}},   // config permission, upgrade and maintainance
+	"dev":      &user_group{Id: 30, Users: map[string]*user{}},   // developers, view logs and cofigs
+	"analysts": &user_group{Id: 80, Users: map[string]*user{}},   // analystics, no admin permissions
+	"user":     &user_group{Id: 100, Users: map[string]*user{}},  // regular user, no additional permissions
+	"other":    &user_group{Id: 1000, Users: map[string]*user{}}, // public access, for application account
+}
+
+func init_users() {
+
+	origin := path.Join(home_dir, "dejavuDB")
+	os.Chdir(origin)
+	os.Mkdir("users", os.ModePerm)
+	os.Chdir("users")
+	/*os.Mkdir("adm", os.ModePerm)
+	os.Mkdir("sudo", os.ModePerm)
+	os.Mkdir("dev", os.ModePerm)
+	os.Mkdir("analysts", os.ModePerm)
+	os.Mkdir("user", os.ModePerm)
+	os.Mkdir("other", os.ModePerm)
+	*/
+
+	if _, err := os.Stat("root"); os.IsNotExist(err) {
+
+		sauce := make([]byte, 16)
+		rand.Read(sauce)
+		h := sha256.New()
+		h.Write(sauce)
+		h.Write([]byte(""))
+		root := user{Name: "root", Id: 1, Domain: "localhost", Password_sauce: sauce, Password_sum: h.Sum(nil)}
+		user_map["adm"].Users["root"] = &root
+		f, _ := os.Create("root")
+		b, _ := json.Marshal(root)
+		f.Write(b)
+		if err != nil {
+			return
+		}
+		f.Close()
+	}
+	arr, _ := ioutil.ReadDir(path.Join(origin, "users"))
+	fmt.Println(arr)
+	for _, v := range arr {
+		var new user
+		f, err := os.Open(v.Name())
+		if err != nil {
+			fmt.Println(err)
+		}
+		dec := gob.NewDecoder(f)
+		err = dec.Decode(&new)
+		if err != nil {
+			fmt.Println(err)
+		}
+		users[new.Name] = &new
+		user_map[new.Group].Users[new.Name] = &new
+		fmt.Println(new.Name)
+	}
+
+	os.Chdir(origin)
 }
 
 func userExist(username string) (*user, bool) { // return the user and bool
 	for _, v := range user_map {
-		if v, ok := v.users[username]; ok {
+		if v, ok := v.Users[username]; ok {
 			return v, true
 		}
 	}
@@ -69,9 +132,9 @@ func userLogin(username string, password string) error {
 		return errors.New("invalid")
 	}
 	h := sha256.New()
-	h.Write(user.password_sauce)
+	h.Write(user.Password_sauce)
 	h.Write([]byte(password))
-	if string(h.Sum(nil)) == string(user.password_sum) {
+	if string(h.Sum(nil)) == string(user.Password_sum) {
 		return nil
 	} else {
 		return errors.New("invalid")
@@ -79,8 +142,12 @@ func userLogin(username string, password string) error {
 }
 
 func useradd(message string) error { //this function can only be executed on router
-	message = strings.Replace(message, "useradd ", "", 1)
+	message = strings.Replace(message, "useradd", "", 1)
 	splited := strings.Split(message, " ")
+	if len(splited) < 1 {
+		return errors.New("not enough arguments")
+	}
+	fmt.Println(splited)
 	name := splited[len(splited)-1]
 	group := "user"
 	id := 1000 + number_of_users
@@ -117,14 +184,25 @@ func useradd(message string) error { //this function can only be executed on rou
 		return errors.New("user group does not exist")
 	}
 	// generate password hash
-	sauce := make([]byte, 32)
+	sauce := make([]byte, 16)
 	rand.Read(sauce)
 	h := sha256.New()
 	h.Write(sauce)
 	h.Write([]byte(password))
-	user_map[group].users[name] = &user{name: name, id: id, issue_date: time.Now(),
-		expiry_time: expire, password_sum: h.Sum(nil), password_sauce: sauce}
+	new := user{Name: name, Id: id, Issue_date: time.Now(),
+		Expiry_time: expire, Password_sum: h.Sum(nil), Password_sauce: sauce}
+	user_map[group].Users[name] = &new
+
+	f, _ := os.Create(path.Join(home_dir, "dejavuDB", "users") + string(os.PathSeparator) + name)
+	enc := gob.NewEncoder(f)
+	err := enc.Encode(new)
+	if err != nil {
+		return err
+	}
+	f.Close()
+	command_result = "sucess"
 	return nil
+
 }
 
 func groupadd(message string) error {
@@ -133,13 +211,12 @@ func groupadd(message string) error {
 	name := splited[len(splited)-1]
 	id := 1000 + number_of_users
 
-	user_map[name] = &user_group{id: id, users: map[string]*user{}}
+	user_map[name] = &user_group{Id: id, Users: map[string]*user{}}
 
 	return nil
 }
 
 func userid(message string) error {
 
-	command_result = ""
 	return nil
 }

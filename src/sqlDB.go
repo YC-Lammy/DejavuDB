@@ -23,7 +23,7 @@ base data types:
 */
 
 const (
-	sql_str8    = 0x00 // []byte
+	sql_str8    = 0x00 // byte
 	sql_str     = 0x01 // []string
 	sql_int     = 0x02 // []int32
 	sql_int64   = 0x03 // []int64

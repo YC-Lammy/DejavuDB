@@ -1,6 +1,9 @@
 package main
 
-import "errors"
+import (
+	"errors"
+	"sync"
+)
 
 /*
 table type is a table that stores structured data.
@@ -9,8 +12,8 @@ table data type is not fixed, instead, it will dynamically change its data type 
 
 type table struct {
 	name          string
-	column_dtypes map[string]byte    // map [column name] "data type"
-	columns       map[string]*column // map [column name] pointer to column
+	column_dtypes map[string]byte // map [column name] "data type"
+	columns       []*column       // map [column name] pointer to column
 	headers       []string
 	rows          []*row
 
@@ -37,7 +40,13 @@ type cell struct {
 }
 
 func create_table(data string, name string, args ...interface{}) (*table, error) {
-	return &table{name: name}, nil
+	if _, ok := test_shardData["tables"].key[name]; ok {
+		return nil, errors.New("table name already used")
+	}
+	tab := table{name: name}
+	new := &Node{data: &tab, lock: sync.Mutex{}}
+	test_shardData["tables"].key[name] = new
+	return &tab, nil
 }
 
 func (tb *table) Insert(Row []interface{}) error {

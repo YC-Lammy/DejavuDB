@@ -689,6 +689,24 @@ func Nosql_Handler(commands []string) (*string, error) {
 
 		return &sucess, nil
 
+	case "Batch", "batch": /* syntax: Batch Update {key;;value} {key1;;value} ...
+		   Batch Get {ket} {key1} {key2} ... */
+		iters := strings.Join(commands[2:], " ")
+		iters = iters[1 : len(iters)-1]
+		result := ""
+		for _, i := range strings.Split(iters, "} {") {
+
+			strs := []string{commands[1]}
+			strs = append(strs, strings.Split(i, ";;")...)
+
+			r, err := Nosql_Handler(strs) // execute
+			if err != nil {
+				return nil, err
+			}
+			result += *r + "\n"
+		}
+		return &result, nil
+
 	case "Create", "create": // create somthing args...
 		switch commands[1] {
 		case "table": // create table name (column1 varchar, ...) same as sql excepte unsupport select from

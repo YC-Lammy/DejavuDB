@@ -67,7 +67,14 @@ func main() {
 	os.Mkdir("log", os.ModePerm)
 	os.Mkdir("database", os.ModePerm)
 	os.Mkdir("ML", os.ModePerm)
+
+	init_users()
+
+	os.Chdir(path.Join(home_dir, "dejavuDB"))
+
 	os.Chdir("database")
+
+	os.Mkdir("tables", os.ModePerm)
 	if _, err := os.Stat("dejavu.db"); os.IsNotExist(err) {
 		f, _ := os.Create("dejavu.db")
 		f.Close()
