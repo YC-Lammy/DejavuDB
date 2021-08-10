@@ -18,7 +18,7 @@ var monitor_values = []map[string]string{}
 func monitor() map[string]string {
 	result := map[string]string{}
 
-	result["role"] = role
+	result["role"] = Settings.role
 
 	v, _ := mem.VirtualMemory()
 	result["mem_load"] = strconv.FormatInt(int64(math.Round(v.UsedPercent)), 10)

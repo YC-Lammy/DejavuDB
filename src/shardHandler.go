@@ -26,7 +26,7 @@ func ShardHandler(conn net.Conn, message string) {
 	var result = []byte{}
 	for i, v := range processes {
 
-		if DEBUG {
+		if Settings.debug {
 			fmt.Println(v)
 		}
 		commands = strings.Split(v, " ")
@@ -94,7 +94,7 @@ func ShardHandler(conn net.Conn, message string) {
 				}
 				var b string
 
-				if DEBUG {
+				if Settings.debug {
 					c, err := r.LastInsertId()
 					if err != nil {
 						b = ""

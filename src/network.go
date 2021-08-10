@@ -94,7 +94,7 @@ func shardConfig(config map[string]interface{}, handler func(net.Conn, string)) 
 		current_router_ipv4 = removeDuplicateStrings(list)
 
 		for _, ip := range current_router_ipv4 {
-			if ip != dial_ip {
+			if ip != Settings.router_addr {
 				go dial_server(ip, mycfg, ShardHandler, secondConfig)
 				wg.Add(1)
 			}
@@ -114,7 +114,7 @@ func routerConfig(config map[string]interface{}, handler func(net.Conn, string))
 
 		current_router_ipv4 = removeDuplicateStrings(list)
 		for _, ip := range current_router_ipv4 {
-			if ip != dial_ip && ip != hostport {
+			if ip != Settings.router_addr && ip != Settings.host+":"+Settings.port {
 				go dial_server(ip, mycfg, RouterHandler, secondConfig)
 				wg.Add(1)
 			}
@@ -137,7 +137,7 @@ func secondConfig(config map[string]interface{}, handler func(net.Conn, string))
 
 		for _, ip := range more_ip {
 
-			if ip != dial_ip {
+			if ip != Settings.router_addr {
 				go dial_server(ip, mycfg, handler, secondConfig)
 				wg.Add(1)
 			}

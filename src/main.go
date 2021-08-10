@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/gob"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"os"
 	"path"
@@ -11,51 +10,25 @@ import (
 	"time"
 )
 
-var password string = ""
-
-var role string = ""
-
 var mycfg = []byte{}
 
 var MAC_Address string = get_first_mac_addr() // get.go
 
-var hostport string = ""
-
-var dial_ip string = ""
-
-var save_to_disk bool = false
-
-var securite_connection int = 0
-
-var ML = false
-
 var sql_file string = ""
-
-var DEBUG bool = false
 
 var wg sync.WaitGroup // working group
 
 func main() {
-	var router_addr string
 
 	// flags declaration using flag package
-	flag.StringVar(&role, "r", "full", "Specify role. Default is router, option: shard, client")
-	flag.StringVar(&router_addr, "ip", "", "Specify router ip. Default is stand alone router")
-	flag.StringVar(&password, "p", "a empty password", "Specify password. Default is empty")
-	flag.StringVar(&hostport, "host", "localhost:8080", "specify hosting port")
-	flag.StringVar(&sql_file, "sqlfile", ":memory:", "specify sql file path")
-	flag.BoolVar(&save_to_disk, "disk", false, "save copy to disk")
-	flag.BoolVar(&DEBUG, "debug", false, "developer debug option")
-	flag.BoolVar(&ML, "ML", false, "Enable built in machine learning service")
-	flag.IntVar(&securite_connection, "sc", 0, "specify to use securite connection and the bit width")
-	flag.Parse()
+	init_settings() // handles all flags
 
 	for i, v := range os.Args {
 		switch v {
 		case "help":
 			fmt.Println(manual_desc)
 			return
-		case "install":
+		case "install": // install add-on
 			if _, err := os.Stat(os.Args[i+1]); os.IsNotExist(err) {
 				// path/to/whatever does not exist
 				panic(err)
@@ -70,7 +43,7 @@ func main() {
 
 	//fmt.Scanln(&password)
 
-	fmt.Println("save to disk: ", save_to_disk)
+	fmt.Println("save to disk: ", Settings.save_disk)
 
 	os.Chdir(home_dir)
 
@@ -95,11 +68,11 @@ func main() {
 
 	setupLog()
 
-	if password != "a empty password" {
+	if Settings.password != "a empty password" {
 		for {
-			if len(password) != 16 && len(password) != 24 && len(password) != 32 {
+			if len(Settings.password) != 16 && len(Settings.password) != 24 && len(Settings.password) != 32 {
 				fmt.Println("password must be length of 16, 24 or 32")
-				fmt.Scanln(&password)
+				fmt.Scanln(&Settings.password)
 			} else {
 				break
 			}
@@ -107,25 +80,23 @@ func main() {
 
 	}
 
-	dial_ip = router_addr
-
-	fmt.Println("role: " + role + " listener ip: " + router_addr)
-	switch role {
+	fmt.Println("role: " + Settings.role + " listener ip: " + Settings.router_addr)
+	switch Settings.role {
 
 	case "router":
-		start_router(router_addr)
+		start_router(Settings.router_addr)
 
 	case "shard":
-		start_shard(router_addr)
+		start_shard(Settings.router_addr)
 
 	case "client":
-		start_client(router_addr)
+		start_client(Settings.router_addr)
 
 	case "full":
-		start_full(router_addr)
+		start_full(Settings.router_addr)
 
 	case "log":
-		start_log(router_addr)
+		start_log(Settings.router_addr)
 
 	default:
 		panic("Specified Role Invalid")
@@ -140,7 +111,7 @@ func main() {
 
 func start_router(dial_addr string) { // start as a router
 
-	cfg := map[string]interface{}{"role": "router", "pass": password, "mac": MAC_Address, "port": hostport}
+	cfg := map[string]interface{}{"role": "router", "pass": Settings.password, "mac": MAC_Address, "port": Settings.host + ":" + Settings.port}
 	mycfg, _ = json.Marshal(cfg)
 
 	//go process_timeout_checker()
@@ -172,7 +143,7 @@ func start_shard(dial_addr string) { // start as a shard
 		panic("must specific an address")
 		return
 	}
-	cfg := map[string]interface{}{"role": "shard", "pass": password, "mac": MAC_Address, "port": hostport}
+	cfg := map[string]interface{}{"role": "shard", "pass": Settings.password, "mac": MAC_Address, "port": Settings.host + ":" + Settings.port}
 	mycfg, _ = json.Marshal(cfg)
 
 	go dial_server(dial_addr, mycfg, ShardHandler, shardConfig) // network.go
@@ -197,7 +168,7 @@ func start_log(dial_addr string) {
 		panic("must specific an address")
 		return
 	}
-	cfg := map[string]interface{}{"role": "log", "pass": password, "port": hostport}
+	cfg := map[string]interface{}{"role": "log", "pass": Settings.password, "port": Settings.host + ":" + Settings.port}
 	mycfg, _ = json.Marshal(cfg)
 
 	go log_file_date()
@@ -213,10 +184,10 @@ func start_full(dial_addr string) {
 	start_router(dial_addr)
 	time.Sleep(1 * time.Second)
 	fmt.Println("starting log server...")
-	start_log(hostport)
+	start_log(Settings.host + ":" + Settings.port)
 	time.Sleep(1 * time.Second)
 	fmt.Println("starting shard...")
-	start_shard(hostport)
+	start_shard(Settings.host + ":" + Settings.port)
 	fmt.Println("starting client...")
-	start_client(hostport)
+	start_client(Settings.host + ":" + Settings.port)
 }

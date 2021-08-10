@@ -16,7 +16,7 @@ func write_json(data map[string]interface{}) error {
 		return err
 	}
 
-	a, err = EncryptAES([]byte(password), a)
+	a, err = EncryptAES([]byte(Settings.password), a)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func read_json(filename string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	data, err = DecryptAES([]byte(password), data)
+	data, err = DecryptAES([]byte(Settings.password), data)
 
 	if err != nil {
 		return nil, err

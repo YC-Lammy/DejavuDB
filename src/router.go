@@ -18,7 +18,7 @@ var invalid_password = map[string]int{} // wrong password mac, attemp times
 func start_listening() error { // main loop
 	defer wg.Done()
 
-	ln, err := net.Listen("tcp", hostport)
+	ln, err := net.Listen("tcp", Settings.host+":"+Settings.port)
 	fmt.Println("[server] server start")
 
 	//defer ln.Close()
@@ -28,7 +28,7 @@ func start_listening() error { // main loop
 	}
 
 	c := color.New(color.FgHiRed).Add(color.Bold)
-	c.Println("\nListening at " + hostport + "\n")
+	c.Println("\nListening at " + Settings.host + ":" + Settings.port + "\n")
 
 	for {
 		conn, err := ln.Accept()
@@ -117,10 +117,10 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 			port := config["port"].(string)
 
 			if pass, ok := config["pass"]; ok {
-				if pass.(string) != password { // password is a global var, if not specified, default as ""
+				if pass.(string) != Settings.password { // password is a global var, if not specified, default as ""
 					send(conn, []byte("Invalid password"))
-					if _, ok := invalid_password[mac]; ok {
-						invalid_password[mac] += 1
+					if v, ok := invalid_password[mac]; ok {
+						v += 1
 					} else {
 						invalid_password[mac] = 1
 					}
@@ -144,7 +144,7 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 			port := config["port"].(string)
 
 			if pass, ok := config["pass"]; ok {
-				if pass.(string) != password { // password is a global var, if not specified, default as ""
+				if pass.(string) != Settings.password { // password is a global var, if not specified, default as ""
 					send(conn, []byte("Invalid password"))
 					conn.Close()
 					return "", "", "", errors.New("Invalid password from " + mac)
@@ -177,10 +177,10 @@ func router_connection_config(conn net.Conn, config map[string]interface{}) (str
 			port := config["port"].(string)
 
 			if pass, ok := config["pass"]; ok {
-				if pass.(string) != password { // password is a global var, if not specified, default as ""
+				if pass.(string) != Settings.password { // password is a global var, if not specified, default as ""
 					send(conn, []byte("Invalid password"))
-					if _, ok := invalid_password[mac]; ok {
-						invalid_password[mac] += 1
+					if v, ok := invalid_password[mac]; ok {
+						v += 1
 					} else {
 						invalid_password[mac] = 1
 					}
