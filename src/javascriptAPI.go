@@ -12,15 +12,15 @@ class dejavu_api_settings {
 	constructor(){}
 
 	static is_ML_enabled(){
-		return dejavu_api_is_ML_enabled()
+		return dejavu_api_is_ML_enabled();
 	}
 
 	static enable_ML(){
-		dejavu_api_enable_ML()
+		dejavu_api_enable_ML();
 	}
 
 	static disable_ML(){
-		
+		dejavu_api_disable_ML();
 	}
 }
 
@@ -28,10 +28,27 @@ class dejavu_api_class {
 	constructor(){
 
 	}
-	static version = "dejavuDB 0.2.1"
-	static version_info = ""
+	static version = "dejavuDB 0.2.1";
+	static version_info = "";
 
-	static settings = dejavu_api_settings
+	static settings = dejavu_api_settings;
+
+
+	static Get(key){
+
+	}
+
+    static Set(key, value, type){
+
+	}
+
+	static Update(key, value){
+
+	}
+
+	static Batch(command,args){
+
+	}
 }
 `
 
@@ -76,4 +93,13 @@ func javascript_context_init(ctx *v8go.Context, errs chan error) {
 		})
 
 	glob.Set("dejavu_api_enable_ML", dejavu_api_enable_ML)
+
+	dejavu_api_disable_ML, _ := v8go.NewFunctionTemplate(vm,
+
+		func(info *v8go.FunctionCallbackInfo) *v8go.Value {
+			Settings.enable_ML = false
+			return nil
+		})
+
+	glob.Set("dejavu_api_disable_ML", dejavu_api_disable_ML)
 }
