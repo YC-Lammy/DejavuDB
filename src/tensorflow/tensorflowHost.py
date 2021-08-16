@@ -36,7 +36,7 @@ class pipline:
         self.InfraValidator = dict["InfraValidator"]
         self.Pusher = dict["Pusher"]
     
-    def run(self):
+    def push(self,data):
         pass
 
     def save(self):
@@ -100,6 +100,9 @@ def main_handler(conn,msg):
             return
         model = load_model(com_dict["name"])
         send(sprint(model.predict(com_dict["data"])),conn)
+
+    elif com == "PUSH_PIPLINE":
+        pass
 
 def main():
     soc =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)
