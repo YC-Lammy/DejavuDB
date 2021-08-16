@@ -19,6 +19,9 @@ var sql_file string = ""
 var wg sync.WaitGroup // working group
 
 func main() {
+	if v := init_python_server(); v != nil {
+		panic(v)
+	}
 
 	// flags declaration using flag package
 	init_settings() // handles all flags

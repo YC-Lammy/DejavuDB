@@ -10,18 +10,6 @@ table type is a table that stores structured data.
 table data type is not fixed, instead, it will dynamically change its data type according to input data
 */
 
-type table struct {
-	name          string
-	column_dtypes map[string]byte // map [column name] "data type"
-	columns       []*column       // map [column name] pointer to column
-	headers       []string
-	rows          []*row
-
-	permission [3]int8 // 0-7, 3 digit permission number owner, group, others e.g. 770
-	owner      int     // owner id
-	group      int     // group id
-}
-
 // columns and rows in the same table shares the same set of cells in different direction
 type column struct {
 	name     string
@@ -37,6 +25,22 @@ type row struct {
 type cell struct {
 	data     interface{}
 	datatype byte
+}
+
+type table struct {
+	name          string
+	column_dtypes map[string]byte // map [column name] "data type"
+	columns       []*column       // map [column name] pointer to column
+	headers       []string
+	rows          []*row
+	column_count  int
+	row_count     int
+
+	permission [3]int8 // 0-7, 3 digit permission number owner, group, others e.g. 770
+	owner      int     // owner id
+	group      int     // group id
+
+	insert_row_trigger_script string
 }
 
 func create_table(data string, name string, args ...interface{}) (*table, error) {
