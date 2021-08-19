@@ -1,12 +1,29 @@
 package main
 
 import (
+	"bufio"
 	"errors"
-	"runtime"
+	"fmt"
+	"net"
+	"strconv"
 	"sync"
 )
 
 var tf_model_register = map[string]*tfModel{}
+
+var tf_python_server_conn *net.Conn
+
+var tf_python_server_conn_buf *bufio.Reader
+
+var tf = tenserflow_{}
+
+var h = tensorflow.hi
+
+type tenserflow_ struct {
+	conn    *net.Conn
+	connbuf *bufio.Reader
+	version string
+}
 
 type tfModel struct {
 	name         string
@@ -21,84 +38,53 @@ type tfModel struct {
 }
 
 func init_tensorflow() error {
-	switch runtime.GOOS {
-	case "linux":
-	case "darwin":
-	case "windows":
-
+	if err := init_python_server(); err != nil {
+		return err
 	}
+	co, err := net.Dial("localhost", "3247")
+	if err != nil {
+		return err
+	}
+	tf.conn = &co
+	tf.connbuf = bufio.NewReader(co)
+
 	return nil
 }
 
-func tf_create_image_classifyer() string {
-	return `
-	function make_model(input_shape, num_classes){
-	inputs = keras.Input(shape=input_shape)
-
-    // Image augmentation block
-    x = tf.sequential(
-		[
-			tf.layers.experimental.preprocessing.RandomFlip("horizontal"),
-			tf.layers.experimental.preprocessing.RandomRotation(0.1),
-		]
-	)(inputs)
-
-    // Entry block
-    x = layers.experimental.preprocessing.Rescaling(1.0 / 255)(x)
-    x = layers.Conv2D(32, 3, strides=2, padding="same")(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Activation("relu")(x)
-
-    x = layers.Conv2D(64, 3, padding="same")(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Activation("relu")(x)
-
-    previous_block_activation = x  # Set aside residual
-
-    for size in [128, 256, 512, 728]:
-        x = layers.Activation("relu")(x)
-        x = layers.SeparableConv2D(size, 3, padding="same")(x)
-        x = layers.BatchNormalization()(x)
-
-        x = layers.Activation("relu")(x)
-        x = layers.SeparableConv2D(size, 3, padding="same")(x)
-        x = layers.BatchNormalization()(x)
-
-        x = layers.MaxPooling2D(3, strides=2, padding="same")(x)
-
-        # Project residual
-        residual = layers.Conv2D(size, 1, strides=2, padding="same")(
-            previous_block_activation
-        )
-        x = layers.add([x, residual])  # Add back residual
-        previous_block_activation = x  # Set aside next residual
-
-    x = layers.SeparableConv2D(1024, 3, padding="same")(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Activation("relu")(x)
-
-    x = layers.GlobalAveragePooling2D()(x)
-    if num_classes == 2:
-        activation = "sigmoid"
-        units = 1
-    else:
-        activation = "softmax"
-        units = num_classes
-
-    x = layers.Dropout(0.5)(x)
-    outputs = layers.Dense(units, activation=activation)(x)
-    return keras.Model(inputs, outputs)
+func tf_send(msg []byte) {
+	header := strconv.Itoa(len(msg))
+	for len(header) < 64 { // header must be length of 64
+		header = "0" + header
 	}
-	const model = make_model();
-	model.compile(
-		optimizer=keras.optimizers.Adam(1e-3),
-		loss="binary_crossentropy",
-		metrics=["accuracy"],
-	)
-	const saveResult = await model.save('http://model-server:5000/upload');
-	`
+	fmt.Fprint(*tf.conn, header)
+	fmt.Fprint(*tf.conn, msg)
 }
 
+func tf_recv() ([]byte, error) {
+	header := []byte{}
+	for i := 0; i < 64; i++ {
+		by, err := tf.connbuf.ReadByte()
+		if err != nil { //error when no byte is avaliable
+			i--      // do not count the loop
+			continue // skip to next loop
+		}
+		header = append(header, by)
+	}
+	msg_l, err := strconv.Atoi(string(header))
+	if err != nil {
+		return nil, err
+	}
+	msg := []byte{}
+	for i := 0; i < msg_l; i++ {
+		by, err := tf.connbuf.ReadByte()
+		if err != nil { //error when no byte is avaliable
+			i--      // do not count the loop
+			continue // skip to next loop
+		}
+		msg = append(msg, by)
+	}
+	return msg, nil
+}
 func tf_model_predict(model_name string, data interface{}) string {
 	return ``
 }

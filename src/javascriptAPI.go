@@ -64,6 +64,10 @@ class dejavu_api_ML {
 			const model = await tf.loadLayersModel('localhost:7650/'+name);
 		}
 	}
+
+	static predict(model, value) {
+		
+	}
 }
 `
 
