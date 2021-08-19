@@ -1,4 +1,4 @@
-package main
+package tensorflow
 
 type tensorflow_pipline struct {
 	ExampleGen       string

@@ -1,4 +1,4 @@
-package main
+package tensorflow
 
 import (
 	"bufio"
@@ -9,6 +9,8 @@ import (
 	"sync"
 )
 
+func init() {}
+
 var tf_model_register = map[string]*tfModel{}
 
 var tf_python_server_conn *net.Conn
@@ -16,8 +18,6 @@ var tf_python_server_conn *net.Conn
 var tf_python_server_conn_buf *bufio.Reader
 
 var tf = tenserflow_{}
-
-var h = tensorflow.hi
 
 type tenserflow_ struct {
 	conn    *net.Conn
@@ -37,7 +37,7 @@ type tfModel struct {
 	lock sync.Mutex
 }
 
-func init_tensorflow() error {
+func Init_tensorflow() error {
 	if err := init_python_server(); err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func init_tensorflow() error {
 	return nil
 }
 
-func tf_send(msg []byte) {
+func Tf_send(msg []byte) {
 	header := strconv.Itoa(len(msg))
 	for len(header) < 64 { // header must be length of 64
 		header = "0" + header
@@ -60,7 +60,7 @@ func tf_send(msg []byte) {
 	fmt.Fprint(*tf.conn, msg)
 }
 
-func tf_recv() ([]byte, error) {
+func Tf_recv() ([]byte, error) {
 	header := []byte{}
 	for i := 0; i < 64; i++ {
 		by, err := tf.connbuf.ReadByte()
@@ -89,7 +89,7 @@ func tf_model_predict(model_name string, data interface{}) string {
 	return ``
 }
 
-func tf_get_model_by_name(name string) (*tfModel, error) {
+func Get_model_by_name(name string) (*tfModel, error) {
 	if v, ok := tf_model_register[name]; ok {
 		return v, nil
 	}

@@ -1,4 +1,4 @@
-module main
+module src
 
 go 1.16
 
@@ -10,4 +10,9 @@ require (
 	github.com/shirou/gopsutil/v3 v3.21.7
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	rogchap.com/v8go v0.6.0
+	src/tensorflow v0.0.0
+)
+
+replace (
+	src/tensorflow => ./tensorflow
 )

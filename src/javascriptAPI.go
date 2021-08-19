@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"rogchap.com/v8go"
+
+	tf "src/tensorflow"
 )
 
 const javascript_API_Script = `
@@ -126,11 +128,12 @@ func javascript_context_init(ctx *v8go.Context, errs chan error) {
 		func(info *v8go.FunctionCallbackInfo) *v8go.Value { // when the JS function is called this Go callback will execute
 
 			name := fmt.Sprintf("%v", info.Args())
-			_, err := tf_get_model_by_name(name)
+			_, err := tf.Get_model_by_name(name)
+			a := true
 			if err != nil {
-				errs <- err
+				a = false
 			}
-			val, err := v8go.NewValue(vm, true)
+			val, err := v8go.NewValue(vm, a)
 			if err != nil {
 				errs <- err
 			}

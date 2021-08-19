@@ -1,4 +1,4 @@
-package main
+package tensorflow
 
 var tensorflowjs = `
 /**
