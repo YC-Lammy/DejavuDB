@@ -4,6 +4,7 @@ from tempfile import NamedTemporaryFile
 from pathlib import Path
 import multiprocessing
 import threading
+import tensorflow as tf
 
 os.chdir(os.path.join(Path.home(),"dejavuDB","ML"))
 
@@ -64,9 +65,43 @@ class SchemaGen:
 
 class tenserflow_model:
     locked = False
+    is_in_ram = False
+    waiting_room = []
 
-    def __init__(self,model_path=None):
+    def __init__(self,name,model_path=None,model=None,model_type = None):
+        self.name = name
+        self.model = model
         self.model_path = model_path
+        self.model_type = model_type
+
+    def lock(self):
+        self.locked = True
+
+    def unlock(self):
+        self.locked = False
+        del self.waiting_room[0] # the queue move forward
+
+    def join_waiting_room(self):
+        "wait until in front of the process queue"
+        id = os.urandom(8)
+        self.waiting_room.append(id) # queue up
+
+        while True:
+            if self.waiting_room[0] == id:
+                break
+            time.sleep(0.01)
+
+    def load_to_ram(self):
+        if self.is_in_ram:
+            return
+
+        self.join_waiting_room()
+        self.lock()
+
+        if self.model_type == "layerModel":
+            self.model = tf.keras.models.load_model(self.model_path)
+
+        self.unlock()
 
 def send(msg,conn):
     conn.send(msg.encode(method))

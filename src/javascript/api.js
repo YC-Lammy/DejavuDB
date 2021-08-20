@@ -53,10 +53,11 @@ class dejavu_api_ML {
 	static version = "";
 
 	static load_model(name){
-		if TF_MODEL_EXIST(name) {
-			const model = await tf.loadLayersModel('localhost:7650/'+name);
-		}
 	}
+
+    static suspend_model(name){
+
+    }
 
 	static predict(model, value) {
 		
