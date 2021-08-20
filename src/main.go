@@ -54,6 +54,7 @@ func main() {
 	os.Mkdir("log", os.ModePerm)
 	os.Mkdir("database", os.ModePerm)
 	os.Mkdir("ML", os.ModePerm)
+	os.Mkdir("addon", os.ModePerm)
 
 	init_users()
 
@@ -148,6 +149,8 @@ func start_shard(dial_addr string) { // start as a shard
 
 	go dial_server(dial_addr, mycfg, ShardHandler, shardConfig) // network.go
 
+	go SQL_init()
+
 	wg.Add(1)
 }
 
@@ -157,8 +160,6 @@ func start_client(dial_addr string) { // start as a client
 	cfg := map[string]interface{}{"role": "client"}
 	mycfg, _ = json.Marshal(cfg)
 	go Client_dial(dial_addr, mycfg)
-
-	go SQL_init()
 
 	wg.Add(1)
 }

@@ -1,4 +1,6 @@
-cd src
+ORIGIN_DIR=`pwd`;
+cd $(dirname $(readlink -f $0));
+cd src;
 
 case $1 in 
 
@@ -11,4 +13,6 @@ case $1 in
     ;;
 esac
 
-cd ..
+cd .. ;
+
+cd $ORIGIN_DIR

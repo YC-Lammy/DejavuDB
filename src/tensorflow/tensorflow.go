@@ -15,13 +15,11 @@ var tf_python_server_conn *net.Conn
 
 var tf_python_server_conn_buf *bufio.Reader
 
-var tf = tenserflow_{}
+var Conn *net.Conn
 
-type tenserflow_ struct {
-	conn    *net.Conn
-	connbuf *bufio.Reader
-	version string
-}
+var Connbuf *bufio.Reader
+
+var Version string
 
 type tfModel struct {
 	name         string
@@ -43,8 +41,8 @@ func Init_tensorflow() error {
 	if err != nil {
 		return err
 	}
-	tf.conn = &co
-	tf.connbuf = bufio.NewReader(co)
+	Conn = &co
+	Connbuf = bufio.NewReader(co)
 
 	return nil
 }
@@ -54,14 +52,14 @@ func Tf_send(msg []byte) {
 	for len(header) < 64 { // header must be length of 64
 		header = "0" + header
 	}
-	fmt.Fprint(*tf.conn, header)
-	fmt.Fprint(*tf.conn, msg)
+	fmt.Fprint(*Conn, header)
+	fmt.Fprint(*Conn, msg)
 }
 
 func Tf_recv() ([]byte, error) {
 	header := []byte{}
 	for i := 0; i < 64; i++ {
-		by, err := tf.connbuf.ReadByte()
+		by, err := Connbuf.ReadByte()
 		if err != nil { //error when no byte is avaliable
 			i--      // do not count the loop
 			continue // skip to next loop
@@ -74,7 +72,7 @@ func Tf_recv() ([]byte, error) {
 	}
 	msg := []byte{}
 	for i := 0; i < msg_l; i++ {
-		by, err := tf.connbuf.ReadByte()
+		by, err := Connbuf.ReadByte()
 		if err != nil { //error when no byte is avaliable
 			i--      // do not count the loop
 			continue // skip to next loop

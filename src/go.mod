@@ -11,8 +11,10 @@ require (
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	rogchap.com/v8go v0.6.0
 	src/tensorflow v0.0.0
+	src/sql v0.0.0
 )
 
 replace (
 	src/tensorflow => ./tensorflow
+	src/sql => ./sql
 )

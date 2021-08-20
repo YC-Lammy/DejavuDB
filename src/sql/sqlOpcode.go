@@ -1,4 +1,4 @@
-package main
+package aql
 
 const (
 	/* Opcode:  Goto * P2 * * *

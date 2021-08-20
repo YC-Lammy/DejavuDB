@@ -1,4 +1,4 @@
-package main
+package sql
 
 type Vdbe struct {
 	opcode byte

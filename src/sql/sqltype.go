@@ -1,4 +1,4 @@
-package main
+package sql
 
 /*
 # include <string.h>
