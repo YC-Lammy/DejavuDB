@@ -1,16 +1,17 @@
-import os, sys
-import tensorflow as tf
-import io, socket, json, joblib
+import os, sys, time
+import socket, joblib
 from tempfile import NamedTemporaryFile
 from pathlib import Path
-import numpy as np
+import multiprocessing
+import threading
 
 os.chdir(os.path.join(Path.home(),"dejavuDB","ML"))
 
 header=64
 method = 'UTF-8'
-model_names = []
-piplines = []
+ender = "!END_OF_SERVICE"
+WaitGroup = 0
+resources = multiprocessing.Manager().dict() # map[string]multiprocessing.Lock
 """
 if tf.config.list_physical_devices("TPU"):
     strategy = tf.distribute.TPUStrategy
@@ -61,6 +62,12 @@ class SchemaGen:
     def __init__(self,dict) -> None:
         self.features = dict["SchemaGen"]["features"]
 
+class tenserflow_model:
+    locked = False
+
+    def __init__(self,model_path=None):
+        self.model_path = model_path
+
 def send(msg,conn):
     conn.send(msg.encode(method))
 
@@ -71,16 +78,24 @@ def recv(conn):
         msg = conn.recv(msg_l).decode(method)
     return msg
 
-def sprint(*args, **kwargs):
-    sio = io.StringIO()
-    print(*args, **kwargs, file=sio)
-    return sio.getvalue()
 
-def load_model(name:str):
-    model = tf.keras.models.load_model(name)
-    return model
+def main_handler(conn,msg,resources):
+    import io, json, joblib
+    import tensorflow as tf
+    import numpy as np
 
-def main_handler(conn,msg):
+    def send(msg,conn):
+        conn.send(msg.encode(method))
+
+    def sprint(*args, **kwargs):
+        sio = io.StringIO()
+        print(*args, **kwargs, file=sio)
+        return sio.getvalue()
+
+    def load_model(name:str):
+        model = tf.keras.models.load_model(name)
+        return model
+
     com_dict = json.loads(msg)
     com = com_dict["command"]
     if com == "CREATE_MODEL": #script to create and save model
@@ -95,7 +110,7 @@ def main_handler(conn,msg):
         pass
 
     elif com == "PREDICT": # PREDICT $model_name values
-        if com_dict['name'] not in model_names:
+        if com_dict['name'] not in resources["model_names"]:
             send("model "+com_dict['name']+" does not exist", conn)
             return
         model = load_model(com_dict["name"])
@@ -104,14 +119,39 @@ def main_handler(conn,msg):
     elif com == "PUSH_PIPLINE":
         pass
 
+    conn.close()
+
+def spawn_process(conn,msg):
+    global WaitGroup
+    WaitGroup += 1
+    try:
+        parent_conn, child_conn = multiprocessing.Pipe()
+        p = multiprocessing.Process(target=main_handler, args=(child_conn,msg,resources))
+        p.start()
+        a = parent_conn.recv()
+        p.join()
+        try:
+            send(a, conn)
+        except Exception as e:
+            send(str(e),conn)
+    except Exception as e:
+        send(str(e),conn)
+
+    WaitGroup = WaitGroup - 1
+
 def main():
     soc =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     soc.bind(("localhost", "3247"))
     soc.listen()
-    conn, addr = soc.accept()
+    conn, addr = soc.accept() #since threading in pyhton does not actually uncrease speed i decided to use only one connection
     while True:
         msg = recv(conn) # msg in json format
-        main_handler(conn,msg)
+        if msg == ender:
+            while WaitGroup >0:
+                time.sleep(0.25)
+                continue
+            break
+        threading.Thread(target=spawn_process,args=(conn,msg)).start() #spawn new thread
 
 if __name__ == "__main__":
     main()

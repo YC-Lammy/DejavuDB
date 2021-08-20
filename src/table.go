@@ -1,5 +1,6 @@
 package main
 
+// LDFLAGS: -X 'src/tensorflow.python_server_script = $(<src/tensorflow/tensorflowHost.py)'
 import (
 	"errors"
 	"sync"

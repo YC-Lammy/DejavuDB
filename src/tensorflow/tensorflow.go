@@ -9,8 +9,6 @@ import (
 	"sync"
 )
 
-func init() {}
-
 var tf_model_register = map[string]*tfModel{}
 
 var tf_python_server_conn *net.Conn

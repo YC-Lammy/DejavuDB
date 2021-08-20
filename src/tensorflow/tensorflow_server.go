@@ -7,7 +7,12 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+
+	_ "embed"
 )
+
+//go:embed tensorflowHost.py
+var python_server_script string // embed python script
 
 func init_python_server() error {
 	switch runtime.GOOS {
@@ -49,7 +54,3 @@ func init_python_server() error {
 	}
 	return nil
 }
-
-var python_server_script = `
-# copy from tensorflow/tenserflowHost.py
-`
