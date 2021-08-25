@@ -12,9 +12,11 @@ require (
 	rogchap.com/v8go v0.6.0
 	src/tensorflow v0.0.0
 	src/sql v0.0.0
+	src/datastore v0.0.0
 )
 
 replace (
 	src/tensorflow => ./tensorflow
 	src/sql => ./sql
+	src/datastore => ./datastore
 )

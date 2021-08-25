@@ -1,54 +1,46 @@
-class dejavu {
-	constructor(){
 
-	}
-	static version = "dejavuDB 0.2.1";
-	static version_info = "";
-
-	static settings = dejavu_api_settings;
-
-	static ML = dejavu_api_ML;
+exports.version = "dejavuDB 0.2.1";
+exports.version_info = "";
 
 
-	static Get(key){
+exports.Get= function(key){
 
-	}
+}
 
-    static Set(key, value, type){
+exports.GetInfo = function(key){
 
-	}
+}
 
-	static Update(key, value){
+exports.Set = function(key, value, type){
 
-	}
+}
 
-	static Batch(command,args){
+exports.Update = function(key, value){
 
-	}
+}
+
+exports.Batch= function(command,args){
+
 }
 
 
-class dejavu_api_settings {
-	constructor(){}
+
+exports.settings = class {
 
 	static is_ML_enabled(){
-		return dejavu_api_is_ML_enabled();
+		return call_go_fn("dejavu_api_is_ML_enabled");
 	}
 
 	static enable_ML(){
-		dejavu_api_enable_ML();
+		return call_go_fn("dejavu_api_enable_ML");
 	}
 
 	static disable_ML(){
-		dejavu_api_disable_ML();
+		return call_go_fn("dejavu_api_disable_ML");
 	}
 }
 
-
-
-class dejavu_api_ML {
-	constructor(){}
-
+exports.ML = class {
 	static __name__ = "tensorflow.js";
 	static version = "";
 
