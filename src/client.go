@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"src/lazy"
 	"strconv"
 	"strings"
 	"syscall"
@@ -117,7 +118,7 @@ func Client_dial(router_addr string, mycfg []byte) error {
 
 func command_syntax_checker(text string) error {
 	splited := strings.Split(text, " ")
-	if !(contains(list_of_commands, splited[0])) {
+	if !(lazy.Contains(list_of_commands, splited[0])) {
 		return errors.New(splited[0] + ": command not found")
 	}
 	return nil

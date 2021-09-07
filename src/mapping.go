@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"net"
+
+	"src/lazy"
 )
 
 type shardDetail struct {
@@ -80,7 +82,7 @@ func closed_router(conn net.Conn, mac string, port string) {
 
 	router_connected -= 1
 
-	current_router_ipv4 = removeItem(current_router_ipv4, port)
+	current_router_ipv4 = lazy.RemoveItem(current_router_ipv4, port)
 }
 
 func shard_closed_router(conn net.Conn, port string) {
@@ -91,7 +93,7 @@ func shard_closed_router(conn net.Conn, port string) {
 
 	router_connected -= 1
 
-	current_router_ipv4 = removeItem(current_router_ipv4, port)
+	current_router_ipv4 = lazy.RemoveItem(current_router_ipv4, port)
 }
 
 func register_log(conn net.Conn) {

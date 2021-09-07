@@ -1,4 +1,4 @@
-package main
+package datastore
 
 import (
 	"crypto/aes"
@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"../settings"
 )
 
 func write_json(data map[string]interface{}) error {
@@ -16,7 +18,7 @@ func write_json(data map[string]interface{}) error {
 		return err
 	}
 
-	a, err = EncryptAES([]byte(Settings.password), a)
+	a, err = EncryptAES([]byte(settings.AES_key), a)
 	if err != nil {
 		return err
 	}
@@ -40,7 +42,7 @@ func read_json(filename string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	data, err = DecryptAES([]byte(Settings.password), data)
+	data, err = DecryptAES([]byte(settings.AES_key), data)
 
 	if err != nil {
 		return nil, err
@@ -82,25 +84,4 @@ func DecryptAES(key []byte, ciphertext []byte) ([]byte, error) {
 	c.Decrypt(pt, ciphertext)
 
 	return pt, nil
-}
-
-func DownloadFile(filepath string, url string) error {
-
-	// Get the data
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Create the file
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	return err
 }

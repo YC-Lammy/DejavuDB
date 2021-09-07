@@ -13,6 +13,8 @@ import (
 	"text/tabwriter"
 
 	"github.com/fatih/color"
+
+	"src/lazy"
 )
 
 type Database struct {
@@ -162,7 +164,7 @@ func Connect(router_addr string) (*Database, error) {
 
 func command_syntax_checker(text string) error {
 	splited := strings.Split(text, " ")
-	if !(contains(list_of_commands, splited[0])) {
+	if !(lazy.Contains(list_of_commands, splited[0])) {
 		return errors.New(splited[0] + ": command not found")
 	}
 	return nil

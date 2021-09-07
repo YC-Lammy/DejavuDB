@@ -1,6 +1,6 @@
-package main
+package static
 
-var manual_desc = `dejavuDB(1)		Manual pager		dejavuDB(1)
+var Manual = `dejavuDB(1)		Manual pager		dejavuDB(1)
 
 NAME
 	dejavuDB console - an interface to the dejavuDB command

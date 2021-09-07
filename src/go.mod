@@ -13,10 +13,16 @@ require (
 	src/tensorflow v0.0.0
 	src/sql v0.0.0
 	src/datastore v0.0.0
+	src/contract v0.0.0
+	src/lazy v0.0.0
+	src/settings v0.0.0
 )
 
 replace (
 	src/tensorflow => ./tensorflow
 	src/sql => ./sql
 	src/datastore => ./datastore
+	src/contract => ./type-contract
+	src/lazy => ./lazy
+	src/settings => ./settings
 )

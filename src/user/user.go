@@ -1,4 +1,4 @@
-package main
+package user
 
 import (
 	"crypto/sha256"
@@ -24,20 +24,22 @@ type user struct {
 	Name           string
 	Password_sum   []byte
 	Password_sauce []byte // some random bytes to secure the password sum
-	Id             int
+	Id             uint32
 	Group          string
+	permission     uint16
 	Issue_date     time.Time
 	Expiry_time    time.Time
 	Domain         string
-	//token          *user_token
 }
 
 type user_group struct {
 	Id    int
 	Users map[string]*user // name of user
+	Name  string
 }
 
 type user_token struct {
+	name        string
 	user_name   string
 	user_group  string
 	expiry_time time.Time
@@ -48,6 +50,8 @@ var user_tokens = map[string]*user_token{}
 var number_of_users int = 1
 
 var users = map[string]*user{}
+
+var home_dir string
 
 var user_map = map[string]*user_group{ // user_map will not be exposed to the out front
 	/*
@@ -66,6 +70,8 @@ var user_map = map[string]*user_group{ // user_map will not be exposed to the ou
 }
 
 func init() {
+	d, _ := os.UserHomeDir()
+	home_dir = d
 
 	origin := path.Join(home_dir, "dejavuDB")
 	os.Chdir(origin)
@@ -115,12 +121,13 @@ func init() {
 			panic("group not exist")
 		}
 		user_map[new.Group].Users[new.Name] = &new
+		fmt.Println(new.Name)
 	}
 
 	os.Chdir(origin)
 }
 
-func userExist(username string) (*user, bool) { // return the user and bool
+func UserExist(username string) (*user, bool) { // return the user and bool
 	for _, v := range user_map {
 		if v, ok := v.Users[username]; ok {
 			return v, true
@@ -129,7 +136,7 @@ func userExist(username string) (*user, bool) { // return the user and bool
 	return nil, false
 }
 
-func userLogin(username string, password string) error {
+func Login(username string, password string) error {
 	user, _ := userExist(username)
 	if user == nil {
 		return errors.New("invalid")
@@ -144,7 +151,7 @@ func userLogin(username string, password string) error {
 	}
 }
 
-func useradd(message string) error { //this function can only be executed on router
+func Useradd(message string) error { //this function can only be executed on router
 	message = strings.Replace(message, "useradd", "", 1)
 	splited := strings.Split(message, " ")
 	if len(splited) < 1 {
@@ -203,12 +210,10 @@ func useradd(message string) error { //this function can only be executed on rou
 		return err
 	}
 	f.Close()
-	command_result = "sucess"
 	return nil
-
 }
 
-func groupadd(message string) error {
+func Groupadd(message string) error {
 	message = strings.Replace(message, "groupadd ", "", 1)
 	splited := strings.Split(message, " ")
 	name := splited[len(splited)-1]
@@ -219,7 +224,7 @@ func groupadd(message string) error {
 	return nil
 }
 
-func userid(message string) error {
+func Userid(message string) error {
 
 	return nil
 }

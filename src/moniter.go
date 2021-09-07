@@ -11,6 +11,8 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
+
+	"src/settings"
 )
 
 var monitor_values = []map[string]string{}
@@ -18,7 +20,7 @@ var monitor_values = []map[string]string{}
 func monitor() map[string]string {
 	result := map[string]string{}
 
-	result["role"] = Settings.role
+	result["role"] = settings.Role
 
 	v, _ := mem.VirtualMemory()
 	result["mem_load"] = strconv.FormatInt(int64(math.Round(v.UsedPercent)), 10)

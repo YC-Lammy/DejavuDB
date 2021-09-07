@@ -10,16 +10,17 @@ var Data = map[string]*Node{}
 
 var Data_lock = sync.Mutex{}
 
+var Layers = []Layer{}
+
+type Layer struct{
+	Nodes []*Node
+}
+
 type Node struct {
 	name        string
 	subkey      map[string]*Node
 	lock        sync.Mutex  // each node has its own mutex
 	data        interface{} // if data is not nil, key map should be empty
-	create_time time.Time
-	modify_time time.Time
-
-	//pipline_cell   *streamcell // allow user to stream data to other location when Node is modified
-	trigger_script string // trigger java script when event happened
 }
 
 func (loc *Node) register_data(key string, data interface{}) { // send data to channel
@@ -34,6 +35,9 @@ func (loc *Node) register_data(key string, data interface{}) { // send data to c
 }
 
 func Get(key string, json_options ...map[string]interface{}) interface{} {
+	if key == ""{
+		return nil
+	}
 	Data_lock.Lock()
 	var pointer = Data
 	Data_lock.Unlock()
@@ -48,6 +52,9 @@ func Get(key string, json_options ...map[string]interface{}) interface{} {
 		if v, ok := pointer[v]; ok {
 			pointer = v.subkey
 		}
+	}
+	if v, ok := pointer[keys[len(keys)-1]];ok{
+		return v.data
 	}
 	return nil
 }

@@ -31,11 +31,13 @@ type javascript_module struct {
 	enabled   bool
 }
 
-//go:embed javascript/api.js
+//go:embed api.js
 var javascript_API_Script string
 
 var javascript_API_lib = map[string]*javascript_module{}
 var javascript_API_lib_lock = sync.Mutex{}
+
+var javascript_vm *v8go.Isolate
 
 func init() {
 

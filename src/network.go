@@ -7,20 +7,10 @@ import (
 	"fmt"
 	"log"
 	"net"
+
+	"src/lazy"
+	"src/settings"
 )
-
-func send(conn net.Conn, message []byte) (int, error) {
-	message = append(message, 0x00) // nul to mark end of section
-	return fmt.Fprint(conn, string(message))
-}
-
-func recieve(buffer *bufio.Reader) (string, error) {
-	message, err := buffer.ReadBytes(0x00)
-	if err != nil {
-		return "", err
-	}
-	return string(message[:len(message)-1]), nil
-}
 
 func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string), cfgfn func(map[string]interface{}, func(net.Conn, string)) error) error {
 
@@ -56,7 +46,7 @@ func dial_server(router_addr string, mycfg []byte, Handler func(net.Conn, string
 		return err
 	}
 
-	if contains(current_router_ipv4, router_addr) { // make sure each router and shard only connected onece
+	if lazy.Contains(current_router_ipv4, router_addr) { // make sure each router and shard only connected onece
 		return errors.New("router has connected")
 	}
 
@@ -91,10 +81,10 @@ func shardConfig(config map[string]interface{}, handler func(net.Conn, string)) 
 		for _, v := range v.([]interface{}) { // convert []interface{} to []string
 			list = append(list, v.(string))
 		}
-		current_router_ipv4 = removeDuplicateStrings(list)
+		current_router_ipv4 = lazy.RemoveDuplicateStrings(list)
 
 		for _, ip := range current_router_ipv4 {
-			if ip != Settings.router_addr {
+			if ip != settings.Router_addr {
 				go dial_server(ip, mycfg, ShardHandler, secondConfig)
 				wg.Add(1)
 			}
@@ -112,9 +102,9 @@ func routerConfig(config map[string]interface{}, handler func(net.Conn, string))
 			list = append(list, v.(string))
 		}
 
-		current_router_ipv4 = removeDuplicateStrings(list)
+		current_router_ipv4 = lazy.RemoveDuplicateStrings(list)
 		for _, ip := range current_router_ipv4 {
-			if ip != Settings.router_addr && ip != Settings.host+":"+Settings.port {
+			if ip != settings.Router_addr && ip != settings.Host+":"+settings.Port {
 				go dial_server(ip, mycfg, RouterHandler, secondConfig)
 				wg.Add(1)
 			}
@@ -131,13 +121,13 @@ func secondConfig(config map[string]interface{}, handler func(net.Conn, string))
 			list = append(list, v.(string))
 		}
 
-		more_ip := difference(current_router_ipv4, list)
+		more_ip := lazy.Difference_str_arr(current_router_ipv4, list)
 
-		more_ip = removeDuplicateStrings(more_ip)
+		more_ip = lazy.RemoveDuplicateStrings(more_ip)
 
 		for _, ip := range more_ip {
 
-			if ip != Settings.router_addr {
+			if ip != settings.Router_addr {
 				go dial_server(ip, mycfg, handler, secondConfig)
 				wg.Add(1)
 			}

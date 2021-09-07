@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"src/lazy"
 	"strconv"
 	"strings"
+
+	"src/settings"
 
 	"github.com/DmitriyVTitov/size"
 )
@@ -26,7 +29,7 @@ func ShardHandler(conn net.Conn, message string) {
 	var result = []byte{}
 	for i, v := range processes {
 
-		if Settings.debug {
+		if settings.Debug {
 			fmt.Println(v)
 		}
 		commands = strings.Split(v, " ")
@@ -94,7 +97,7 @@ func ShardHandler(conn net.Conn, message string) {
 				}
 				var b string
 
-				if Settings.debug {
+				if settings.Debug {
 					c, err := r.LastInsertId()
 					if err != nil {
 						b = ""
@@ -111,7 +114,7 @@ func ShardHandler(conn net.Conn, message string) {
 			}
 
 		case "connect":
-			if !(contains(current_router_ipv4, commands[len(commands)-1])) {
+			if !(lazy.Contains(current_router_ipv4, commands[len(commands)-1])) {
 				go dial_server(commands[len(commands)-1], mycfg, ShardHandler, secondConfig)
 				wg.Add(1)
 			}

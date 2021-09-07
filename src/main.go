@@ -8,11 +8,16 @@ import (
 	"path"
 	"sync"
 	"time"
+
+	"src/lazy"
+	"src/settings"
+
+	"./static"
 )
 
 var mycfg = []byte{}
 
-var MAC_Address string = get_first_mac_addr() // get.go
+var MAC_Address string = lazy.Get_first_mac_addr() // get.go
 
 var sql_file string = ""
 
@@ -20,13 +25,10 @@ var wg sync.WaitGroup // working group
 
 func main() {
 
-	// flags declaration using flag package
-	init_settings() // handles all flags
-
 	for i, v := range os.Args {
 		switch v {
 		case "help":
-			fmt.Println(manual_desc)
+			fmt.Println(static.Manual)
 			return
 		case "install": // install add-on
 			if _, err := os.Stat(os.Args[i+1]); os.IsNotExist(err) {
@@ -43,7 +45,7 @@ func main() {
 
 	//fmt.Scanln(&password)
 
-	fmt.Println("save to disk: ", Settings.save_disk)
+	fmt.Println("save to disk: ", settings.Save_disk)
 
 	os.Chdir(home_dir)
 
@@ -56,24 +58,21 @@ func main() {
 	os.Mkdir("ML", os.ModePerm)
 	os.Mkdir("addon", os.ModePerm)
 
-	init_users()
-
 	os.Chdir(path.Join(home_dir, "dejavuDB"))
 
 	os.Chdir("database")
 
 	os.Mkdir("tables", os.ModePerm)
 
-	//sql_file = filepath.Join(home_dir, "dejavuDB", "dejavu.db")
 	os.Chdir(path.Join(home_dir, "dejavuDB"))
 
 	setupLog()
 
-	if Settings.password != "a empty password" {
+	if settings.Password != "a empty password" {
 		for {
-			if len(Settings.password) != 16 && len(Settings.password) != 24 && len(Settings.password) != 32 {
+			if len(settings.Password) != 16 && len(settings.Password) != 24 && len(settings.Password) != 32 {
 				fmt.Println("password must be length of 16, 24 or 32")
-				fmt.Scanln(&Settings.password)
+				fmt.Scanln(&settings.Password)
 			} else {
 				break
 			}
@@ -81,23 +80,23 @@ func main() {
 
 	}
 
-	fmt.Println("role: " + Settings.role + " listener ip: " + Settings.router_addr)
-	switch Settings.role {
+	fmt.Println("role: " + settings.Role + " listener ip: " + settings.Router_addr)
+	switch settings.Role {
 
 	case "router":
-		start_router(Settings.router_addr)
+		start_router(settings.Router_addr)
 
 	case "shard":
-		start_shard(Settings.router_addr)
+		start_shard(settings.Router_addr)
 
 	case "client":
-		start_client(Settings.router_addr)
+		start_client(settings.Router_addr)
 
 	case "full":
-		start_full(Settings.router_addr)
+		start_full(settings.Router_addr)
 
 	case "log":
-		start_log(Settings.router_addr)
+		start_log(settings.Router_addr)
 
 	default:
 		panic("Specified Role Invalid")
@@ -112,7 +111,7 @@ func main() {
 
 func start_router(dial_addr string) { // start as a router
 
-	cfg := map[string]interface{}{"role": "router", "pass": Settings.password, "mac": MAC_Address, "port": Settings.host + ":" + Settings.port}
+	cfg := map[string]interface{}{"role": "router", "pass": settings.Password, "mac": MAC_Address, "port": settings.Host + ":" + settings.Port}
 	mycfg, _ = json.Marshal(cfg)
 
 	//go process_timeout_checker()
@@ -144,7 +143,7 @@ func start_shard(dial_addr string) { // start as a shard
 		panic("must specific an address")
 		return
 	}
-	cfg := map[string]interface{}{"role": "shard", "pass": Settings.password, "mac": MAC_Address, "port": Settings.host + ":" + Settings.port}
+	cfg := map[string]interface{}{"role": "shard", "pass": settings.Password, "mac": MAC_Address, "port": settings.Host + ":" + settings.Port}
 	mycfg, _ = json.Marshal(cfg)
 
 	go dial_server(dial_addr, mycfg, ShardHandler, shardConfig) // network.go
@@ -169,7 +168,7 @@ func start_log(dial_addr string) {
 		panic("must specific an address")
 		return
 	}
-	cfg := map[string]interface{}{"role": "log", "pass": Settings.password, "port": Settings.host + ":" + Settings.port}
+	cfg := map[string]interface{}{"role": "log", "pass": settings.Password, "port": settings.Host + ":" + settings.Port}
 	mycfg, _ = json.Marshal(cfg)
 
 	go log_file_date()
@@ -185,10 +184,10 @@ func start_full(dial_addr string) {
 	start_router(dial_addr)
 	time.Sleep(1 * time.Second)
 	fmt.Println("starting log server...")
-	start_log(Settings.host + ":" + Settings.port)
+	start_log(settings.Host + ":" + settings.Port)
 	time.Sleep(1 * time.Second)
 	fmt.Println("starting shard...")
-	start_shard(Settings.host + ":" + Settings.port)
+	start_shard(settings.Host + ":" + settings.Port)
 	fmt.Println("starting client...")
-	start_client(Settings.host + ":" + Settings.port)
+	start_client(settings.Host + ":" + settings.Port)
 }
