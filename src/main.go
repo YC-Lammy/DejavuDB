@@ -12,7 +12,7 @@ import (
 	"src/lazy"
 	"src/settings"
 
-	"./static"
+	"src/static"
 )
 
 var mycfg = []byte{}

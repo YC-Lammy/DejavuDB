@@ -1,15 +1,15 @@
 package clustermanager
 
-import(
-	".../register"
+import (
+	"../../register"
 
 	"time"
 )
 
-func init(){
-	go func (){
-		time.Sleep(100*time.Millisecond)
-		for _,v:= range register.Heartbeat_conns{
+func init() {
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		for _, v := range register.Heartbeat_conns {
 
 		}
 	}()

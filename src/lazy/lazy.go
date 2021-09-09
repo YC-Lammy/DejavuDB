@@ -1,8 +1,12 @@
 package lazy
 
 import (
+	"crypto/aes"
 	"net"
+	"strings"
 	"time"
+
+	"math/rand"
 )
 
 // a common go file to get information

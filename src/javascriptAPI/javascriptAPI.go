@@ -1,4 +1,4 @@
-package main
+package javascriptAPI
 
 import (
 	"encoding/json"

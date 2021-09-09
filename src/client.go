@@ -78,7 +78,7 @@ func Client_dial(router_addr string, mycfg []byte) error {
 		switch text {
 
 		case "man":
-			fmt.Print(manual_desc)
+			fmt.Print(static.manual_desc)
 			continue
 
 		case "help", "--help":
