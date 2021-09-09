@@ -4,12 +4,12 @@ import (
 	"net"
 )
 
-type Conn_register struct{
+type Conn_register struct {
 	Conn net.Conn
-	Buffer *bufio.Reader
-	ID uint16
+	ID   uint16
 	Role string
 }
+
 var shard_connected = 0
 var router_connected = 0
 

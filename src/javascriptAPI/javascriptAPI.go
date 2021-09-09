@@ -43,7 +43,7 @@ func init() {
 
 }
 
-func javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *func()) {
+func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *func()) {
 
 	vm, _ := ctx.Isolate()
 	glob := ctx.Global()

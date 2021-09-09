@@ -1,4 +1,4 @@
-package main
+package javascriptAPI
 
 import (
 	"time"
@@ -8,7 +8,7 @@ import (
 	"rogchap.com/v8go"
 )
 
-func javascript_run_isolate(script string, args ...interface{}) (string, error) {
+func Javascript_run_isolate(script string, args ...interface{}) (string, error) {
 	vals := make(chan *v8go.Value, 1)
 	errs := make(chan error, 1)
 	delay_fn := make(chan *func(), 1)
@@ -28,7 +28,7 @@ func javascript_run_isolate(script string, args ...interface{}) (string, error) 
 
 	go func() {
 
-		javascript_context_init(ctx, errs, delay_fn) // initiallize context api and functions
+		Javascript_context_init(ctx, errs, delay_fn) // initiallize context api and functions
 
 		val, err := ctx.RunScript(script, "main.js") // exec a long running script
 		if err != nil {

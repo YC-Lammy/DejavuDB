@@ -1,11 +1,15 @@
 package network
 
 import (
-	"../settings"
+	"encoding/json"
+	"errors"
+	"net"
+
 	"../register"
+	"../settings"
 )
 
-type Handshake struct{
+type Handshake struct {
 	Role string
 	Pass string
 	Host string
@@ -14,48 +18,50 @@ type Handshake struct{
 	ID uint16 //0 if new born
 }
 
-func SendHandshake(conn *net.Conn, buffer *bufio.Reader)error{
-	v:= Handshake{
-		Role : settings.Role
-		Pass : settings.Password
-		Host : settings.Host
-		Port : settings.Port
+func SendHandshake(conn *net.Conn) error {
+	v := Handshake{
+		Role: settings.Role,
+		Pass: settings.Password,
+		Host: settings.Host,
+		Port: settings.Port,
 
-		ID : settings.ID
+		ID: settings.ID,
 	}
-	js, _ := json.Marshal()
-	Send(conn, js)
-	msg, err := Recieve(buffer)
-	if err != nil{
+	js, err := json.Marshal(v)
+	if err != nil {
 		return err
 	}
-	if msg == "ok"{
+	Send(conn, js)
+	msg, err := Recieve(conn)
+	if err != nil {
+		return err
+	}
+	if msg == "ok" {
 		return nil
 	}
 	return errors.New(msg)
 }
 
-func RecvHandshake(conn *net.Conn, buffer *bufio.Reader)error{
-	msg,err := Recieve(buffer)
-	if err!= nil{
+func RecvHandshake(conn *net.Conn) error {
+	msg, err := Recieve(conn)
+	if err != nil {
 		Send(conn, err.String())
 		return err
 	}
 	handshake := Handshake{}
 	err = json.Unmarshal([]byte(msg), &handshake)
-	if err != nil{
+	if err != nil {
 		Send(conn, err.String())
 		return err
 	}
 
-	if Pass != settings.Password{
+	if Pass != settings.Password {
 		Send(conn, "password incorrect")
 		return errors.New("password incorrect")
 	}
 
 	register.Shards[handshake.ID] = &register.Conn_register{
-		Conn : conn
-		Buffer:buffer
+		Conn: conn,
 	}
 
 	Send(conn, "ok")
