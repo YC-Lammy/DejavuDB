@@ -1,12 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
 	"strings"
+
+	"github.com/goccy/go-json"
 
 	"github.com/DmitriyVTitov/size"
 )

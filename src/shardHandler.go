@@ -1,13 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"src/lazy"
 	"strconv"
 	"strings"
+
+	"github.com/goccy/go-json"
 
 	"src/settings"
 

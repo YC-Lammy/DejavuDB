@@ -1,12 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"math"
 	"net"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/goccy/go-json"
 
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/v3/cpu"

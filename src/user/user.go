@@ -3,7 +3,6 @@ package user
 import (
 	"crypto/sha256"
 	"encoding/gob"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/goccy/go-json"
 )
 
 /* user.go is database administration user related

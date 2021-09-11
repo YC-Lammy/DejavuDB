@@ -4,11 +4,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/json"
 	"log"
 	"net"
 	"strconv"
 	"strings"
+
+	"github.com/goccy/go-json"
 )
 
 var default_SQL_server = 0

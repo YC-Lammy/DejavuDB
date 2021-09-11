@@ -1,10 +1,11 @@
 package httpjs
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/goccy/go-json"
 
 	"rogchap.com/v8go"
 )

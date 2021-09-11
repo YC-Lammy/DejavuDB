@@ -2,7 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
+
+	"github.com/goccy/go-json"
 )
 
 type sql_dataset []map[string][]string

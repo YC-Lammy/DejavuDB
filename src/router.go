@@ -2,12 +2,13 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net"
 	"src/settings"
+
+	"github.com/goccy/go-json"
 
 	"github.com/fatih/color"
 )

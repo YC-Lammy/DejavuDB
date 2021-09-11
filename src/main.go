@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path"
 	"sync"
 	"time"
+
+	"github.com/goccy/go-json"
 
 	"src/lazy"
 	"src/settings"

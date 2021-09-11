@@ -1,9 +1,10 @@
 package network
 
 import (
-	"encoding/json"
 	"errors"
 	"net"
+
+	"github.com/goccy/go-json"
 
 	"../register"
 	"../settings"

@@ -2,7 +2,6 @@ package dejavuDB
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -11,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+
+	"github.com/goccy/go-json"
 
 	"github.com/fatih/color"
 

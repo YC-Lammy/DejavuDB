@@ -2,10 +2,11 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"log"
 	"net"
+
+	"github.com/goccy/go-json"
 
 	"src/lazy"
 	"src/settings"

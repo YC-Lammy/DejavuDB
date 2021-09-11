@@ -2,11 +2,10 @@ package datastore
 
 import (
 	"crypto/aes"
-	"encoding/json"
-	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
+
+	"github.com/goccy/go-json"
 
 	"../settings"
 )
