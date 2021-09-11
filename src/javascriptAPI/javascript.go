@@ -26,6 +26,8 @@ func Javascript_run_isolate(script string, args ...interface{}) (string, error) 
 		delay_fns = append(delay_fns, fn)
 	}()
 
+	var tmp_store = map[string]interface{}{}
+
 	go func() {
 
 		Javascript_context_init(ctx, errs, delay_fn) // initiallize context api and functions
@@ -42,8 +44,7 @@ func Javascript_run_isolate(script string, args ...interface{}) (string, error) 
 	case val := <-vals:
 		// sucess
 		for _, fn := range delay_fns {
-			a := *fn
-			a()
+			(*fn)()
 		}
 		return val.String(), nil
 	case err := <-errs:

@@ -12,8 +12,9 @@ import (
 
 	"rogchap.com/v8go"
 
-	"src/settings"
-	tf "src/tensorflow"
+	"../settings"
+
+	tf "../tensorflow"
 
 	_ "embed"
 )
@@ -37,13 +38,15 @@ var javascript_API_Script string
 var javascript_API_lib = map[string]*javascript_module{}
 var javascript_API_lib_lock = sync.Mutex{}
 
-var javascript_vm *v8go.Isolate
-
-func init() {
-
-}
-
 func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *func()) {
+
+	var terminate_fns = []func(){}
+
+	defer func(){
+		for _, v := range terminate_fns{
+			v()
+		}
+	}()
 
 	vm, _ := ctx.Isolate()
 	glob := ctx.Global()
@@ -98,6 +101,8 @@ func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *
 				settings.Enable_ML = false
 				return nil
 
+			case "tensorflow":
+
 			case "TF_MODEL_EXIST":
 				name := fmt.Sprintf("%v", Args[1])
 				_, err := tf.Get_model_by_name(name)
@@ -111,80 +116,9 @@ func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *
 				}
 				return val
 
-			case "http_CanonicalHeaderKey":
-				val, _ := v8go.NewValue(vm, http.CanonicalHeaderKey(Args[1].String()))
-				return val
+			case "http":
 
-			case "http_DetectContentType":
-				val, _ := v8go.NewValue(vm, http.DetectContentType([]byte(Args[1].String())))
-				return val
-
-			case "http_Get", "http_Head", "http_Post", "http_PostForm":
-				type result struct {
-					Status     string // e.g. "200 OK"
-					StatusCode int    // e.g. 200
-					Proto      string // e.g. "HTTP/1.0"
-					ProtoMajor int    // e.g. 1
-					ProtoMinor int    // e.g. 0
-
-					Header map[string][]string
-					Body   []byte
-
-					ContentLength    int64
-					TransferEncoding []string
-					Uncompressed     bool
-
-					Trailer map[string][]string
-				}
-				var resp *http.Response
-				var err error
-				switch Args[0].String() {
-				case "http_Get":
-					resp, err = http.Get(Args[1].String())
-				case "http_Head":
-					resp, err = http.Head(Args[1].String())
-				case "http_Post", "http_PostForm":
-
-					f, _ := os.CreateTemp("", "")
-					defer f.Close()
-					var ctype string
-
-					switch Args[0].String() {
-					case "PostForm":
-						f.Write([]byte(Args[2].String()))
-						ctype = "application/json; charset=UTF-8"
-					case "Post":
-						f.Write([]byte(Args[3].String()))
-						ctype = Args[2].String()
-					}
-
-					resp, err = http.Post(Args[1].String(), ctype, f)
-
-				}
-				defer resp.Body.Close()
-
-				if err != nil {
-					errs <- err
-					return nil
-				}
-
-				body, err := io.ReadAll(resp.Body)
-				r := result{Status: resp.Status, StatusCode: resp.StatusCode, Proto: resp.Proto,
-					ProtoMajor: resp.ProtoMajor, ProtoMinor: resp.ProtoMinor, Header: resp.Header,
-					Body: body, ContentLength: resp.ContentLength, TransferEncoding: resp.TransferEncoding,
-					Uncompressed: resp.Uncompressed, Trailer: resp.Trailer}
-
-				barr, _ := json.Marshal(r)
-
-				val, err := v8go.JSONParse(ctx, string(barr))
-				if err != nil {
-					errs <- err
-					return nil
-				}
-
-				return val
-
-			}
+			
 			return nil // you can return a value back to the JS caller if required
 		})
 
@@ -199,5 +133,5 @@ func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *
 	}
 	`, "require.js")
 
-	//ctx.RunScript(javascript_API_Script, "dejavuDB.js")
+	ctx.RunScript(javascript_API_Script, "DB.js")
 }

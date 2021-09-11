@@ -1,6 +1,5 @@
 package plugins
 
-import "C"
 import (
 	"../javascriptAPI"
 	"rogchap.com/v8go"
@@ -16,7 +15,7 @@ type plugin struct {
 	plugin_name            string
 	plugin_version         string
 	plugin_status          bool
-	plugin_type            string // "type", "function"
+	plugin_type            string // "type", "function", "service"
 	plugin_type_version    string
 	plugin_library         string
 	plugin_library_version string
@@ -27,6 +26,7 @@ type plugin struct {
 	plugin_maturity        string
 	plugin_auth_version    string
 
+	script          string
 	command         string
 	execute         func(...interface{})
 	result_key_word string
@@ -41,7 +41,7 @@ func init() {
 	plugin_vm = vm
 }
 
-func NewContext() (string, error) {
+func (plug plugin) NewContext() (string, error) {
 	{
 		errs := make(chan error, 1)
 		delay_fn := make(chan *func(), 1)
@@ -59,9 +59,9 @@ func NewContext() (string, error) {
 
 		javascriptAPI.Javascript_context_init(ctx, errs, delay_fn) // initiallize context api and functions
 
-		val, err := ctx.RunScript(script, "main.js") // exec a long running script
+		val, err := ctx.RunScript(plug.script, "main.js") // exec a long running script
 
-		return "", nil
+		return val.String(), nil
 
 	}
 }
