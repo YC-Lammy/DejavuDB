@@ -21,7 +21,7 @@ func NewJson(str string) (*json, error) {
 }
 
 func (j json) Delete() {
-	vm.RunScript("delete "+j.location, "delete.js")
+	vm.RunScript("delete "+string(j.location[:]), "delete.js")
 }
 
 func (j json) String() string {
