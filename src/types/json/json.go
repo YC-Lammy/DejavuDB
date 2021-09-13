@@ -9,7 +9,7 @@ import (
 var vm *v8go.Context
 
 type json struct {
-	location string
+	location [8]byte
 }
 
 func NewJson(str string) (*json, error) {
