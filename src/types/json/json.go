@@ -13,8 +13,10 @@ type json struct {
 }
 
 func NewJson(str string) (*json, error) {
-	loc := lazy.RandString(8)
-	vm.RunScript(loc+"="+str, "json.js")
+	s := lazy.RandString(8)
+	vm.RunScript(s+"="+str, "json.js")
+	var loc [8]byte
+	copy(loc[:], s)
 	return &json{location: loc}, nil
 }
 
