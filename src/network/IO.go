@@ -3,7 +3,6 @@ package network
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"net"
 )
 
@@ -13,11 +12,11 @@ func Send(conn net.Conn, message []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	fmt.Fprint(conn, string(buf.Bytes()))
-	return fmt.Fprint(conn, string(message))
+	conn.Write(buf.Bytes())
+	return conn.Write(message)
 }
 
-func Recieve(conn net.Conn) (string, error) {
+func Recieve(conn net.Conn) ([]byte, error) {
 	var length uint64
 	var lenbuf = make([]byte, 8)
 	conn.Read(lenbuf)
@@ -26,7 +25,7 @@ func Recieve(conn net.Conn) (string, error) {
 	message := make([]byte, length)
 	_, err := conn.Read(message)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return string(message), nil
+	return message, nil
 }

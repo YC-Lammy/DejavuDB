@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/goccy/go-json"
+	json "github.com/goccy/go-json"
 
 	"../settings"
 )
