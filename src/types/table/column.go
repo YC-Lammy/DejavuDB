@@ -1,14 +1,27 @@
 package table
 
-import "unsafe"
+import (
+	"unsafe"
+
+	"../../types"
+)
 
 type Column struct {
 	Dtype byte
-	Data  []unsafe.Pointer
+	Data  unsafe.Pointer // pointer to a slice
 }
 
-func (column Column) Add(data interface{}) error {
-	switch column.Dtype {
+func NewColumn(dtype byte) Column {
+	return Column{Dtype: dtype}
+}
+
+func (c Column) Add(data interface{}) error {
+	switch c.Dtype {
+	case types.String:
+		*(*[]string)(c.Data) = append(*(*[]string)(c.Data), data.(string))
+
+	case types.Int:
+		*(*[]int)(c.Data) = append(*(*[]int)(c.Data), data.(int))
 
 	}
 	return nil

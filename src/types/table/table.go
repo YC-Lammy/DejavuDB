@@ -19,6 +19,10 @@ func (t Table) Insert(names []string, data []interface{}) error {
 	return nil
 }
 
+func GetRange(from, to int) map[string]Column {
+
+}
+
 func (t Table) Length() uint64 {
 	return t.length
 }

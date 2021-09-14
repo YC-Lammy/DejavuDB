@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 var operaters = []string{
@@ -14,16 +15,18 @@ var operaters = []string{
 	"GO",
 	"CREATE", "DROP",
 	"AND",
+	"CASE", "WHEN", "THEN", "ELSE", "END",
 
-	"DECLARE", "SET", "END", "CASE", "WHEN", "THEN", "DESC",
+	"DECLARE", "SET", "DESC", "DESCRIBE",
 }
 
-func Parse(script string) error {
+func Parse(script string) (err error) {
 
 	var script_strings = []string{}
 
 	//
 	// parse all strings
+	// replace all strings by "%{index}%"
 	//
 
 	var string_opened = false
@@ -60,12 +63,52 @@ func Parse(script string) error {
 	// end parsing strings
 	//
 
+	script = strings.ToUpper(script)
+	script = strings.TrimFunc(script, func(r rune) bool {
+		return !unicode.IsGraphic(r)
+	})
+
 	script = strings.Replace(script, "SELECT*FROM", "SELECT * FROM", -1)
 	script = strings.Replace(script, "SELECT*", "SELECT *", -1)
 	script = strings.Replace(script, "*FROM", "* FROM", -1)
 	script = strings.Replace(script, "INSET INTO", "INSERTINTO", -1)
 	script = strings.Replace(script, "ORDER BY", "ORDERBY", -1)
 	script = strings.Replace(script, "GROUP BY", "GROUPBY", -1)
+	script = strings.Replace(script, ",", " , ", -1)
+
+	splited := strings.Split(script, " ")
+
+	buf := []byte{}
+
+	opened_condition := false
+	condition := []string{}
+
+	for _, w := range []byte(script) {
+		if opened_condition {
+			switch v := condition[len(condition)-1]; v {
+
+			}
+		}
+		switch w {
+		case ' ':
+			switch string(buf) {
+			case "SELECT":
+			case "INSERTINTO":
+			case "UPDATE":
+			case "DELETE":
+			case "CREATE":
+			case "ALTER":
+			case "DROP":
+			case "DECLARE":
+			case "SET":
+			}
+			buf = []byte{}
+		default:
+			buf = append(buf, w)
+		}
+	}
+
+	err = nil
 
 	return nil
 }
