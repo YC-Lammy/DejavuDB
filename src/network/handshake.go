@@ -19,7 +19,7 @@ type Handshake struct {
 	ID uint16 //0 if new born
 }
 
-func SendHandshake(conn *net.Conn) error {
+func SendHandshake(conn net.Conn) error {
 	v := Handshake{
 		Role: settings.Role,
 		Pass: settings.Password,
@@ -37,34 +37,34 @@ func SendHandshake(conn *net.Conn) error {
 	if err != nil {
 		return err
 	}
-	if msg == "ok" {
+	if string(msg) == "ok" {
 		return nil
 	}
-	return errors.New(msg)
+	return errors.New(string(msg))
 }
 
-func RecvHandshake(conn *net.Conn) error {
+func RecvHandshake(conn net.Conn) (Handshake, error) {
 	msg, err := Recieve(conn)
 	if err != nil {
-		Send(conn, err.String())
-		return err
+		Send(conn, []byte(err.Error()))
+		return Handshake{}, err
 	}
 	handshake := Handshake{}
 	err = json.Unmarshal([]byte(msg), &handshake)
 	if err != nil {
-		Send(conn, err.String())
-		return err
+		Send(conn, []byte(err.Error()))
+		return handshake, err
 	}
 
-	if Pass != settings.Password {
-		Send(conn, "password incorrect")
-		return errors.New("password incorrect")
+	if handshake.Pass != settings.Password {
+		Send(conn, []byte("password incorrect"))
+		return handshake, errors.New("password incorrect")
 	}
 
 	register.Shards[handshake.ID] = &register.Conn_register{
 		Conn: conn,
 	}
 
-	Send(conn, "ok")
-	return nil
+	Send(conn, []byte("ok"))
+	return handshake, nil
 }

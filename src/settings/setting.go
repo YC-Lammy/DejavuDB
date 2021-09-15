@@ -11,6 +11,7 @@ var AES_key string
 var Host string
 var Port string
 var Client_port string
+var App_port string
 var Save_disk bool
 var Debug bool
 var Auto_shard bool
@@ -26,10 +27,11 @@ func init() {
 	flag.StringVar(&Role, "role", "full", "Specify role. Default is router, option: shard, client")
 	flag.StringVar(&Router_addr, "ip", "", "Specify router ip. Default is stand alone router")
 	flag.StringVar(&Password, "pwd", "a empty password", "Specify password. Default is empty")
-	flag.StringVar(&AES_key,"Aes_key","a empty password","Specify aes key. Default is empty")
+	flag.StringVar(&AES_key, "Aes_key", "a empty password", "Specify aes key. Default is empty")
 	flag.StringVar(&Host, "host", "localhost", "specify host addr")
 	flag.StringVar(&Port, "port", "8080", "specify hosting port")
-	flag.StringVar(&Client_port, "client_port", "8000", "specify hosting port")
+	flag.StringVar(&Client_port, "client_port", "54620", "specify client port")
+	flag.StringVar(&App_port, "app_port", "36730", "specify application port")
 	//flag.StringVar(&sql_file, "sqlfile", ":memory:", "specify sql file path")
 	flag.BoolVar(&Save_disk, "disk", false, "save copy to disk")
 	flag.BoolVar(&Debug, "debug", false, "developer debug option")
