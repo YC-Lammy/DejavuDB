@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net"
 
-	"github.com/goccy/go-json"
+	json "github.com/goccy/go-json"
 
 	"../register"
 	"../settings"
