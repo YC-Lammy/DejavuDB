@@ -17,11 +17,12 @@ type Layer struct {
 }
 
 type Node struct {
-	name   []byte
-	subkey map[string]Node
-	lock   *sync.Mutex    // each node has its own mutex
-	data   unsafe.Pointer // if data is not nil, key map should be empty
-	dtype  byte           // declared at constant
+	name      []byte
+	subkey    map[string]Node
+	lock      *sync.Mutex // each node has its own mutex
+	data_lock *sync.Mutex
+	data      unsafe.Pointer // if data is not nil, key map should be empty
+	dtype     byte           // declared at constant
 }
 
 func (loc Node) register_data(key string, data interface{}) { // send data to channel
@@ -36,7 +37,9 @@ func (loc Node) register_data(key string, data interface{}) { // send data to ch
 		loc.lock.Unlock()
 
 	case unsafe.Pointer:
+		loc.data_lock.Lock()
 		loc.data = v
+		loc.data_lock.Unlock()
 
 	default:
 		loc.data = unsafe.Pointer(&v)
@@ -47,9 +50,9 @@ func Get(key string) unsafe.Pointer {
 	if key == "" {
 		return nil
 	}
-	Data_lock.Lock()
-	var pointer = Data
-	Data_lock.Unlock()
+
+	var pointer = Data // copy pointers into steak
+
 	keys := strings.Split(key, ".")
 	if len(keys) == 1 {
 		if v, ok := pointer[keys[0]]; ok {
