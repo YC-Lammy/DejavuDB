@@ -14,7 +14,7 @@ func Handle(conn net.Conn) {
 			return
 		}
 		var d string
-		d, err = javascriptAPI.Javascript_run_isolate(c)
+		d, err = javascriptAPI.Javascript_run_isolate(string(c))
 		if err != nil {
 			d = err.Error()
 		}

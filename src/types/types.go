@@ -26,4 +26,8 @@ const (
 	Contract      = 0x16
 	Money         = 0x17
 	SmallMoney    = 0x18
+
+	Array_interface      = 0x30
+	Null                 = 0x31
+	Map_string_interface = 0x32
 )
