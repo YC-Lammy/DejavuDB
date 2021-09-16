@@ -4,8 +4,9 @@ import (
 	"crypto/cipher"
 	"log"
 	"net"
+	"src/network"
 
-	"../settings"
+	"../../settings"
 )
 
 type client_conn struct {
@@ -29,6 +30,22 @@ func init_client() {
 	}
 }
 
-func Send(conn client_conn) {
+func Send(conn client_conn, msg string) (int, error) {
+	a, err := AESencrypt(conn.aes, msg)
+	if err != nil {
+		return 1, err
+	}
+	return network.Send(conn, []byte(a))
+}
 
+func Recv(conn client_conn) (string, error) {
+	b, err := network.Recieve(conn)
+	if err != nil {
+		return "", err
+	}
+	c, err := AESdecrypt(conn.aes, string(b))
+	if err != nil {
+		return "", err
+	}
+	return c, nil
 }

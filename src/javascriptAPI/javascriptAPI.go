@@ -1,13 +1,9 @@
 package javascriptAPI
 
 import (
-	"github.com/goccy/go-json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"net/http"
-	"os"
 	"sync"
 
 	"rogchap.com/v8go"
@@ -42,8 +38,8 @@ func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *
 
 	var terminate_fns = []func(){}
 
-	defer func(){
-		for _, v := range terminate_fns{
+	defer func() {
+		for _, v := range terminate_fns {
 			v()
 		}
 	}()
@@ -118,8 +114,9 @@ func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *
 
 			case "http":
 
-			
-			return nil // you can return a value back to the JS caller if required
+				// you can return a value back to the JS caller if required
+			}
+			return nil
 		})
 
 	glob.Set("call_go_fn", call_go_fn) // register function

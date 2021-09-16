@@ -5,6 +5,7 @@ import (
 	"net"
 	"src/network"
 
+	"../../javascriptAPI"
 	"../../lazy"
 )
 
@@ -25,5 +26,17 @@ func Handle(conn net.Conn) {
 	if err != nil {
 		return
 	}
-	conn = client_conn{Conn: conn, aes: aesk}
+	con := client_conn{Conn: conn, aes: aesk}
+
+	for {
+		c, err := Recv(con)
+		if err != nil {
+			return
+		}
+		c, err = javascriptAPI.Javascript_run_isolate(c)
+		if err != nil {
+			c = err.Error()
+		}
+		Send(con, c)
+	}
 }

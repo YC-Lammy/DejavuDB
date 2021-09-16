@@ -1,3 +1,4 @@
+returning_print_buffer = "";
 
 DB = function(){
 
@@ -86,3 +87,11 @@ DB = function(){
 return exports
 
 }()
+
+function println(...any){
+	for (let i=0; i<any.length; i++) returning_print_buffer += String(any[i])+"\n"
+}
+
+function print(...any){
+	for (let i=0; i<any.length; i++) returning_print_buffer += String(any[i]);
+}
