@@ -17,6 +17,7 @@ require (
 	src/network v0.0.0
 	src/javascriptAPI v0.0.0
 	src/datastore v0.0.0
+	src/types v0.0.0
 )
 
 replace (
@@ -30,4 +31,5 @@ replace (
 	src/tensorflow => ./tensorflow
 	src/javascriptAPI => ./javascriptAPI
 	src/datastore => ./datastore
+	src/types => ./types
 )
