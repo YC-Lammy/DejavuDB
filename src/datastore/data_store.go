@@ -21,8 +21,8 @@ type Node struct {
 	subkey    map[string]Node
 	lock      *sync.Mutex // each node has its own mutex
 	data_lock *sync.Mutex
-	data      unsafe.Pointer // if data is not nil, key map should be empty
-	dtype     byte           // declared at constant
+	data      unsafe.Pointer
+	dtype     byte // declared at types
 }
 
 func (loc Node) register_data(key string, data interface{}) { // send data to channel
