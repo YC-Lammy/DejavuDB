@@ -15,6 +15,8 @@ require (
 	src/tensorflow v0.0.0
 	src/static v0.0.0
 	src/network v0.0.0
+	src/javascriptAPI v0.0.0
+	src/datastore v0.0.0
 )
 
 replace (
@@ -26,4 +28,6 @@ replace (
 	src/settings => ./settings
 	src/sql => ./sql
 	src/tensorflow => ./tensorflow
+	src/javascriptAPI => ./javascriptAPI
+	src/datastore => ./datastore
 )

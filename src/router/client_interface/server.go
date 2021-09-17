@@ -12,6 +12,8 @@ import (
 type client_conn struct {
 	net.Conn
 	aes cipher.Block
+	id  uint32
+	gid uint32
 }
 
 func init_client() {

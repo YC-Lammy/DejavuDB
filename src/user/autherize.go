@@ -51,18 +51,18 @@ func Login_from_file(username, password string) bool {
 	return false
 }
 
-func Login(username, password string) bool {
+func Login(username, password string) (*user, bool) {
 	user, _ := UserExist(username)
 	if user == nil {
-		return false
+		return user, false
 	}
 	h := sha256.New()
 	h.Write(user.Password_sauce)
 	h.Write([]byte(password))
 	if string(h.Sum(nil)) == string(user.Password_sum) {
-		return true
+		return user, true
 	} else {
-		return false
+		return user, false
 	}
 }
 

@@ -4,10 +4,18 @@ import (
 	"crypto/aes"
 	"net"
 	"src/network"
+	"src/user"
+
+	json "github.com/goccy/go-json"
 
 	"../../javascriptAPI"
 	"../../lazy"
 )
+
+type user_ struct {
+	Username string
+	Password string
+}
 
 func Handle(conn net.Conn) {
 	defer conn.Close()
@@ -27,6 +35,21 @@ func Handle(conn net.Conn) {
 		return
 	}
 	con := client_conn{Conn: conn, aes: aesk}
+	u, err := Recv(con) // {Username:"name", Password:"password"}
+	if err != nil {
+		return
+	}
+	f := user_{}
+	err = json.Unmarshal([]byte(u), &a)
+	if err != nil {
+		return
+	}
+	if u, ok := user.Login(f.Username, f.Password); ok {
+		con.gid = u.Gid
+		con.id = u.Id
+	} else {
+		return
+	}
 
 	for {
 		c, err := Recv(con)
@@ -37,6 +60,9 @@ func Handle(conn net.Conn) {
 		if err != nil {
 			c = err.Error()
 		}
-		Send(con, c)
+		_, err = Send(con, c)
+		if err != nil {
+			return
+		}
 	}
 }

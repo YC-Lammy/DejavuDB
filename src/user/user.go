@@ -26,6 +26,7 @@ type user struct {
 	Password_sum   []byte
 	Password_sauce []byte // some random bytes to secure the password sum
 	Id             uint32
+	Gid            uint32
 	Group          string
 	permission     uint16
 	Issue_date     time.Time
