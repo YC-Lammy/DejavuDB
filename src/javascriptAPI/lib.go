@@ -2,7 +2,7 @@ package javascriptAPI
 
 import "sync"
 
-var javascript_API_lib = map[string]*javascript_module{}
+var javascript_API_lib = map[string]javascript_module{}
 var javascript_API_lib_lock = sync.Mutex{}
 
 type javascript_module struct {
@@ -16,4 +16,8 @@ type javascript_module struct {
 	is_in_ram bool
 	script    string
 	enabled   bool
+}
+
+func NewLib(name, version, version_info, auther, desc, js string) {
+
 }

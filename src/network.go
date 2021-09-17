@@ -84,7 +84,7 @@ func shardConfig(config map[string]interface{}, handler func(net.Conn, string)) 
 		current_router_ipv4 = lazy.RemoveDuplicateStrings(list)
 
 		for _, ip := range current_router_ipv4 {
-			if ip != settings.Router_addr {
+			if ip != settings.Leader_addr {
 				go dial_server(ip, mycfg, ShardHandler, secondConfig)
 				wg.Add(1)
 			}
@@ -104,7 +104,7 @@ func routerConfig(config map[string]interface{}, handler func(net.Conn, string))
 
 		current_router_ipv4 = lazy.RemoveDuplicateStrings(list)
 		for _, ip := range current_router_ipv4 {
-			if ip != settings.Router_addr && ip != settings.Host+":"+settings.Port {
+			if ip != settings.Leader_addr && ip != settings.Host+":"+settings.Port {
 				go dial_server(ip, mycfg, RouterHandler, secondConfig)
 				wg.Add(1)
 			}
@@ -127,7 +127,7 @@ func secondConfig(config map[string]interface{}, handler func(net.Conn, string))
 
 		for _, ip := range more_ip {
 
-			if ip != settings.Router_addr {
+			if ip != settings.Leader_addr {
 				go dial_server(ip, mycfg, handler, secondConfig)
 				wg.Add(1)
 			}

@@ -66,6 +66,8 @@ func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *
 
 			case "Set":
 
+			case "settings":
+
 			case "dejavu_api_is_ML_enabled":
 				v, _ := v8go.NewValue(vm, settings.Enable_ML)
 				return v

@@ -81,23 +81,23 @@ func main() {
 
 	}
 
-	fmt.Println("role: " + settings.Role + " listener ip: " + settings.Router_addr)
+	fmt.Println("role: " + settings.Role + " listener ip: " + settings.Leader_addr)
 	switch settings.Role {
 
 	case "router":
-		start_router(settings.Router_addr)
+		start_router(settings.Leader_addr)
 
 	case "shard":
-		start_shard(settings.Router_addr)
+		start_shard(settings.Leader_addr)
 
 	case "client":
-		start_client(settings.Router_addr)
+		start_client(settings.Leader_addr)
 
 	case "full":
-		start_full(settings.Router_addr)
+		start_full(settings.Leader_addr)
 
 	case "log":
-		start_log(settings.Router_addr)
+		start_log(settings.Leader_addr)
 
 	default:
 		panic("Specified Role Invalid")

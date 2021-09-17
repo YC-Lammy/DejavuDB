@@ -4,8 +4,8 @@ import (
 	"flag"
 )
 
-var Role string //role can eigther be "router", "shard" or "client"
-var Router_addr string
+var Role string //role can either be "router", "shard", "client" or "standalone"
+var Leader_addr string
 var Password string
 var AES_key string
 var Host string
@@ -16,6 +16,7 @@ var Save_disk bool
 var Debug bool
 var Auto_shard bool
 var Secure_connect bool
+
 var Enable_https bool
 var Encrypt_disk bool
 var Encrypt_bit_length bool
@@ -25,7 +26,7 @@ var ID uint16
 
 func init() {
 	flag.StringVar(&Role, "role", "full", "Specify role. Default is router, option: shard, client")
-	flag.StringVar(&Router_addr, "ip", "", "Specify router ip. Default is stand alone router")
+	flag.StringVar(&Leader_addr, "ip", "", "Specify router ip. Default is stand alone router")
 	flag.StringVar(&Password, "pwd", "a empty password", "Specify password. Default is empty")
 	flag.StringVar(&AES_key, "Aes_key", "a empty password", "Specify aes key. Default is empty")
 	flag.StringVar(&Host, "host", "localhost", "specify host addr")
