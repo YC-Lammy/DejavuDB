@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goccy/go-json"
+	json "github.com/goccy/go-json"
 )
 
 /* user.go is database administration user related
@@ -35,7 +35,7 @@ type user struct {
 
 type user_group struct {
 	Id    int
-	Users map[string]*user // name of user
+	Users map[string]user // name of user
 	Name  string
 }
 
@@ -50,11 +50,11 @@ var user_tokens = map[string]*user_token{}
 
 var number_of_users int = 1
 
-var users = map[string]*user{}
+var users = map[string]user{}
 
 var home_dir string
 
-var user_map = map[string]*user_group{ // user_map will not be exposed to the out front
+var user_map = map[string]user_group{ // user_map will not be exposed to the out front
 	/*
 		GID 1–99 are reserved for the system and application use.
 		GID 100+ allocated for the user’s group.
@@ -62,12 +62,12 @@ var user_map = map[string]*user_group{ // user_map will not be exposed to the ou
 		UID 100–999 are reserved by system for administrative and system accounts/groups.
 		UID 1000–10000 are occupied by applications account.
 	*/
-	"adm":      &user_group{Id: 1, Users: map[string]*user{}},    // admin, nearest to root
-	"sudo":     &user_group{Id: 27, Users: map[string]*user{}},   // config permission, upgrade and maintainance
-	"dev":      &user_group{Id: 30, Users: map[string]*user{}},   // developers, view logs and cofigs
-	"analysts": &user_group{Id: 80, Users: map[string]*user{}},   // analystics, no admin permissions
-	"user":     &user_group{Id: 100, Users: map[string]*user{}},  // regular user, no additional permissions
-	"other":    &user_group{Id: 1000, Users: map[string]*user{}}, // public access, for application account
+	"adm":     user_group{Id: 1, Users: map[string]user{}},    // admin, nearest to root
+	"sudo":    user_group{Id: 27, Users: map[string]user{}},   // config permission, upgrade and maintainance
+	"dev":     user_group{Id: 30, Users: map[string]user{}},   // developers, view logs and cofigs
+	"analyst": user_group{Id: 80, Users: map[string]user{}},   // analystics, no admin permissions
+	"user":    user_group{Id: 100, Users: map[string]user{}},  // regular user, no additional permissions
+	"other":   user_group{Id: 1000, Users: map[string]user{}}, // public access, for application account
 }
 
 func init() {
@@ -94,7 +94,7 @@ func init() {
 		h.Write(sauce)
 		h.Write([]byte(""))
 		root := user{Name: "root", Id: 1, Group: "adm", Domain: "localhost", Password_sauce: sauce, Password_sum: h.Sum(nil)}
-		user_map["adm"].Users["root"] = &root
+		user_map["adm"].Users["root"] = root
 		f, _ := os.Create("root")
 		b, _ := json.Marshal(root)
 		f.Write(b)
@@ -117,11 +117,11 @@ func init() {
 			fmt.Println(err)
 			panic(err)
 		}
-		users[new.Name] = &new
+		users[new.Name] = new
 		if new.Group == "" {
 			panic("group not exist")
 		}
-		user_map[new.Group].Users[new.Name] = &new
+		user_map[new.Group].Users[new.Name] = new
 		fmt.Println(new.Name)
 	}
 
@@ -131,25 +131,10 @@ func init() {
 func UserExist(username string) (*user, bool) { // return the user and bool
 	for _, v := range user_map {
 		if v, ok := v.Users[username]; ok {
-			return v, true
+			return &v, true
 		}
 	}
 	return nil, false
-}
-
-func Login(username string, password string) error {
-	user, _ := userExist(username)
-	if user == nil {
-		return errors.New("invalid")
-	}
-	h := sha256.New()
-	h.Write(user.Password_sauce)
-	h.Write([]byte(password))
-	if string(h.Sum(nil)) == string(user.Password_sum) {
-		return nil
-	} else {
-		return errors.New("invalid")
-	}
 }
 
 func Useradd(message string) error { //this function can only be executed on router
@@ -164,7 +149,7 @@ func Useradd(message string) error { //this function can only be executed on rou
 	id := 1000 + number_of_users
 	password := ""
 	var expire time.Time = time.Now().AddDate(100, 0, 0)
-	if _, ok := userExist(name); ok {
+	if _, ok := UserExist(name); ok {
 		return errors.New("username exist")
 	}
 	if len(splited) > 1 {
@@ -200,9 +185,9 @@ func Useradd(message string) error { //this function can only be executed on rou
 	h := sha256.New()
 	h.Write(sauce)
 	h.Write([]byte(password))
-	new := user{Name: name, Id: id, Issue_date: time.Now(),
+	new := user{Name: name, Id: uint32(id), Issue_date: time.Now(),
 		Expiry_time: expire, Password_sum: h.Sum(nil), Password_sauce: sauce}
-	user_map[group].Users[name] = &new
+	user_map[group].Users[name] = new
 
 	f, _ := os.Create(path.Join(home_dir, "dejavuDB", "users") + string(os.PathSeparator) + name)
 	enc := gob.NewEncoder(f)
@@ -220,7 +205,7 @@ func Groupadd(message string) error {
 	name := splited[len(splited)-1]
 	id := 1000 + number_of_users
 
-	user_map[name] = &user_group{Id: id, Users: map[string]*user{}}
+	user_map[name] = user_group{Id: id, Users: map[string]user{}}
 
 	return nil
 }

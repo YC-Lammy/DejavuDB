@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/goccy/go-json"
+	json "github.com/goccy/go-json"
 
 	"rogchap.com/v8go"
 )

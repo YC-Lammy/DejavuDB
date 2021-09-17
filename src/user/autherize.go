@@ -1,21 +1,30 @@
 package user
 
 import (
+	"crypto/sha256"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
 	"time"
+
 	"../lazy"
 	"../settings"
+	json "github.com/goccy/go-json"
 )
 
-type token struct{
+type token struct {
 	permission uint16
-	expiry time.Time
+	expiry     time.Time
 }
 
 var tokens = map[string]*token{}
 
-func Login(username, password string) bool{
-	name := path.Join(os.UserHomeDir(),"dejavuDB", "users")+ os.PathSeparator + username
-	
+func Login_from_file(username, password string) bool {
+	a, _ := os.UserHomeDir()
+	name := path.Join(a, "dejavuDB", "users") + string(os.PathSeparator) + username
+
 	if _, err := os.Stat(name); os.IsNotExist(err) {
 		return false
 	}
@@ -26,7 +35,7 @@ func Login(username, password string) bool{
 		panic(err)
 	}
 	v, _ := ioutil.ReadAll(f)
-	v,_:= lazy.DecryptAES([]byte(settings.AES_key),v)
+	v, _ = lazy.DecryptAES([]byte(settings.AES_key), v)
 	err = json.Unmarshal(v, &new)
 
 	h := sha256.New()
@@ -34,16 +43,31 @@ func Login(username, password string) bool{
 	h.Write([]byte(password))
 	if string(h.Sum(nil)) == string(new.Password_sum) {
 		tokens[lazy.RandString(16)] = &token{ // create a new token that expires after an hour
-			permission:new.permission
-			expiry: time.Now().Add(time.Hours)
+			permission: new.permission,
+			expiry:     time.Now().Add(time.Hour),
 		}
 		return true
 	}
 	return false
 }
 
-func CheckToken(token string) (*token,error){
-	if v, ok:= tokens[token];ok{
+func Login(username, password string) bool {
+	user, _ := UserExist(username)
+	if user == nil {
+		return false
+	}
+	h := sha256.New()
+	h.Write(user.Password_sauce)
+	h.Write([]byte(password))
+	if string(h.Sum(nil)) == string(user.Password_sum) {
+		return true
+	} else {
+		return false
+	}
+}
+
+func CheckToken(token string) (*token, error) {
+	if v, ok := tokens[token]; ok {
 		if time.Now().Sub(v.expiry) > 0 { // the token has expired
 			delete(tokens, token)
 			return nil, errors.New("token expired")
@@ -54,8 +78,8 @@ func CheckToken(token string) (*token,error){
 }
 
 func PermissionByToken(token string) (uint16, error) {
-	
-	if v, ok:= tokens[token];ok{
+
+	if v, ok := tokens[token]; ok {
 		if time.Now().Sub(v.expiry) > 0 { // the token has expired
 			delete(tokens, token)
 			return 0, errors.New("token expired")

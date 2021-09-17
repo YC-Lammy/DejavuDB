@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/goccy/go-json"
+	json "github.com/goccy/go-json"
 
 	"src/lazy"
 	"src/settings"

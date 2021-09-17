@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/goccy/go-json"
+	json "github.com/goccy/go-json"
 )
 
 var default_SQL_server = 0
