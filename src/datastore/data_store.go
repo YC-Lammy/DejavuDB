@@ -2,11 +2,17 @@ package datastore
 
 import (
 	"errors"
+	"src/types/binjson"
+	"src/types/contract"
+	"src/types/decimal"
+	"src/types/float128"
+	"src/types/int128"
+	"strconv"
 	"strings"
 	"sync"
 	"unsafe"
 
-	"../types"
+	"src/types"
 )
 
 var Data = map[string]*Node{}
@@ -40,7 +46,7 @@ func (loc *Node) register_data(data interface{}, key ...string) { // send data t
 		//loc.data_lock.Unlock()
 
 	case string: // a javascript string from value
-		write_type_to_loc(loc, v, key[0])
+		loc.write_type_to_loc(v, key[0])
 
 	default:
 
@@ -105,16 +111,139 @@ func Set(key string, data string, dtype byte) error {
 	return nil
 }
 
-func write_type_to_loc(l *Node, data string, dtype string) error {
+func (l *Node) write_type_to_loc(data string, dtype string) error {
+
 	switch dtype[0] {
 
-	case types.Table:
-
 	case types.String:
+		l.data = unsafe.Pointer(&data)
 
 	case types.Byte:
-	case types.Contract:
+		a := data[0]
+		l.data = unsafe.Pointer(&a)
+
+	case types.Bool:
+		a, err := strconv.ParseBool(data)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(&a)
+
+	case types.Null:
+		l.data = nil
+
+	case types.Int64, types.Int:
+		a, err := strconv.ParseInt(data, 10, 64)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(&a)
+
+	case types.Int32:
+		a, err := strconv.ParseInt(data, 10, 32)
+		if err != nil {
+			return err
+		}
+		b := int32(a)
+		l.data = unsafe.Pointer(&b)
+
+	case types.Int16:
+		a, err := strconv.ParseInt(data, 10, 16)
+		if err != nil {
+			return err
+		}
+		b := int16(a)
+		l.data = unsafe.Pointer(&b)
+
+	case types.Int8:
+		a, err := strconv.ParseInt(data, 10, 8)
+		if err != nil {
+			return err
+		}
+		b := int8(a)
+		l.data = unsafe.Pointer(&b)
+
+	case types.Int128:
+		a, err := int128.StrToInt128(data)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(&a)
+
+	case types.Uint, types.Uint64:
+
+	case types.Uint32:
+
+	case types.Uint16:
+
+	case types.Uint8:
+
+	case types.Uint128:
+
+	case types.Decimal, types.Decimal64:
+		a, err := decimal.StrToDecimal64(data)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(&a)
+
+	case types.Decimal32:
+		a, err := decimal.StrToDecimal32(data)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(&a)
+
+	case types.Decimal128:
+		a, err := decimal.StrToDecimal128(data)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(&a)
+
+	case types.Float, types.Float64:
+		a, err := strconv.ParseFloat(data, 64)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(&a)
+
+	case types.Float32:
+		a, err := strconv.ParseFloat(data, 32)
+		if err != nil {
+			return err
+		}
+		b := float32(a)
+		l.data = unsafe.Pointer(&b)
+
+	case types.Float128:
+		a, err := float128.StrToFloat128(data)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(&a)
+
+	case types.Json:
+		a, err := binjson.NewBinaryJson(data)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(a)
+
+	case types.Table: // when set table, table is initialized
+
+	case types.Contract: // in a json format
+		a, err := contract.NewContract(data)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(a)
+
 	case types.SmartContract:
+
+	case types.Money:
+
+	case types.SmallMoney:
 
 	}
 	return nil

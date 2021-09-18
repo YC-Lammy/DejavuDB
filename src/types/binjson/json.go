@@ -1,4 +1,4 @@
-package typejson
+package binjson
 
 import (
 	"bytes"

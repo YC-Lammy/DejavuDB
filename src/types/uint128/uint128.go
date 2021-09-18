@@ -1,4 +1,4 @@
-package int128
+package uint128
 
 /*
 #include <stdlib.h>
@@ -6,23 +6,18 @@ package int128
 #include <stdio.h>
 #include <float.h>
 
-__int128_t atoi128(const char *s)
+__uint128_t atou128(const char *s)
 {
-    while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '+') ++s;
-    int sign = 1;
-    if (*s == '-')
-    {
-        ++s;
-        sign = -1;
-    }
+    while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '+' || *s == '-') ++s;
+
     size_t digits = 0;
     while (s[digits] >= '0' && s[digits] <= '9') ++digits;
     char scratch[digits];
     for (size_t i = 0; i < digits; ++i) scratch[i] = s[i] - '0';
     size_t scanstart = 0;
 
-    __int128_t result = 0;
-    __int128_t mask = 1;
+    __uint128_t result = 0;
+    __uint128_t mask = 1;
     while (scanstart < digits)
     {
         if (scratch[digits-1] & 1) result |= mask;
@@ -40,11 +35,10 @@ __int128_t atoi128(const char *s)
         }
     }
 
-    return result * sign;
+    return result;
 }
 
-
-char *utoa128(char *dest, __uint128_t v, int base) {
+char *utoa128_(char *dest, __uint128_t v, int base) {
     char buf[129];
     char *p = buf + 128;
     const char *digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -60,39 +54,36 @@ char *utoa128(char *dest, __uint128_t v, int base) {
     return strcpy(dest, p);
 }
 
-char *itoa128(char *buf, __int128_t v, int base) {
+char *utoa128_t(char *buf, __uint128_t uv, int base) {
     char *p = buf;
-    __uint128_t uv = (__uint128_t)v;
-    if (v < 0) {
-        *p++ = '-';
-        uv = -uv;
-    }
     if (base == 10)
-        utoa128(p, uv, 10);
+        utoa128_(p, uv, 10);
     else
     if (base == 16)
-        utoa128(p, uv, 16);
+        utoa128_(p, uv, 16);
     else
-        utoa128(p, uv, base);
+        utoa128_(p, uv, base);
     return buf;
 }
 */
 import "C"
 import "unsafe"
 
-type Int128 [16]byte
+type Uint128 [16]byte // a true __uint128_t
 
-func (i Int128) String() string {
-	a := C.CString("")
+func StrToUint128(s string) (Uint128, error) {
+	a := C.CString(s)
 	defer C.free(unsafe.Pointer(a))
-	b := C.itoa128(a, [16]byte(i), 10)
-	c := C.GoString(b)
-	return c
+	b := C.atou128(a)
+
+	return Uint128(b), nil
 }
 
-func StrToInt128(str string) (Int128, error) {
-	a := C.CString(str)
+func (u Uint128) String() string {
+	a := C.CString("")
 	defer C.free(unsafe.Pointer(a))
-	b := C.atoi128(a)
-	return Int128(b), nil
+	b := C.utoa128_t(a, [16]byte(u), 10)
+	defer C.free(unsafe.Pointer(b))
+	c := C.GoString(b)
+	return c
 }
