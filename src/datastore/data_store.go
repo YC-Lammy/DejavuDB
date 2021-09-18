@@ -6,38 +6,33 @@ import (
 	"sync"
 	"unsafe"
 
-	"src/types"
+	"../types"
 )
 
-var Data = map[string]Node{}
+var Data = map[string]*Node{}
 
 var Data_lock = sync.Mutex{}
 
-var Layers = []Layer{}
-
-type Layer struct {
-	Nodes []Node
-}
-
 type Node struct {
-	name   []byte
-	subkey map[string]Node
+	subkey map[string]*Node
 	lock   sync.Mutex // each node has its own mutex
 	//data_lock sync.Mutex
 	data  unsafe.Pointer
 	dtype byte // declared at types
 }
 
-func (loc Node) register_data(data interface{}, key ...string) { // send data to channel
+func (loc *Node) register_data(data interface{}, key ...string) { // send data to channel
 	switch v := data.(type) {
 	case Node:
-		loc.lock.Lock() // more testing needed, but adding a lock makes the assignment faster
-		loc.subkey[key[0]] = v
-		loc.lock.Unlock()
+		l := &loc.lock
+		l.Lock() // more testing needed, but adding a lock makes the assignment faster
+		loc.subkey[key[0]] = &v
+		l.Unlock()
 	case *Node:
-		loc.lock.Lock() // more testing needed, but adding a lock makes the assignment faster
-		loc.subkey[key[0]] = *v
-		loc.lock.Unlock()
+		l := &loc.lock
+		l.Lock() // more testing needed, but adding a lock makes the assignment faster
+		loc.subkey[key[0]] = v
+		l.Unlock()
 
 	case unsafe.Pointer:
 		//loc.data_lock.Lock()
@@ -45,7 +40,7 @@ func (loc Node) register_data(data interface{}, key ...string) { // send data to
 		//loc.data_lock.Unlock()
 
 	case string: // a javascript string from value
-		write_type_to_loc(&loc.data, v, key[0])
+		write_type_to_loc(loc, v, key[0])
 
 	default:
 
@@ -104,12 +99,13 @@ func Set(key string, data string, dtype byte) error {
 	}
 	if v, ok := pointer[keys[len(keys)-1]]; ok {
 		v.register_data(data, string(dtype))
+
 		return nil
 	}
 	return nil
 }
 
-func write_type_to_loc(l *unsafe.Pointer, data string, dtype string) error {
+func write_type_to_loc(l *Node, data string, dtype string) error {
 	switch dtype[0] {
 
 	case types.Table:
