@@ -25,13 +25,14 @@ const (
 	Byte          = 0x15
 	Byte_arr      = 0x16
 	Bool          = 0x17
-	Time          = 0x18
+	Graph         = 0x18
 	Table         = 0x19
 	Json          = 0x1A
 	SmartContract = 0x1B
 	Contract      = 0x1C
 	Money         = 0x1D
 	SmallMoney    = 0x1E
+	Time          = 0x1F
 
 	Array_interface      = 0x30
 	Null                 = 0x31

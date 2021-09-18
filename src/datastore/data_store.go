@@ -252,6 +252,8 @@ func (l *Node) write_type_to_loc(data string, dtype string) error {
 		}
 		l.data = unsafe.Pointer(&a)
 
+	case types.Byte_arr:
+
 	case types.Json:
 		a, err := binjson.NewBinaryJson(data)
 		if err != nil {
