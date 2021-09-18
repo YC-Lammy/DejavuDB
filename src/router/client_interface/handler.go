@@ -2,6 +2,7 @@ package client_interface
 
 import (
 	"crypto/aes"
+	"fmt"
 	"net"
 	"src/network"
 	"src/user"
@@ -50,13 +51,14 @@ func Handle(conn net.Conn) {
 	} else {
 		return
 	}
+	l := fmt.Sprintf(`DB.login('%v', '%v');`, f.Username, f.Password)
 
 	for {
 		c, err := Recv(con)
 		if err != nil {
 			return
 		}
-		c, err = javascriptAPI.Javascript_run_isolate(c)
+		c, err = javascriptAPI.Javascript_run_isolate(l + c)
 		if err != nil {
 			c = err.Error()
 		}
