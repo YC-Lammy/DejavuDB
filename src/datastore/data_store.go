@@ -7,6 +7,7 @@ import (
 	"src/types/decimal"
 	"src/types/float128"
 	"src/types/int128"
+	"src/types/uint128"
 	"strconv"
 	"strings"
 	"sync"
@@ -171,14 +172,42 @@ func (l *Node) write_type_to_loc(data string, dtype string) error {
 		l.data = unsafe.Pointer(&a)
 
 	case types.Uint, types.Uint64:
+		a, err := strconv.ParseUint(data, 10, 64)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(&a)
 
 	case types.Uint32:
+		a, err := strconv.ParseUint(data, 10, 32)
+		if err != nil {
+			return err
+		}
+		b := uint32(a)
+		l.data = unsafe.Pointer(&b)
 
 	case types.Uint16:
+		a, err := strconv.ParseUint(data, 10, 16)
+		if err != nil {
+			return err
+		}
+		b := uint16(a)
+		l.data = unsafe.Pointer(&b)
 
 	case types.Uint8:
+		a, err := strconv.ParseUint(data, 10, 8)
+		if err != nil {
+			return err
+		}
+		b := uint8(a)
+		l.data = unsafe.Pointer(&b)
 
 	case types.Uint128:
+		a, err := uint128.StrToUint128(data)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(&a)
 
 	case types.Decimal, types.Decimal64:
 		a, err := decimal.StrToDecimal64(data)
