@@ -20,12 +20,12 @@ type Layer struct {
 }
 
 type Node struct {
-	name      []byte
-	subkey    map[string]Node
-	lock      sync.Mutex // each node has its own mutex
-	data_lock sync.Mutex
-	data      unsafe.Pointer
-	dtype     byte // declared at types
+	name   []byte
+	subkey map[string]Node
+	lock   sync.Mutex // each node has its own mutex
+	//data_lock sync.Mutex
+	data  unsafe.Pointer
+	dtype byte // declared at types
 }
 
 func (loc Node) register_data(data interface{}, key ...string) { // send data to channel
@@ -40,9 +40,9 @@ func (loc Node) register_data(data interface{}, key ...string) { // send data to
 		loc.lock.Unlock()
 
 	case unsafe.Pointer:
-		loc.data_lock.Lock()
+		//loc.data_lock.Lock()
 		loc.data = v
-		loc.data_lock.Unlock()
+		//loc.data_lock.Unlock()
 
 	case string: // a javascript string from value
 		write_type_to_loc(&loc.data, v, key[0])
