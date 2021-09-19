@@ -1,6 +1,7 @@
 package table
 
 import (
+	"errors"
 	"unsafe"
 
 	"../../types"
@@ -18,11 +19,17 @@ func NewColumn(dtype byte) Column {
 func (c Column) Add(data interface{}) error {
 	switch c.Dtype {
 	case types.String:
-		*(*[]string)(c.Data) = append(*(*[]string)(c.Data), data.(string))
-
-	case types.Int:
-		*(*[]int)(c.Data) = append(*(*[]int)(c.Data), data.(int))
-
+		if v, ok := data.(string); ok {
+			*(*[]string)(c.Data) = append(*(*[]string)(c.Data), v)
+		} else {
+			return errors.New("type not match")
+		}
+	case types.Int, types.Int64:
+		if v, ok := data.(int64); ok {
+			*(*[]int64)(c.Data) = append(*(*[]int64)(c.Data), v)
+		} else {
+			return errors.New("type not match")
+		}
 	}
 	return nil
 }
