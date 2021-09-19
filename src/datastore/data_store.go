@@ -54,9 +54,9 @@ func (loc *Node) register_data(data interface{}, key ...string) { // send data t
 	}
 }
 
-func Get(key string) unsafe.Pointer {
+func Get(key string) (byte, unsafe.Pointer) {
 	if key == "" {
-		return nil
+		return 0x00, nil
 	}
 
 	var pointer = Data // copy pointers into steak
@@ -64,21 +64,21 @@ func Get(key string) unsafe.Pointer {
 	keys := strings.Split(key, ".")
 	if len(keys) == 1 {
 		if v, ok := pointer[keys[0]]; ok {
-			return v.data
+			return v.dtype, v.data
 		}
-		return nil
+		return 0x00, nil
 	}
 	for _, v := range keys[0 : len(keys)-1] {
 		if v, ok := pointer[v]; ok {
 			pointer = v.subkey
 		} else {
-			return nil
+			return 0x00, nil
 		}
 	}
 	if v, ok := pointer[keys[len(keys)-1]]; ok {
-		return v.data
+		return v.dtype, v.data
 	}
-	return nil
+	return 0x00, nil
 }
 
 func Set(key string, data string, dtype byte) error {

@@ -27,7 +27,7 @@ func (s *NodeQueue) Enqueue(t Node) {
 func (s *NodeQueue) Dequeue() *Node {
 	s.lock.Lock()
 	item := s.items[0]
-	s.items = s.items[1:len(s.items)]
+	s.items = s.items[1:]
 	s.lock.Unlock()
 	return &item
 }
@@ -67,7 +67,7 @@ func (g *ItemGraph) Traverse(f func(*Node)) {
 		}
 		node := q.Dequeue()
 		visited[node] = true
-		near := g.edges[*node]
+		near := g.edges[node]
 
 		for i := 0; i < len(near); i++ {
 			j := near[i]
