@@ -7,17 +7,18 @@ import (
 
 // Node a single node that composes the tree
 type Node struct {
-	value interface{}
+	Value map[string]interface{} //key value store
+	Edges []*Node
+	Lock  sync.Mutex
 }
 
 func (n *Node) String() string {
-	return fmt.Sprintf("%v", n.value)
+	return fmt.Sprintf("%v", n.Value)
 }
 
 // ItemGraph the Items graph
 type ItemGraph struct {
 	nodes []*Node
-	edges map[Node][]*Node
 	lock  sync.RWMutex
 }
 
@@ -30,22 +31,26 @@ func (g *ItemGraph) AddNode(n *Node) {
 
 // AddEdge adds an edge to the graph
 func (g *ItemGraph) AddEdge(n1, n2 *Node) {
-	g.lock.Lock()
-	if g.edges == nil {
-		g.edges = make(map[Node][]*Node)
+	if n1.Edges == nil {
+		n1.Edges = []*Node{}
 	}
-	g.edges[*n1] = append(g.edges[*n1], n2)
-	g.edges[*n2] = append(g.edges[*n2], n1)
-	g.lock.Unlock()
+	if n2.Edges == nil {
+		n2.Edges = []*Node{}
+	}
+	n1.Lock.Lock()
+	n1.Edges = append(n1.Edges, n2)
+	n1.Lock.Unlock()
+	n2.Lock.Lock()
+	n2.Edges = append(n2.Edges, n1)
+	n2.Lock.Unlock()
 }
 
-// AddEdge adds an edge to the graph
 func (g *ItemGraph) String() {
 	g.lock.RLock()
 	s := ""
 	for i := 0; i < len(g.nodes); i++ {
 		s += g.nodes[i].String() + " -> "
-		near := g.edges[*g.nodes[i]]
+		near := g.nodes[i].Edges
 		for j := 0; j < len(near); j++ {
 			s += near[j].String() + " "
 		}

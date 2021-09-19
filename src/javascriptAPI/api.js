@@ -39,7 +39,7 @@ DB = function(){
 				else{
 					value = value.toString();
 				}
-				res += '"'+value+'":'+value+',';
+				res += '"'+String(key)+'":'+value+',';
 			}
 			
 			this.string = res +'}';
@@ -51,22 +51,6 @@ DB = function(){
 		call_go_fn("deployContract",key, contract.string);
 	}
 
-
-
-	exports.settings = {
-
-		is_ML_enabled: function(){
-			return call_go_fn("dejavu_api_is_ML_enabled");
-		},
-
-		enable_ML: function(){
-			return call_go_fn("dejavu_api_enable_ML");
-		},
-
-		disable_ML: function(){
-			return call_go_fn("dejavu_api_disable_ML");
-		}
-	}
 
 	exports.ML = class {
 		static __name__ = "tensorflow.js";

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"src/datastore"
+	"src/types"
 
 	"rogchap.com/v8go"
 
@@ -63,22 +65,30 @@ func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *
 				}
 
 			case "Get":
+				dtype, p := datastore.Get(Args[1].String())
+				if p == nil {
+					return nil
+				}
+				switch dtype {
+				case types.String:
+					val, _ := v8go.NewValue(vm, *(*string)(p))
+					return val
+				case types.Int, types.Int64:
+					val, _ := v8go.NewValue(vm, *(*int64)(p))
+					return val
+				case types.Int32:
+					val, _ := v8go.NewValue(vm, *(*int32)(p))
+					return val
+				}
 
 			case "Set":
 
 			case "settings":
-
-			case "dejavu_api_is_ML_enabled":
-				v, _ := v8go.NewValue(vm, settings.Enable_ML)
-				return v
-
-			case "dejavu_api_enable_ML":
-				settings.Enable_ML = true
-				return nil
-
-			case "dejavu_api_disable_ML":
-				settings.Enable_ML = false
-				return nil
+				a := []string{}
+				for _, v := range Args[1:] {
+					a = append(a, v.String())
+				}
+				settings.JsHandle(a...)
 
 			case "tensorflow":
 
