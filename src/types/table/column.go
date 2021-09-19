@@ -8,6 +8,7 @@ import (
 )
 
 type Column struct {
+	Name  string
 	Dtype byte
 	Data  unsafe.Pointer // pointer to a slice
 }
@@ -16,7 +17,7 @@ func NewColumn(dtype byte) Column {
 	return Column{Dtype: dtype}
 }
 
-func (c Column) Add(data interface{}) error {
+func (c *Column) Add(data interface{}) error {
 	switch c.Dtype {
 	case types.String:
 		if v, ok := data.(string); ok {
@@ -34,7 +35,17 @@ func (c Column) Add(data interface{}) error {
 	return nil
 }
 
-func (c Column) GetRange(from, end int) ([]unsafe.Pointer, error) {
+func (c *Column) GetRange(from, end int) ([]unsafe.Pointer, error) {
 	var buf []unsafe.Pointer
 	return buf, nil
+}
+
+func (c *Column) ToDisk(path string) {
+	switch c.Dtype {
+	case types.String:
+	case types.Bool:
+	case types.Byte:
+	case types.Byte_arr:
+	case types.Int, types.Int64:
+	}
 }

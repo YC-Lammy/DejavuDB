@@ -6,7 +6,7 @@ import (
 )
 
 type Table struct {
-	Columns    map[string]Column
+	Columns    map[string]*Column
 	permission [3]uint8
 	Leng       uint64
 	Lock       sync.RWMutex
