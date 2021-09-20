@@ -33,6 +33,9 @@ const (
 	Money         = 0x1D
 	SmallMoney    = 0x1E
 	Time          = 0x1F
+	Data          = 0x20
+	Datetime      = 0x21
+	Smalldatetime = 0x22
 
 	Array_interface      = 0x30
 	Null                 = 0x31

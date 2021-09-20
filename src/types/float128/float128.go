@@ -30,10 +30,10 @@ char* LongDouble2str (char* arr)
 import "C"
 import "unsafe"
 
-type float128 []byte
+type Float128 [16]byte
 
-func (l float128) String() string {
-	str := C.CString(string(l))
+func (l *Float128) String() string {
+	str := C.CString(string((*l)[:]))
 	new := C.LongDouble2str(str)
 	result := C.GoString(new)
 
@@ -42,11 +42,13 @@ func (l float128) String() string {
 	return result
 }
 
-func StrToFloat128(str string) (float128, error) {
+func StrToFloat128(str string) (Float128, error) {
 	a := C.CString(str)
 	b := C.str2LongDouble(a)
 	c := C.GoString(b)
 	C.free(unsafe.Pointer(a))
 	C.free(unsafe.Pointer(b))
-	return float128([]byte(c)), nil
+	var f [16]byte
+	copy(f[:], c)
+	return Float128(f), nil
 }

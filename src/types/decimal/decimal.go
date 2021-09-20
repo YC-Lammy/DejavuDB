@@ -34,10 +34,6 @@ func (f Decimal32) String() string {
 	return a + "." + b
 }
 
-func (f Decimal32) ToBytes() []byte{
-	
-}
-
 func StrToDecimal32(str string) (Decimal32, error) {
 	s := strings.Split(str, ".")
 	if len(s) > 2 {
