@@ -13,18 +13,18 @@ import (
 	"rogchap.com/v8go"
 )
 
-func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan error, delayfn chan *func(), args ...[2]string) *v8go.Value { // when the JS function is called this Go callback will execute
+func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan error, delayfn chan *func(), args map[string]string) *v8go.Value { // when the JS function is called this Go callback will execute
 
 	var uid uint32 = 19890604
 	var gid uint32 = 19890604
 
-	for _, v := range args {
-		switch v[0] {
+	for k, v := range args {
+		switch k {
 		case "gid":
-			a, _ := strconv.ParseUint(v[1], 10, 32)
+			a, _ := strconv.ParseUint(v, 10, 32)
 			gid = uint32(a)
 		case "uid":
-			a, _ := strconv.ParseUint(v[1], 10, 32)
+			a, _ := strconv.ParseUint(v, 10, 32)
 			uid = uint32(a)
 		}
 	}
@@ -95,6 +95,10 @@ func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan er
 	// this function will be executed if any error occours
 
 	case "settings":
+		if uid == 19890604 {
+			errs <- errors.New("permission denied")
+			return nil
+		}
 		a := []string{}
 		for _, v := range Args[1:] {
 			a = append(a, v.String())

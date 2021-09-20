@@ -30,16 +30,13 @@ func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *
 		}
 	}
 
-	arg_arr := [][2]string{
-		[2]string{"gid", gid},
-		[2]string{"uid", uid},
-	}
+	arg := map[string]string{"gid": gid, "uid": uid}
 
 	vm, _ := ctx.Isolate()
 	glob := ctx.Global()
 
 	call_go_fn, _ := v8go.NewFunctionTemplate(vm, func(info *v8go.FunctionCallbackInfo) *v8go.Value {
-		return callbackfn(info, ctx, errs, delay_fn, arg_arr...)
+		return callbackfn(info, ctx, errs, delay_fn, arg)
 	})
 
 	glob.Set("call_go_fn", call_go_fn) // register function
