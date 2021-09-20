@@ -20,6 +20,9 @@ DB.adm = {
                 throw "user "+name+" does not exist";
             }
         }
+        addgroup(){
+            return call_go_fn("adm","user","addgroup",this.name)
+        }
         groupids(){
             return call_go_fn("adm","user","groupids",this.name);
         }
