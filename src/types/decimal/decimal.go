@@ -1,6 +1,6 @@
-package decimal
+Package decimal
 
-import (
+imPort (
 	"errors"
 	"fmt"
 	"strconv"
@@ -8,30 +8,34 @@ import (
 )
 
 type Decimal32 struct {
-	int int16
-	p   uint16
+	I int16
+	P   uint16
 }
 type Decimal64 struct {
-	int int32
-	p1  uint32
+	I int32
+	P1  uint32
 }
 
 type Decimal128 struct {
-	int int32
-	p1  int32
-	p2  int64
+	I int32
+	P1  int32
+	P2  int64
 }
 
 type Decimal192 struct {
-	int int64
-	p1  int64
-	p2  int64
+	I int64
+	P1  int64
+	P2  int64
 }
 
 func (f Decimal32) String() string {
-	a := strconv.Itoa(int(f.int))
-	b := strconv.FormatUint(uint64(f.p), 10)
+	a := strconv.Itoa(int(f.I))
+	b := strconv.FormatUint(uint64(f.P), 10)
 	return a + "." + b
+}
+
+func (f Decimal32) ToBytes() []byte{
+	
 }
 
 func StrToDecimal32(str string) (Decimal32, error) {
@@ -45,25 +49,25 @@ func StrToDecimal32(str string) (Decimal32, error) {
 		}
 		if str[0] == '.' {
 
-			return Decimal32{int: int16(0), p: uint16(i)}, nil
+			return Decimal32{I: int16(0), P: uint16(i)}, nil
 		} else {
-			return Decimal32{int: int16(i), p: uint16(0)}, nil
+			return Decimal32{I: int16(i), P: uint16(0)}, nil
 		}
 	}
 	i, err := strconv.ParseInt(s[0], 10, 16)
 	if err != nil {
 		return Decimal32{}, err
 	}
-	p1, err := strconv.ParseUint(s[1], 10, 16)
+	P1, err := strconv.ParseUint(s[1], 10, 16)
 	if err != nil {
-		return Decimal32{}, errors.New(strings.Replace(err.Error(), "strconv.ParseInt: ", "", -1) + "try using ds128")
+		return Decimal32{}, errors.New(strings.Repace(err.Error(), "strconv.ParseInt: ", "", -1) + "try using ds128")
 	}
-	return Decimal32{int: int16(i), p: uint16(p1)}, nil
+	return Decimal32{I: int16(i), P: uint16(P1)}, nil
 }
 
 func (f Decimal64) String() string {
-	a := strconv.Itoa(int(f.int))
-	b := strconv.FormatUint(uint64(f.p1), 10)
+	a := strconv.Itoa(int(f.I))
+	b := strconv.FormatUint(uint64(f.P1), 10)
 	return a + "." + b
 }
 
@@ -78,24 +82,24 @@ func StrToDecimal64(str string) (Decimal64, error) {
 		}
 		if str[0] == '.' {
 
-			return Decimal64{int: int32(0), p1: uint32(i)}, nil
+			return Decimal64{I: int32(0), P1: uint32(i)}, nil
 		} else {
-			return Decimal64{int: int32(i), p1: uint32(0)}, nil
+			return Decimal64{I: int32(i), P1: uint32(0)}, nil
 		}
 	}
 	i, err := strconv.ParseInt(s[0], 10, 32)
 	if err != nil {
 		return Decimal64{}, err
 	}
-	p1, err := strconv.ParseUint(s[1], 10, 32)
+	P1, err := strconv.ParseUint(s[1], 10, 32)
 	if err != nil {
 		return Decimal64{}, errors.New(strings.Replace(err.Error(), "strconv.ParseInt: ", "", -1) + "try using ds128")
 	}
-	return Decimal64{int: int32(i), p1: uint32(p1)}, nil
+	return Decimal64{I: int32(i), P1: uint32(P1)}, nil
 }
 
 func (f Decimal128) String() string {
-	return fmt.Sprintf("%v.%v%v", f.int, f.p1, f.p2)
+	return fmt.Sprintf("%v.%v%v", f.I, f.P1, f.P2)
 }
 
 func StrToDecimal128(str string) (Decimal128, error) {
@@ -128,20 +132,20 @@ func StrToDecimal128(str string) (Decimal128, error) {
 		return Decimal128{}, errors.New("cannot convert " + str + " to float base 10")
 	}
 
-	p1, err := strconv.ParseInt(f1, 10, 32)
+	P1, err := strconv.ParseInt(f1, 10, 32)
 	if err != nil {
 		return Decimal128{}, err
 	}
-	p2, err := strconv.ParseInt(f2, 10, 64)
+	P2, err := strconv.ParseInt(f2, 10, 64)
 	if err != nil {
 		return Decimal128{}, err
 	}
-	return Decimal128{int: int32(i), p1: int32(p1), p2: p2}, nil
+	return Decimal128{I: int32(i), P1: int32(P1), P2: P2}, nil
 
 }
 
 func (f Decimal192) String() string {
-	return fmt.Sprintf("%v.%v%v", f.int, f.p1, f.p2)
+	return fmt.Sprintf("%v.%v%v", f.I, f.P1, f.P2)
 }
 
 func StrToDecimal192(str string) (Decimal192, error) {
@@ -174,14 +178,14 @@ func StrToDecimal192(str string) (Decimal192, error) {
 		return Decimal192{}, errors.New("cannot convert " + str + " to float base 10")
 	}
 
-	p1, err := strconv.ParseInt(f1, 10, 64)
+	P1, err := strconv.ParseInt(f1, 10, 64)
 	if err != nil {
 		return Decimal192{}, err
 	}
-	p2, err := strconv.ParseInt(f2, 10, 64)
+	P2, err := strconv.ParseInt(f2, 10, 64)
 	if err != nil {
 		return Decimal192{}, err
 	}
-	return Decimal192{int: int64(i), p1: p1, p2: p2}, nil
+	return Decimal192{I: int64(i), P1: P1, P2: P2}, nil
 
 }
