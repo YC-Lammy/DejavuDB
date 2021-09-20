@@ -2,6 +2,7 @@ package table
 
 import (
 	"errors"
+	"os"
 	"unsafe"
 
 	"../../types"
@@ -40,12 +41,24 @@ func (c *Column) GetRange(from, end int) ([]unsafe.Pointer, error) {
 	return buf, nil
 }
 
-func (c *Column) ToDisk(path string) {
+func (c *Column) ToDisk(path string) error {
+	f, err := os.Create(path + string(os.PathSeparator) + c.Name)
+	if err != nil {
+		return err
+	}
 	switch c.Dtype {
 	case types.String:
+		for _, v := range *(*[]string)(c.Data) {
+			a, err := types.ToBytes(v)
+			if err != nil {
+				return err
+			}
+			f.Write(append(a, '\n'))
+		}
 	case types.Bool:
 	case types.Byte:
 	case types.Byte_arr:
 	case types.Int, types.Int64:
 	}
+	return nil
 }

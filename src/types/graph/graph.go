@@ -5,11 +5,25 @@ import (
 	"sync"
 )
 
+type Edge struct {
+	Id    uint64
+	Label [16]byte
+}
+
 // Node a single node that composes the tree
 type Node struct {
 	Value map[string]interface{} //key value store
 	Edges []*Node
 	Lock  sync.Mutex
+}
+
+func (n *Node) AddEdge(e *Node) {
+	if n.Edges == nil {
+		n.Edges = []*Node{}
+	}
+	n.Lock.Lock()
+	n.Edges = append(n.Edges, e)
+	n.Lock.Unlock()
 }
 
 func (n *Node) String() string {

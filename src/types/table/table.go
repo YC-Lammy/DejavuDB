@@ -11,6 +11,8 @@ type Table struct {
 	Leng       uint64
 	Lock       sync.RWMutex
 
+	Dtypes []byte
+
 	is_in_ram bool
 }
 
