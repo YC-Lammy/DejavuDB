@@ -1,5 +1,12 @@
 returning_print_buffer = "";
 
+function require(name){
+	script = call_go_fn("require", name);
+	var exports = {};
+	eval(script)
+	return exports
+}
+
 DB = function(){
 
 	exports = {}
@@ -9,7 +16,7 @@ DB = function(){
 
 
 	exports.Get= function(key){
-		call_go_fn("Get", key)
+		return call_go_fn("Get", key)
 	}
 
 	exports.GetInfo = function(key){
@@ -17,11 +24,11 @@ DB = function(){
 	}
 
 	exports.Set = function(key, value, type){
-		call_go_fn("Set", key, value, type)
+		return call_go_fn("Set", key, value, type)
 	}
 
 	exports.Update = function(key, value){
-		call_go_fn("Update", key, value)
+		return call_go_fn("Update", key, value)
 	}
 
 	exports.contract = class{
@@ -48,7 +55,7 @@ DB = function(){
 	}
 
 	exports.deployContract = function(key, contract){
-		call_go_fn("deployContract",key, contract.string);
+		return call_go_fn("deployContract",key, contract.string);
 	}
 
 

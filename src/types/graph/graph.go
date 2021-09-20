@@ -11,13 +11,15 @@ type Edge struct {
 	Weight int16
 	From   *Node
 	To     *Node
+	Next   *Edge
 }
 
 // Node a single node that composes the tree
 type Node struct {
-	Value map[string]interface{} //key value store
-	Edges []*Node
-	Lock  sync.Mutex
+	Id     uint64
+	Values map[string]string //key value store
+	Edges  []*Node
+	Lock   sync.Mutex
 }
 
 func (n *Node) AddEdge(e *Node) {
@@ -29,12 +31,16 @@ func (n *Node) AddEdge(e *Node) {
 	n.Lock.Unlock()
 }
 
+func (n *Node) AddField(key, data string) {
+	n.Values[key] = data
+}
 func (n *Node) String() string {
-	return fmt.Sprintf("%v", n.Value)
+	return fmt.Sprintf("%v", n.Values)
 }
 
 type Graph struct {
-	Edges []*Edge
+	Nodes map[string]*Node
+	Lock  sync.RWMutex
 }
 
 // ItemGraph the Items graph
