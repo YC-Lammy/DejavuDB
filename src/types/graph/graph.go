@@ -6,8 +6,11 @@ import (
 )
 
 type Edge struct {
-	Id    uint64
-	Label [16]byte
+	Id     uint64
+	Label  [16]byte
+	Weight int16
+	From   *Node
+	To     *Node
 }
 
 // Node a single node that composes the tree
@@ -28,6 +31,10 @@ func (n *Node) AddEdge(e *Node) {
 
 func (n *Node) String() string {
 	return fmt.Sprintf("%v", n.Value)
+}
+
+type Graph struct {
+	Edges []*Edge
 }
 
 // ItemGraph the Items graph
