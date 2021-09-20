@@ -11,12 +11,13 @@ type Edge struct {
 	Weight int16
 	From   *Node
 	To     *Node
-	Next   *Edge
+	Next   *Edge //linked list
 }
 
 // Node a single node that composes the tree
 type Node struct {
 	Id     uint64
+	Name   string
 	Values map[string]string //key value store
 	Edges  []*Node
 	Lock   sync.Mutex
@@ -41,6 +42,12 @@ func (n *Node) String() string {
 type Graph struct {
 	Nodes map[string]*Node
 	Lock  sync.RWMutex
+}
+
+func (g *Graph) AddNode(n *Node) {
+	g.Lock.Lock()
+	g.Nodes[n.Name] = n
+	g.Lock.Unlock()
 }
 
 // ItemGraph the Items graph
@@ -72,7 +79,7 @@ func (g *ItemGraph) AddEdge(n1, n2 *Node) {
 	n2.Lock.Unlock()
 }
 
-func (g *ItemGraph) String() {
+func (g *ItemGraph) String() string {
 	g.lock.RLock()
 	s := ""
 	for i := 0; i < len(g.nodes); i++ {
@@ -83,6 +90,6 @@ func (g *ItemGraph) String() {
 		}
 		s += "\n"
 	}
-	fmt.Println(s)
 	g.lock.RUnlock()
+	return s
 }
