@@ -11,11 +11,7 @@ type Edge struct {
 	Weight int16
 	From   *Node
 	To     *Node
-<<<<<<< HEAD
 	Next   *Edge //linked list
-=======
-	Next   *Edge
->>>>>>> parent of 04c0c32 (main)
 }
 
 // Node a single node that composes the tree
