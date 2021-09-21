@@ -120,7 +120,13 @@ func Set(key string, data string, dtype byte) error {
 	return nil
 }
 
-func CreateKey(name string) *Node {}
+func CreateKey(name string) *Node {
+	return &Node{}
+}
+
+func Update(key, data string) error {
+	return nil
+}
 
 func (l *Node) write_type_to_loc(data string, dtype string) error {
 
