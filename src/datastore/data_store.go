@@ -22,7 +22,7 @@ var Data_lock = sync.Mutex{}
 
 type Node struct {
 	subkey map[string]*Node
-	lock   sync.Mutex // each node has its own mutex
+	lock   *sync.Mutex // each node has its own mutex
 	//data_lock sync.Mutex
 	data  unsafe.Pointer
 	dtype byte // declared at types
@@ -31,12 +31,12 @@ type Node struct {
 func (loc *Node) register_data(data interface{}, key ...string) { // send data to channel
 	switch v := data.(type) {
 	case Node:
-		l := &loc.lock
+		l := loc.lock
 		l.Lock() // more testing needed, but adding a lock makes the assignment faster
 		loc.subkey[key[0]] = &v
 		l.Unlock()
 	case *Node:
-		l := &loc.lock
+		l := loc.lock
 		l.Lock() // more testing needed, but adding a lock makes the assignment faster
 		loc.subkey[key[0]] = v
 		l.Unlock()
@@ -93,24 +93,34 @@ func Set(key string, data string, dtype byte) error {
 	if len(keys) == 1 { // only one key provide
 		if v, ok := pointer[keys[0]]; ok {
 			v.register_data(data, string(dtype))
+			return nil
+		} else {
+			v := CreateKey(key)
+			v.register_data(data, string(dtype))
+			return nil
 		}
-		return nil
 	}
 
 	for _, v := range keys[0 : len(keys)-1] {
 		if v, ok := pointer[v]; ok {
 			pointer = v.subkey
 		} else {
-			break
+			v := CreateKey(key)
+			v.register_data(data, string(dtype))
+			return nil
 		}
 	}
 	if v, ok := pointer[keys[len(keys)-1]]; ok {
 		v.register_data(data, string(dtype))
 
-		return nil
+	} else {
+		v := CreateKey(key)
+		v.register_data(data, string(dtype))
 	}
 	return nil
 }
+
+func CreateKey(name string) *Node {}
 
 func (l *Node) write_type_to_loc(data string, dtype string) error {
 
