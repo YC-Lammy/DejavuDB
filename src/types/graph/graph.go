@@ -11,7 +11,11 @@ type Edge struct {
 	Weight int16
 	From   *Node
 	To     *Node
+<<<<<<< HEAD
 	Next   *Edge //linked list
+=======
+	Next   *Edge
+>>>>>>> parent of 04c0c32 (main)
 }
 
 // Node a single node that composes the tree
@@ -44,10 +48,24 @@ type Graph struct {
 	Lock  sync.RWMutex
 }
 
+<<<<<<< HEAD
 func (g *Graph) AddNode(n *Node) {
 	g.Lock.Lock()
 	g.Nodes[n.Name] = n
 	g.Lock.Unlock()
+=======
+// ItemGraph the Items graph
+type ItemGraph struct {
+	nodes []*Node
+	lock  sync.RWMutex
+}
+
+// AddNode adds a node to the graph
+func (g *ItemGraph) AddNode(n *Node) {
+	g.lock.Lock()
+	g.nodes = append(g.nodes, n)
+	g.lock.Unlock()
+>>>>>>> parent of 04c0c32 (main)
 }
 
 // ItemGraph the Items graph
@@ -79,7 +97,11 @@ func (g *ItemGraph) AddEdge(n1, n2 *Node) {
 	n2.Lock.Unlock()
 }
 
+<<<<<<< HEAD
 func (g *ItemGraph) String() string {
+=======
+func (g *ItemGraph) String() {
+>>>>>>> parent of 04c0c32 (main)
 	g.lock.RLock()
 	s := ""
 	for i := 0; i < len(g.nodes); i++ {
@@ -90,6 +112,11 @@ func (g *ItemGraph) String() string {
 		}
 		s += "\n"
 	}
+<<<<<<< HEAD
 	g.lock.RUnlock()
 	return s
+=======
+	fmt.Println(s)
+	g.lock.RUnlock()
+>>>>>>> parent of 04c0c32 (main)
 }
