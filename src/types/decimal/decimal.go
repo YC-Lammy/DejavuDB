@@ -1,6 +1,6 @@
-Package decimal
+package decimal
 
-imPort (
+import (
 	"errors"
 	"fmt"
 	"strconv"
@@ -9,23 +9,23 @@ imPort (
 
 type Decimal32 struct {
 	I int16
-	P   uint16
+	P uint16
 }
 type Decimal64 struct {
-	I int32
-	P1  uint32
+	I  int32
+	P1 uint32
 }
 
 type Decimal128 struct {
-	I int32
-	P1  int32
-	P2  int64
+	I  int32
+	P1 int32
+	P2 int64
 }
 
 type Decimal192 struct {
-	I int64
-	P1  int64
-	P2  int64
+	I  int64
+	P1 int64
+	P2 int64
 }
 
 func (f Decimal32) String() string {
@@ -56,7 +56,7 @@ func StrToDecimal32(str string) (Decimal32, error) {
 	}
 	P1, err := strconv.ParseUint(s[1], 10, 16)
 	if err != nil {
-		return Decimal32{}, errors.New(strings.Repace(err.Error(), "strconv.ParseInt: ", "", -1) + "try using ds128")
+		return Decimal32{}, errors.New(strings.Replace(err.Error(), "strconv.ParseInt: ", "", -1) + "try using ds128")
 	}
 	return Decimal32{I: int16(i), P: uint16(P1)}, nil
 }
