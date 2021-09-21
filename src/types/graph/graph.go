@@ -9,42 +9,42 @@ type Edge struct {
 	Id     uint64
 	Label  [16]byte
 	Weight int16
-	From   *Node
-	To     *Node
+	From   *Vertex
+	To     *Vertex
 	Next   *Edge //linked list
 }
 
 // Node a single node that composes the tree
-type Node struct {
+type Vertex struct {
 	Id     uint64
 	Name   string
 	Values map[string]string //key value store
-	Edges  []*Node
+	Edges  []*Vertex
 	Lock   sync.Mutex
 }
 
-func (n *Node) AddEdge(e *Node) {
+func (n *Vertex) AddEdge(e *Vertex) {
 	if n.Edges == nil {
-		n.Edges = []*Node{}
+		n.Edges = []*Vertex{}
 	}
 	n.Lock.Lock()
 	n.Edges = append(n.Edges, e)
 	n.Lock.Unlock()
 }
 
-func (n *Node) AddField(key, data string) {
+func (n *Vertex) AddField(key, data string) {
 	n.Values[key] = data
 }
-func (n *Node) String() string {
+func (n *Vertex) String() string {
 	return fmt.Sprintf("%v", n.Values)
 }
 
 type Graph struct {
-	Nodes map[string]*Node
+	Nodes map[string]*Vertex
 	Lock  sync.RWMutex
 }
 
-func (g *Graph) AddNode(n *Node) {
+func (g *Graph) AddNode(n *Vertex) {
 	g.Lock.Lock()
 	g.Nodes[n.Name] = n
 	g.Lock.Unlock()
@@ -52,24 +52,24 @@ func (g *Graph) AddNode(n *Node) {
 
 // ItemGraph the Items graph
 type ItemGraph struct {
-	nodes []*Node
+	nodes map[uint64]*Vertex
 	lock  sync.RWMutex
 }
 
 // AddNode adds a node to the graph
-func (g *ItemGraph) AddNode(n *Node) {
+func (g *ItemGraph) AddNode(n *Vertex) {
 	g.lock.Lock()
 	g.nodes = append(g.nodes, n)
 	g.lock.Unlock()
 }
 
 // AddEdge adds an edge to the graph
-func (g *ItemGraph) AddEdge(n1, n2 *Node) {
+func (g *ItemGraph) AddEdge(n1, n2 *Vertex) {
 	if n1.Edges == nil {
-		n1.Edges = []*Node{}
+		n1.Edges = []*Vertex{}
 	}
 	if n2.Edges == nil {
-		n2.Edges = []*Node{}
+		n2.Edges = []*Vertex{}
 	}
 	n1.Lock.Lock()
 	n1.Edges = append(n1.Edges, n2)
