@@ -119,20 +119,6 @@ func (l *Node) write_type_to_loc(data string, dtype string) error {
 	case types.String:
 		l.data = unsafe.Pointer(&data)
 
-	case types.Byte:
-		a := data[0]
-		l.data = unsafe.Pointer(&a)
-
-	case types.Bool:
-		a, err := strconv.ParseBool(data)
-		if err != nil {
-			return err
-		}
-		l.data = unsafe.Pointer(&a)
-
-	case types.Null:
-		l.data = nil
-
 	case types.Int64, types.Int:
 		a, err := strconv.ParseInt(data, 10, 64)
 		if err != nil {
@@ -252,7 +238,22 @@ func (l *Node) write_type_to_loc(data string, dtype string) error {
 		}
 		l.data = unsafe.Pointer(&a)
 
-	case types.Byte_arr:
+	case types.Byte:
+		a := data[0]
+		l.data = unsafe.Pointer(&a)
+
+	case types.Byte_arr: // a string
+		a := []byte(data)
+		l.data = unsafe.Pointer(&a)
+
+	case types.Bool:
+		a, err := strconv.ParseBool(data)
+		if err != nil {
+			return err
+		}
+		l.data = unsafe.Pointer(&a)
+	case types.Graph:
+	case types.Table: // when set table, table is initialized
 
 	case types.Json:
 		a, err := binjson.NewBinaryJson(data)
@@ -261,8 +262,7 @@ func (l *Node) write_type_to_loc(data string, dtype string) error {
 		}
 		l.data = unsafe.Pointer(a)
 
-	case types.Table: // when set table, table is initialized
-
+	case types.SmartContract:
 	case types.Contract: // in a json format
 		a, err := contract.NewContract(data)
 		if err != nil {
@@ -270,11 +270,15 @@ func (l *Node) write_type_to_loc(data string, dtype string) error {
 		}
 		l.data = unsafe.Pointer(a)
 
-	case types.SmartContract:
-
 	case types.Money:
-
 	case types.SmallMoney:
+	case types.Time:
+	case types.Date:
+	case types.Datetime:
+	case types.Smalldatetime:
+
+	case types.Null:
+		l.data = nil
 
 	}
 	return nil
