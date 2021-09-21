@@ -3,86 +3,115 @@ package graph
 import (
 	"fmt"
 	"sync"
+
+	"github.com/golang/snappy"
 )
 
 type Edge struct {
 	Id     uint64
-	Label  [16]byte
+	Label  string
 	Weight int16
-	From   *Node
-	To     *Node
+	From   *Vertex
+	To     *Vertex
 	Next   *Edge
 }
 
 // Node a single node that composes the tree
-type Node struct {
+type Vertex struct {
 	Id     uint64
 	Values map[string]string //key value store
-	Edges  []*Node
-	Lock   sync.Mutex
+	Edges  []*Edge
+	Lock   sync.RWMutex
 }
 
-func (n *Node) AddEdge(e *Node) {
+func NewVertex(Values map[string]string) *Vertex {
+	return &Vertex{
+		Lock: sync.RWMutex{},
+	}
+}
+
+func (n *Vertex) AddEdge(e *Edge) {
 	if n.Edges == nil {
-		n.Edges = []*Node{}
+		n.Edges = []*Edge{}
 	}
 	n.Lock.Lock()
 	n.Edges = append(n.Edges, e)
 	n.Lock.Unlock()
 }
 
-func (n *Node) AddField(key, data string) {
-	n.Values[key] = data
+func (n *Vertex) AddField(key, data string) {
+	n.Values[key] = string(snappy.Encode(nil, []byte(data)))
 }
-func (n *Node) String() string {
+func (n *Vertex) GetField(key string) (string, error) {
+	a, err := snappy.Decode(nil, []byte(n.Values[key]))
+	if err != nil {
+		return "", err
+	}
+	return string(a), nil
+}
+func (n *Vertex) String() string {
 	return fmt.Sprintf("%v", n.Values)
 }
 
 type Graph struct {
-	Nodes map[string]*Node
-	Lock  sync.RWMutex
-}
-
-// ItemGraph the Items graph
-type ItemGraph struct {
-	nodes []*Node
-	lock  sync.RWMutex
+	Nodes             map[uint64]*Vertex
+	Lock              sync.RWMutex
+	Edge_count        uint64
+	Edge_count_Lock   sync.RWMutex
+	Vertex_count      uint64
+	Vertex_count_Lock sync.RWMutex
 }
 
 // AddNode adds a node to the graph
-func (g *ItemGraph) AddNode(n *Node) {
-	g.lock.Lock()
-	g.nodes = append(g.nodes, n)
-	g.lock.Unlock()
+func (g *Graph) AddNode(n *Vertex) {
+	g.Edge_count_Lock.Lock()
+	g.Vertex_count += 1
+	n.Id = g.Vertex_count
+	g.Edge_count_Lock.Unlock()
+
+	g.Lock.Lock()
+	g.Nodes[g.Vertex_count] = n
+	g.Lock.Unlock()
 }
 
 // AddEdge adds an edge to the graph
-func (g *ItemGraph) AddEdge(n1, n2 *Node) {
+func (g *Graph) AddEdge(n1, n2 *Vertex, label string, weight int16) {
 	if n1.Edges == nil {
-		n1.Edges = []*Node{}
+		n1.Edges = []*Edge{}
 	}
 	if n2.Edges == nil {
-		n2.Edges = []*Node{}
+		n2.Edges = []*Edge{}
 	}
-	n1.Lock.Lock()
-	n1.Edges = append(n1.Edges, n2)
-	n1.Lock.Unlock()
-	n2.Lock.Lock()
-	n2.Edges = append(n2.Edges, n1)
-	n2.Lock.Unlock()
+	g.Edge_count_Lock.Lock()
+	g.Edge_count += 1
+	e := g.Edge_count
+	g.Edge_count_Lock.Unlock()
+
+	a := Edge{
+		Id:     e,
+		Label:  label,
+		Weight: weight,
+		From:   n1,
+		To:     n2,
+	}
+	n1.AddEdge(&a)
+	n2.AddEdge(&a)
 }
 
-func (g *ItemGraph) String() {
-	g.lock.RLock()
+func (g *Graph) String() string {
+	g.Lock.RLock()
 	s := ""
-	for i := 0; i < len(g.nodes); i++ {
-		s += g.nodes[i].String() + " -> "
-		near := g.nodes[i].Edges
+	for _, k := range g.Nodes {
+		s += k.String() + " -> "
+		near := k.Edges
 		for j := 0; j < len(near); j++ {
-			s += near[j].String() + " "
+			if near[j].To == k {
+				continue
+			}
+			s += near[j].To.String() + " "
 		}
 		s += "\n"
 	}
-	fmt.Println(s)
-	g.lock.RUnlock()
+	g.Lock.RUnlock()
+	return s
 }

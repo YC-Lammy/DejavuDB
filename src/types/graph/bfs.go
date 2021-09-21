@@ -4,27 +4,27 @@ import "sync"
 
 // NodeQueue the queue of Nodes
 type NodeQueue struct {
-	items []Node
+	items []Vertex
 	lock  sync.RWMutex
 }
 
 // New creates a new NodeQueue
 func (s *NodeQueue) New() *NodeQueue {
 	s.lock.Lock()
-	s.items = []Node{}
+	s.items = []Vertex{}
 	s.lock.Unlock()
 	return s
 }
 
 // Enqueue adds an Node to the end of the queue
-func (s *NodeQueue) Enqueue(t Node) {
+func (s *NodeQueue) Enqueue(t Vertex) {
 	s.lock.Lock()
 	s.items = append(s.items, t)
 	s.lock.Unlock()
 }
 
 // Dequeue removes an Node from the start of the queue
-func (s *NodeQueue) Dequeue() *Node {
+func (s *NodeQueue) Dequeue() *Vertex {
 	s.lock.Lock()
 	item := s.items[0]
 	s.items = s.items[1:]
@@ -33,7 +33,7 @@ func (s *NodeQueue) Dequeue() *Node {
 }
 
 // Front returns the item next in the queue, without removing it
-func (s *NodeQueue) Front() *Node {
+func (s *NodeQueue) Front() *Vertex {
 	s.lock.RLock()
 	item := s.items[0]
 	s.lock.RUnlock()
@@ -54,31 +54,34 @@ func (s *NodeQueue) Size() int {
 	return len(s.items)
 }
 
-func (g *ItemGraph) Traverse(f func(*Node)) {
-	g.lock.RLock()
+func (g *Graph) Traverse(f func(*Vertex)) {
+	g.Lock.RLock()
 	q := NodeQueue{}
 	q.New()
-	n := g.nodes[0]
+	n := g.Nodes[0]
 	q.Enqueue(*n)
-	visited := make(map[*Node]bool)
+	visited := make(map[*Vertex]bool)
 	for {
 		if q.IsEmpty() {
 			break
 		}
 		node := q.Dequeue()
 		visited[node] = true
-		near := g.edges[node]
+		near := node.Edges
 
 		for i := 0; i < len(near); i++ {
 			j := near[i]
-			if !visited[j] {
-				q.Enqueue(*j)
-				visited[j] = true
+			if j.To == node {
+				continue
+			}
+			if !visited[j.To] {
+				q.Enqueue(*j.To)
+				visited[j.To] = true
 			}
 		}
 		if f != nil {
 			f(node)
 		}
 	}
-	g.lock.RUnlock()
+	g.Lock.RUnlock()
 }
