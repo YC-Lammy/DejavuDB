@@ -77,6 +77,7 @@ func (c *Column) ToDisk(path string) error {
 	if err != nil {
 		return err
 	}
+	bytes := []byte{}
 	switch c.Dtype {
 	case types.String:
 		for _, v := range *(*[]string)(c.Data) {
@@ -84,8 +85,9 @@ func (c *Column) ToDisk(path string) error {
 			if err != nil {
 				return err
 			}
-			f.Write(append(a, '\n'))
+			bytes = append(bytes, append(a, '\n')...)
 		}
+	case types.Int, types.Int64:
 	case types.Int32:
 	case types.Int16:
 	case types.Int8:
@@ -117,5 +119,6 @@ func (c *Column) ToDisk(path string) error {
 	case types.Smalldatetime:
 	case types.Null:
 	}
+	f.Write(bytes)
 	return nil
 }

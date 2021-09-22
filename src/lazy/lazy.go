@@ -2,6 +2,7 @@ package lazy
 
 import (
 	"crypto/aes"
+	"math"
 	"net"
 	"strings"
 	"time"
@@ -157,4 +158,12 @@ func DecryptAES(key []byte, ciphertext []byte) ([]byte, error) {
 	c.Decrypt(pt, ciphertext)
 
 	return pt, nil
+}
+
+func Hash64(s []byte) uint64 {
+	var h uint64 = 0
+	for pos, char := range s {
+		h += uint64(char) * uint64(math.Pow(31, float64(len(s)-pos+1)))
+	}
+	return h
 }
