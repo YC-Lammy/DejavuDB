@@ -55,22 +55,31 @@ func (n *Vertex) String() string {
 
 type Graph struct {
 	Nodes             map[uint64]*Vertex
-	Lock              sync.RWMutex
+	Lock              *sync.RWMutex
 	Edge_count        uint64
-	Edge_count_Lock   sync.RWMutex
+	Edge_count_Lock   *sync.RWMutex
 	Vertex_count      uint64
-	Vertex_count_Lock sync.RWMutex
+	Vertex_count_Lock *sync.RWMutex
+}
+
+func NewGraph() *Graph {
+	a, b, c := &sync.RWMutex{}, &sync.RWMutex{}, &sync.RWMutex{}
+	return &Graph{
+		Nodes:             map[uint64]*Vertex{},
+		Lock:              a,
+		Edge_count_Lock:   b,
+		Vertex_count_Lock: c}
 }
 
 // AddNode adds a node to the graph
 func (g *Graph) AddNode(n *Vertex) {
 	g.Edge_count_Lock.Lock()
-	g.Vertex_count += 1
 	n.Id = g.Vertex_count
+	g.Vertex_count += 1
 	g.Edge_count_Lock.Unlock()
 
 	g.Lock.Lock()
-	g.Nodes[g.Vertex_count] = n
+	g.Nodes[n.Id] = n
 	g.Lock.Unlock()
 }
 
