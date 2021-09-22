@@ -36,11 +36,11 @@ func Test_shortest_bfs(t *testing.T) {
 func Test_A_star(t *testing.T) {
 	var num_node = 40960
 	g := NewGraph()
-	a := NewVertex(map[string]string{})
+	a := NewVertex()
 	g.AddNode(a)
 	var last *Vertex = a
 	for i := 0; i < num_node; i++ {
-		b := NewVertex(map[string]string{})
+		b := NewVertex()
 		g.AddNode(b)
 		rand.Seed(time.Now().Unix())
 		g.AddEdge(last, b, "", 1)
