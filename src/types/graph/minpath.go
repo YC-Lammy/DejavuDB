@@ -51,7 +51,6 @@ func ShortestPath(from, to *Vertex) (Path, error) {
 						*(costs[e.To]) = new
 					}
 				} else {
-					costs[e.To] = &new
 
 					var c int64 = 0
 					for _, i := range v.paths {
@@ -64,11 +63,13 @@ func ShortestPath(from, to *Vertex) (Path, error) {
 						cost:  c + new.Cost,
 					}
 					if e.To == to {
+						costs[e.To] = &new
 						if p.cost < lowest_score {
 							lowest_score = p.cost
 						}
 						endedPaths = append(endedPaths, p)
 					} else if !(p.cost > lowest_score) {
+						costs[e.To] = &new
 						items = append(items, p) // items extend the loop
 					}
 
