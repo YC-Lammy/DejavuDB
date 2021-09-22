@@ -12,7 +12,7 @@ var javascript_API_Script string
 //go:embed adm.js
 var javascript_ADM_Script string
 
-func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *func(), args ...[2]string) {
+func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *func(), tmp_store map[uint64]interface{}, args ...[2]string) {
 
 	adm := false
 
@@ -36,7 +36,7 @@ func Javascript_context_init(ctx *v8go.Context, errs chan error, delay_fn chan *
 	glob := ctx.Global()
 
 	call_go_fn, _ := v8go.NewFunctionTemplate(vm, func(info *v8go.FunctionCallbackInfo) *v8go.Value {
-		return callbackfn(info, ctx, errs, delay_fn, arg)
+		return callbackfn(info, ctx, errs, delay_fn, arg, tmp_store)
 	})
 
 	glob.Set("call_go_fn", call_go_fn) // register function

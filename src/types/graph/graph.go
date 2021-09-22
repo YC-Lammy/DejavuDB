@@ -24,7 +24,7 @@ type Vertex struct {
 	Lock   sync.RWMutex
 }
 
-func NewVertex(Values map[string]string) *Vertex {
+func NewVertex() *Vertex {
 	return &Vertex{
 		Lock: sync.RWMutex{},
 	}

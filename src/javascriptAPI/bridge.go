@@ -13,7 +13,7 @@ import (
 	"rogchap.com/v8go"
 )
 
-func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan error, delayfn chan *func(), args map[string]string) *v8go.Value { // when the JS function is called this Go callback will execute
+func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan error, delayfn chan *func(), args map[string]string, tmp_store map[uint64]interface{}) *v8go.Value { // when the JS function is called this Go callback will execute
 
 	var uid uint32 = 19890604
 	var gid uint32 = 19890604
@@ -35,6 +35,10 @@ func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan er
 	}
 
 	Args := info.Args()
+	args_str := []string{}
+	for _, v := range Args {
+		args_str = append(args_str, v.String())
+	}
 	switch Args[0].String() {
 	case "require":
 		v := Args[1].String()
@@ -93,6 +97,21 @@ func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan er
 	case "Set":
 	// set function will generate a reverse function
 	// this function will be executed if any error occours
+
+	case "create":
+		val, err := creater(tmp_store, args_str[1:]...)
+		return checkerr(err, val, errs)
+
+	case "value":
+		switch args_str[1] {
+		case "call": // call calls the value as a function, this is created by the "new GoFunction()"
+			defer func() {
+				if err := recover(); err != nil {
+					errs <- err.(error)
+				}
+			}()
+		case "callfn": // callfn calls a function from type
+		}
 
 	case "settings":
 		if uid == 19890604 {

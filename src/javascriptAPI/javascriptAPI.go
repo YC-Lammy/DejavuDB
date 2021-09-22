@@ -26,11 +26,11 @@ func Javascript_run_isolate(script string, args ...interface{}) (string, error) 
 		delay_fns = append(delay_fns, fn)
 	}()
 
-	//var tmp_store = map[string]interface{}{}
+	tmp_store := map[uint64]interface{}{}
 
 	go func() {
 
-		Javascript_context_init(ctx, errs, delay_fn) // initiallize context api and functions
+		Javascript_context_init(ctx, errs, delay_fn, tmp_store) // initiallize context api and functions
 
 		val, err := ctx.RunScript(script, "main.js") // exec a long running script
 		if err != nil {

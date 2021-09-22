@@ -50,12 +50,27 @@ DB = function(){
 			}
 			
 			this.string = res +'}';
+			this.IsContract = true
 		}
 
 	}
 
 	exports.deployContract = function(key, contract){
 		return call_go_fn("deployContract",key, contract.string);
+	}
+
+	exports.GoFunction = class{
+		constructor(script){
+			json = call_go_fn("create","Fn",script)
+			if (json.err != null){
+				throw String(err);
+			}
+			this.path = json.path;
+			this.IsGoFunction = true;
+		}
+		run(...any){
+			return call_go_fn("value","call",this.path, ...any);
+		}
 	}
 
 

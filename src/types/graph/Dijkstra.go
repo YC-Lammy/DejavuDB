@@ -6,7 +6,7 @@ import (
 )
 
 type Path struct {
-	Path []Edge
+	Path []*Edge
 	Cost int64
 }
 
@@ -24,7 +24,7 @@ func Dijkstra(from, to *Vertex) (Path, error) {
 
 	costs := map[uint64]*Path{} // from * towards key weight
 	costs[from.Id] = &Path{
-		Path: []Edge{},
+		Path: []*Edge{},
 		Cost: 0,
 	}
 	items_store := []*Vertex{from}
@@ -48,7 +48,7 @@ func Dijkstra(from, to *Vertex) (Path, error) {
 				if n, ok := costs[e.From.Id]; ok {
 					new = *n
 					new.Cost = new.Cost + int64(e.Weight)
-					new.Path = append(new.Path, *e)
+					new.Path = append(new.Path, e)
 
 				} else {
 					return Path{}, errors.New("error processing node")
