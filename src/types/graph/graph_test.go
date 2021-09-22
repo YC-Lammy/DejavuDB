@@ -8,7 +8,7 @@ import (
 )
 
 func Test_shortest_bfs(t *testing.T) {
-	var num_node = 409600
+	var num_node = 4096
 	g := NewGraph()
 	a := NewVertex(map[string]string{})
 	g.AddNode(a)
@@ -22,7 +22,7 @@ func Test_shortest_bfs(t *testing.T) {
 	}
 	g.AddEdge(a, g.Nodes[293], "", 290)
 	T := time.Now()
-	p, err := ShortestPath(a, last, "bfs")
+	p, err := ShortestPath(a, last, "dijkstra")
 	fmt.Println(time.Now().Sub(T).String())
 	if err != nil {
 		fmt.Println(err)

@@ -12,13 +12,13 @@ type Path struct {
 
 func ShortestPath(from, to *Vertex, method string) (Path, error) {
 	switch strings.ToLower(method) {
-	case "bfs":
-		return BFS_shortestpath(from, to)
+	case "dijkstra":
+		return Dijkstra(from, to)
 	}
 	return Path{}, errors.New("unknown method " + method)
 }
 
-func BFS_shortestpath(from, to *Vertex) (Path, error) {
+func Dijkstra(from, to *Vertex) (Path, error) {
 	from.Lock.RLock()
 	from.Lock.RUnlock()
 
