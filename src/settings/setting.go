@@ -18,6 +18,7 @@ var Auto_shard bool
 var Secure_connect bool
 
 var Max_Worker uint64
+var Auto_Max_Worker bool
 
 var Enable_https bool
 var Encrypt_disk bool
@@ -37,6 +38,7 @@ func init() {
 	flag.StringVar(&App_port, "app_port", "36730", "specify application port")
 
 	flag.Uint64Var(&Max_Worker, "max_worker", 1200, "maximum concurrent workers")
+	flag.BoolVar(&Auto_Max_Worker, "auto_max_worker", true, "automatic change the max_worker base on workload")
 	//flag.StringVar(&sql_file, "sqlfile", ":memory:", "specify sql file path")
 	flag.BoolVar(&Save_disk, "disk", false, "save copy to disk")
 	flag.BoolVar(&Debug, "debug", false, "developer debug option")

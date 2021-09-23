@@ -37,6 +37,7 @@ func (w Worker) Start() {
 			select {
 			case job := <-w.JobChannel:
 				// do the work here
+				jobHandler(job)
 
 			case <-w.quit:
 				// we have received a signal to stop
@@ -76,6 +77,11 @@ func (d *Dispatcher) Run() {
 	go d.dispatch()
 }
 
+func (d *Dispatcher) NewWorker() {
+	worker := NewWorker(d.WorkerPool)
+	worker.Start()
+}
+
 func (d *Dispatcher) dispatch() {
 	for {
 		select {
@@ -91,4 +97,8 @@ func (d *Dispatcher) dispatch() {
 			}(job)
 		}
 	}
+}
+
+func jobHandler(j Job) {
+
 }
