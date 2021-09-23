@@ -38,7 +38,7 @@ func init() {
 	flag.StringVar(&App_port, "app_port", "36730", "specify application port")
 
 	flag.Uint64Var(&Max_Worker, "max_worker", 1200, "maximum concurrent workers")
-	flag.BoolVar(&Auto_Max_Worker, "auto_max_worker", true, "automatic change the max_worker base on workload")
+	flag.BoolVar(&Auto_Max_Worker, "disable_auto_max_worker", true, "automatic change the max_worker base on workload")
 	//flag.StringVar(&sql_file, "sqlfile", ":memory:", "specify sql file path")
 	flag.BoolVar(&Save_disk, "disk", false, "save copy to disk")
 	flag.BoolVar(&Debug, "debug", false, "developer debug option")
