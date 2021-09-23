@@ -2,7 +2,7 @@ package settings
 
 import "strconv"
 
-func JsHandle(args ...string) (interface{}, error) {
+func JsHandle(uid, gid uint32, args ...string) (interface{}, error) {
 	switch args[0] {
 	case "ML_enabled":
 		return Enable_ML, nil
