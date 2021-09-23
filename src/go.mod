@@ -3,7 +3,6 @@ module src
 go 1.16
 
 require (
-	github.com/DmitriyVTitov/size v1.1.0
 	github.com/goccy/go-json v0.7.8
 	github.com/mattn/go-sqlite3 v1.14.8
 	github.com/shirou/gopsutil v3.21.7+incompatible

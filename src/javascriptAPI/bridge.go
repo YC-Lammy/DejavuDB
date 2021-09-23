@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"reflect"
 	"src/datastore"
-	fmtjs "src/javascriptAPI/lib/fmt"
 	"src/types"
 	"src/types/int128"
 	"strconv"
@@ -165,6 +164,8 @@ func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan er
 			}
 
 		case "method": // callfn calls a function from type
+		case "value":
+		case "string":
 		}
 
 	case "settings":
@@ -186,19 +187,6 @@ func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan er
 
 	case "tensorflow":
 
-	case "fmt":
-		a := []string{}
-		for _, v := range Args[1:] {
-			a = append(a, v.String())
-		}
-		b := fmtjs.JsHandle(a...)
-		val, err := v8go.NewValue(vm, b)
-
-		return checkerr(err, val, errs)
-
-	case "http":
-
-		// you can return a value back to the JS caller if required
 	}
 	return nil
 }
