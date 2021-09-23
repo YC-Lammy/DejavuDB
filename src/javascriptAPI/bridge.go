@@ -3,6 +3,7 @@ package javascriptAPI
 import (
 	"errors"
 	"io/ioutil"
+	"reflect"
 	"src/datastore"
 	fmtjs "src/javascriptAPI/lib/fmt"
 	"src/types"
@@ -13,7 +14,7 @@ import (
 	"rogchap.com/v8go"
 )
 
-func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan error, delayfn chan *func(), args map[string]string, tmp_store map[uint64]interface{}) *v8go.Value { // when the JS function is called this Go callback will execute
+func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan error, delayfn chan *func(), args map[string]string, tmp_store map[string]interface{}) *v8go.Value { // when the JS function is called this Go callback will execute
 
 	var uid uint32 = 19890604
 	var gid uint32 = 19890604
@@ -110,7 +111,60 @@ func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan er
 					errs <- err.(error)
 				}
 			}()
-		case "callfn": // callfn calls a function from type
+			fn, ok := tmp_store[args_str[2]].(reflect.Value)
+			if !ok {
+				errs <- errors.New("cannot call non function value")
+			}
+			fn_t := fn.Type()
+			if fn_t.NumIn() > len(args_str[3:]) {
+				errs <- errors.New("not enough argument calling function " + fn_t.Name())
+			}
+
+			var reflect_args = []reflect.Value{}
+
+			for i := 0; i < fn_t.NumIn(); i++ {
+
+				inV := fn_t.In(i)
+				in_Kind := inV.Kind() //func
+
+				var val string
+				if len(args_str) > 2+i {
+					val = args_str[2+i]
+				} else {
+					errs <- errors.New("not enough arguaments")
+					return nil
+				}
+
+				switch in_Kind.String() {
+				case "string":
+					reflect_args = append(reflect_args, reflect.ValueOf(val))
+
+				case "ptr":
+					value := tmp_store[val]
+					if a, b := reflect.TypeOf(value).Elem().Name(), inV.Elem().Name(); a != b {
+						errs <- errors.New("expected type " + b + " got " + a)
+						return nil
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(value))
+
+				case "bool":
+					b, err := strconv.ParseBool(val)
+					if err != nil {
+						errs <- err
+						return nil
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(b))
+
+				case "int":
+				case "int8":
+				case "int16":
+				case "int32":
+				case "int64":
+				}
+
+			}
+
+		case "method": // callfn calls a function from type
 		}
 
 	case "settings":
