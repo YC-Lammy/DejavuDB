@@ -124,6 +124,10 @@ func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan er
 				return nil
 			}
 			outputs := fn.Call(args_r)
+			r := []interface{}{}
+			for _, v := range outputs {
+				r = append(r, v.Interface())
+			}
 
 		case "method": // callfn calls a function from type
 		// call_go_fn("value", "method","pathToValue", "methodName",...args)
