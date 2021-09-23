@@ -4,12 +4,14 @@ import (
 	"errors"
 	"io/ioutil"
 	"reflect"
-	"src/datastore"
-	"src/types"
-	"src/types/int128"
+
 	"strconv"
 
-	"../settings"
+	"src/datastore"
+	"src/settings"
+	"src/types"
+	"src/types/int128"
+
 	"rogchap.com/v8go"
 )
 
@@ -103,6 +105,12 @@ func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan er
 	// set function will generate a reverse function
 	// this function will be executed if any error occours
 
+	case "Move":
+
+	case "Copy":
+
+	case "Find":
+
 	case "create":
 		val, err := creater(tmp_store, args_str[1:]...)
 		return checkerr(err, val, errs)
@@ -186,11 +194,17 @@ func stringToReflectArgs(fn_t reflect.Type, errs chan error, tmp_store map[strin
 			if !ok {
 				errs <- errors.New("invalid memory address, expected Go pointer values")
 			}
-			if a, b := reflect.TypeOf(value).Elem().Name(), inV.Elem().Name(); a != b {
-				errs <- errors.New("expected type " + b + " got " + a)
+			v := reflect.ValueOf(value)
+			v_k := v.Kind()
+			if v_k != reflect.Ptr {
+				errs <- errors.New("expected pointer value got " + v_k.String())
 				return nil
 			}
-			reflect_args = append(reflect_args, reflect.ValueOf(value))
+			if a, b := reflect.Indirect(v).Kind(), inV.Elem().Kind(); a != b {
+				errs <- errors.New("expected type " + b.String() + " got " + a.String())
+				return nil
+			}
+			reflect_args = append(reflect_args, v)
 
 		case "bool":
 			b, err := strconv.ParseBool(val)

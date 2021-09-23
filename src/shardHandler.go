@@ -11,8 +11,6 @@ import (
 	json "github.com/goccy/go-json"
 
 	"src/settings"
-
-	"github.com/DmitriyVTitov/size"
 )
 
 func ShardHandler(conn net.Conn, message string) {
@@ -148,8 +146,4 @@ func ShardHandler(conn net.Conn, message string) {
 		}
 	}
 	send(conn, result)
-}
-
-func getShardSize() int {
-	return size.Of(shardData)
 }
