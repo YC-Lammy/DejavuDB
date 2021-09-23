@@ -5,13 +5,16 @@ import (
 	"encoding/binary"
 	"strconv"
 
-	"../../types"
+	"go.mongodb.org/mongo-driver/bson"
+
+	"src/types"
 )
 
-type BinaryJson [][]byte
+type BinaryJson []byte
 
 func NewBinaryJson(str string) (*BinaryJson, error) {
-	return nil, nil
+	b, err := bson.Marshal(str)
+	return &b, err
 }
 
 func (b BinaryJson) GetElem(key string) []byte {
