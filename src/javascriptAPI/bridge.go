@@ -134,12 +134,15 @@ func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan er
 					return nil
 				}
 
-				switch in_Kind.String() {
+				switch kind := in_Kind.String(); kind {
 				case "string":
 					reflect_args = append(reflect_args, reflect.ValueOf(val))
 
 				case "ptr":
-					value := tmp_store[val]
+					value, ok := tmp_store[val]
+					if !ok {
+						errs <- errors.New("invalid memory address, expected Go pointer values")
+					}
 					if a, b := reflect.TypeOf(value).Elem().Name(), inV.Elem().Name(); a != b {
 						errs <- errors.New("expected type " + b + " got " + a)
 						return nil
@@ -149,16 +152,241 @@ func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan er
 				case "bool":
 					b, err := strconv.ParseBool(val)
 					if err != nil {
-						errs <- err
-						return nil
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
 					}
 					reflect_args = append(reflect_args, reflect.ValueOf(b))
 
 				case "int":
+					b, err := strconv.Atoi(val)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(b))
 				case "int8":
+					b, err := strconv.ParseInt(val, 10, 8)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(int8(b)))
 				case "int16":
+					b, err := strconv.ParseInt(val, 10, 16)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(int16(b)))
 				case "int32":
+					b, err := strconv.ParseInt(val, 10, 32)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(int32(b)))
 				case "int64":
+					b, err := strconv.ParseInt(val, 10, 64)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(int64(b)))
+				case "uint":
+					b, err := strconv.ParseUint(val, 10, 64)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(uint(b)))
+				case "uint8":
+					b, err := strconv.ParseUint(val, 10, 8)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(uint8(b)))
+				case "uint16":
+					b, err := strconv.ParseUint(val, 10, 16)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(uint16(b)))
+				case "uint32":
+					b, err := strconv.ParseUint(val, 10, 32)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(uint32(b)))
+				case "uint64":
+					b, err := strconv.ParseUint(val, 10, 64)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(b))
+				case "uintptr":
+				case "float34":
+					b, err := strconv.ParseFloat(val, 32)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(float32(b)))
+				case "float64":
+					b, err := strconv.ParseFloat(val, 64)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(b))
+				case "complex64":
+					b, err := strconv.ParseComplex(val, 64)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(complex64(b)))
+				case "complex128":
+					b, err := strconv.ParseComplex(val, 128)
+					if err != nil {
+						if v, ok := tmp_store[val]; ok {
+							a := reflect.ValueOf(v)
+							if a.Elem().Kind().String() == kind {
+								reflect_args = append(reflect_args, a.Elem())
+								continue
+							}
+						} else {
+							errs <- err
+							return nil
+						}
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(b))
+
+				case "array", "unsafepointer", "chan", "func", "interface", "map", "slice", "struct": // a path to tmp_store
+					value, ok := tmp_store[val]
+					if !ok {
+						errs <- errors.New("invalid memory address, expected Go pointer values")
+					}
+					if v := reflect.TypeOf(value).Elem().Kind().String(); v != kind {
+						errs <- errors.New("expected type " + kind + " got " + v)
+					}
+					reflect_args = append(reflect_args, reflect.ValueOf(value).Elem())
 				}
 
 			}
@@ -166,6 +394,7 @@ func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan er
 		case "method": // callfn calls a function from type
 		case "value":
 		case "string":
+
 		}
 
 	case "settings":
