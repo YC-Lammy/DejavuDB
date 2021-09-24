@@ -1,7 +1,10 @@
 package router
 
 import (
+	"fmt"
 	"net"
+
+	"rogchap.com/v8go"
 )
 
 var JobQueue chan Job
@@ -30,6 +33,17 @@ func NewWorker(workerPool chan chan Job) Worker {
 // case we need to stop it
 func (w Worker) Start() {
 	go func() {
+		iso, _ := v8go.NewIsolate()
+		printfn, _ := v8go.NewFunctionTemplate(iso, func(info *v8go.FunctionCallbackInfo) *v8go.Value {
+			fmt.Printf("%v", info.Args()) // when the JS function is called this Go callback will execute
+			val, err := info.Context().RunScript("'hello'", "hi.js")
+			if err != nil {
+				panic(err)
+			}
+			return val // you can return a value back to the JS caller if required
+		})
+		global, _ := v8go.NewObjectTemplate(iso) // a template that represents a JS Object
+		global.Set("print", printfn)             // sets the "print" property of the Object to our function
 		for {
 			// register the current worker into the worker queue.
 			w.WorkerPool <- w.JobChannel

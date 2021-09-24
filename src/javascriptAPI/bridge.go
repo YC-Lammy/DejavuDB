@@ -15,12 +15,13 @@ import (
 	"rogchap.com/v8go"
 )
 
-func callbackfn(info *v8go.FunctionCallbackInfo, ctx *v8go.Context, errs chan error, delayfn chan *func(), args map[string]string, tmp_store map[string]interface{}) *v8go.Value { // when the JS function is called this Go callback will execute
+func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *func(), args map[string]string, tmp_store map[string]interface{}) *v8go.Value { // when the JS function is called this Go callback will execute
 	defer func() {
 		if err := recover(); err != nil {
 			errs <- err.(error)
 		}
 	}()
+	ctx := info.Context()
 
 	var uid uint32 = 19890604
 	var gid uint32 = 19890604
