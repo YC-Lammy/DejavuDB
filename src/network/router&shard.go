@@ -1,8 +1,11 @@
 package network
 
 import (
-	"../config"
-	"../meta"
+	"net"
+
+	"src/config"
+	"src/meta"
+
 	cbor "github.com/fxamacker/cbor/v2"
 )
 
@@ -19,7 +22,7 @@ type Package struct {
 	Script     []byte
 }
 
-func Router_Shard_Send(Id, Process_Id uint64, script []byte) {
+func Router_Shard_Send(conn net.Conn, Process_Id uint64, script []byte) (int, error) {
 	var role byte
 	switch config.Role {
 	case "router":
@@ -30,7 +33,23 @@ func Router_Shard_Send(Id, Process_Id uint64, script []byte) {
 		role = standalone_role
 	}
 	b, err := cbor.Marshal(Package{
-		Role: role,
-		Id:   meta.Id,
+		Role:       role,
+		Id:         meta.Id,
+		Process_Id: Process_Id,
+		Script:     script,
 	})
+	if err != nil {
+		return 0, err
+	}
+	return Send(conn, b)
+}
+
+func Router_Shard_Recv(conn net.Conn) (Package, error) {
+	var p = Package{}
+	b, err := Receive(conn)
+	if err != nil {
+		return p, err
+	}
+	err = cbor.Unmarshal(b, &p)
+	return p, err
 }
