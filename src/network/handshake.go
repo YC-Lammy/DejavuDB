@@ -7,7 +7,6 @@ import (
 	json "github.com/goccy/go-json"
 
 	"../register"
-	"../settings"
 )
 
 type Handshake struct {
@@ -21,12 +20,12 @@ type Handshake struct {
 
 func SendHandshake(conn net.Conn) error {
 	v := Handshake{
-		Role: settings.Role,
-		Pass: settings.Password,
-		Host: settings.Host,
-		Port: settings.Port,
+		Role: config.Role,
+		Pass: config.Password,
+		Host: config.Host,
+		Port: config.Port,
 
-		ID: settings.ID,
+		ID: config.ID,
 	}
 	js, err := json.Marshal(v)
 	if err != nil {
@@ -56,7 +55,7 @@ func RecvHandshake(conn net.Conn) (Handshake, error) {
 		return handshake, err
 	}
 
-	if handshake.Pass != settings.Password {
+	if handshake.Pass != config.Password {
 		Send(conn, []byte("password incorrect"))
 		return handshake, errors.New("password incorrect")
 	}

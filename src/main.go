@@ -11,7 +11,6 @@ import (
 	json "github.com/goccy/go-json"
 
 	"src/lazy"
-	"src/settings"
 
 	"src/static"
 )
@@ -46,7 +45,7 @@ func main() {
 
 	//fmt.Scanln(&password)
 
-	fmt.Println("save to disk: ", settings.Save_disk)
+	fmt.Println("save to disk: ", config.Save_disk)
 
 	os.Chdir(home_dir)
 
@@ -69,11 +68,11 @@ func main() {
 
 	setupLog()
 
-	if settings.Password != "a empty password" {
+	if config.Password != "a empty password" {
 		for {
-			if len(settings.Password) != 16 && len(settings.Password) != 24 && len(settings.Password) != 32 {
+			if len(config.Password) != 16 && len(config.Password) != 24 && len(config.Password) != 32 {
 				fmt.Println("password must be length of 16, 24 or 32")
-				fmt.Scanln(&settings.Password)
+				fmt.Scanln(&config.Password)
 			} else {
 				break
 			}
@@ -81,23 +80,23 @@ func main() {
 
 	}
 
-	fmt.Println("role: " + settings.Role + " listener ip: " + settings.Leader_addr)
-	switch settings.Role {
+	fmt.Println("role: " + config.Role + " listener ip: " + config.Leader_addr)
+	switch config.Role {
 
 	case "router":
-		start_router(settings.Leader_addr)
+		start_router(config.Leader_addr)
 
 	case "shard":
-		start_shard(settings.Leader_addr)
+		start_shard(config.Leader_addr)
 
 	case "client":
-		start_client(settings.Leader_addr)
+		start_client(config.Leader_addr)
 
 	case "full":
-		start_full(settings.Leader_addr)
+		start_full(config.Leader_addr)
 
 	case "log":
-		start_log(settings.Leader_addr)
+		start_log(config.Leader_addr)
 
 	default:
 		panic("Specified Role Invalid")
@@ -112,7 +111,7 @@ func main() {
 
 func start_router(dial_addr string) { // start as a router
 
-	cfg := map[string]interface{}{"role": "router", "pass": settings.Password, "mac": MAC_Address, "port": settings.Host + ":" + settings.Port}
+	cfg := map[string]interface{}{"role": "router", "pass": config.Password, "mac": MAC_Address, "port": config.Host + ":" + config.Port}
 	mycfg, _ = json.Marshal(cfg)
 
 	//go process_timeout_checker()
@@ -144,7 +143,7 @@ func start_shard(dial_addr string) { // start as a shard
 		panic("must specific an address")
 		return
 	}
-	cfg := map[string]interface{}{"role": "shard", "pass": settings.Password, "mac": MAC_Address, "port": settings.Host + ":" + settings.Port}
+	cfg := map[string]interface{}{"role": "shard", "pass": config.Password, "mac": MAC_Address, "port": config.Host + ":" + config.Port}
 	mycfg, _ = json.Marshal(cfg)
 
 	go dial_server(dial_addr, mycfg, ShardHandler, shardConfig) // network.go
@@ -169,7 +168,7 @@ func start_log(dial_addr string) {
 		panic("must specific an address")
 		return
 	}
-	cfg := map[string]interface{}{"role": "log", "pass": settings.Password, "port": settings.Host + ":" + settings.Port}
+	cfg := map[string]interface{}{"role": "log", "pass": config.Password, "port": config.Host + ":" + config.Port}
 	mycfg, _ = json.Marshal(cfg)
 
 	go log_file_date()
@@ -185,10 +184,10 @@ func start_full(dial_addr string) {
 	start_router(dial_addr)
 	time.Sleep(1 * time.Second)
 	fmt.Println("starting log server...")
-	start_log(settings.Host + ":" + settings.Port)
+	start_log(config.Host + ":" + config.Port)
 	time.Sleep(1 * time.Second)
 	fmt.Println("starting shard...")
-	start_shard(settings.Host + ":" + settings.Port)
+	start_shard(config.Host + ":" + config.Port)
 	fmt.Println("starting client...")
-	start_client(settings.Host + ":" + settings.Port)
+	start_client(config.Host + ":" + config.Port)
 }

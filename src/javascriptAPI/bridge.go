@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"src/datastore"
-	"src/settings"
 	"src/types"
 	"src/types/int128"
 
@@ -154,7 +153,7 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 		for _, v := range Args[1:] {
 			a = append(a, v.String())
 		}
-		b, err := settings.JsHandle(uid, gid, a...)
+		b, err := config.JsHandle(uid, gid, a...)
 		if err != nil {
 			errs <- err
 			return nil

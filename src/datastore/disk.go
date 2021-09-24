@@ -6,8 +6,6 @@ import (
 	"os"
 
 	json "github.com/goccy/go-json"
-
-	"../settings"
 )
 
 func write_json(data map[string]interface{}) error {
@@ -17,7 +15,7 @@ func write_json(data map[string]interface{}) error {
 		return err
 	}
 
-	a, err = EncryptAES([]byte(settings.AES_key), a)
+	a, err = EncryptAES([]byte(config.AES_key), a)
 	if err != nil {
 		return err
 	}
@@ -41,7 +39,7 @@ func read_json(filename string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	data, err = DecryptAES([]byte(settings.AES_key), data)
+	data, err = DecryptAES([]byte(config.AES_key), data)
 
 	if err != nil {
 		return nil, err

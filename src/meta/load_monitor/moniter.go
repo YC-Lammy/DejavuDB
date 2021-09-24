@@ -10,8 +10,6 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
-
-	"src/settings"
 )
 
 var Child_load_register = map[int64]*load{}
@@ -38,7 +36,7 @@ type load struct {
 func monitor() load {
 	result := load{}
 
-	result.role = settings.Role
+	result.role = config.Role
 
 	v, _ := mem.VirtualMemory()
 	result.mem_load = uint8(math.Round(v.UsedPercent))

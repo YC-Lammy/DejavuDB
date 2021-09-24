@@ -10,7 +10,7 @@ import (
 	"src/types"
 )
 
-type BinaryJson []byte
+type BinaryJson [][2][]byte
 
 func NewBinaryJson(str string) (*BinaryJson, error) {
 	b, err := bson.Marshal(str)

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"../lazy"
-	"../settings"
 	json "github.com/goccy/go-json"
 )
 
@@ -35,7 +34,7 @@ func Login_from_file(username, password string) bool {
 		panic(err)
 	}
 	v, _ := ioutil.ReadAll(f)
-	v, _ = lazy.DecryptAES([]byte(settings.AES_key), v)
+	v, _ = lazy.DecryptAES([]byte(config.AES_key), v)
 	err = json.Unmarshal(v, &new)
 
 	h := sha256.New()

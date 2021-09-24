@@ -4,8 +4,6 @@ import (
 	"crypto/cipher"
 	"log"
 	"net"
-
-	"../../settings"
 )
 
 type client_conn struct {
@@ -14,7 +12,7 @@ type client_conn struct {
 }
 
 func init_client() {
-	PORT := ":" + settings.Client_port
+	PORT := ":" + config.Client_port
 	l, err := net.Listen("tcp", PORT)
 	if err != nil {
 		panic(err)

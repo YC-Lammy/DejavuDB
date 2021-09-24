@@ -9,8 +9,6 @@ import (
 	"strings"
 
 	json "github.com/goccy/go-json"
-
-	"src/settings"
 )
 
 func ShardHandler(conn net.Conn, message string) {
@@ -28,7 +26,7 @@ func ShardHandler(conn net.Conn, message string) {
 	var result = []byte{}
 	for i, v := range processes {
 
-		if settings.Debug {
+		if config.Debug {
 			fmt.Println(v)
 		}
 		commands = strings.Split(v, " ")
@@ -96,7 +94,7 @@ func ShardHandler(conn net.Conn, message string) {
 				}
 				var b string
 
-				if settings.Debug {
+				if config.Debug {
 					c, err := r.LastInsertId()
 					if err != nil {
 						b = ""

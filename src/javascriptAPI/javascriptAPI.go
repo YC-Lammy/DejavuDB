@@ -3,8 +3,6 @@ package javascriptAPI
 import (
 	"time"
 
-	"src/settings"
-
 	"rogchap.com/v8go"
 )
 
@@ -50,7 +48,7 @@ func Javascript_run_isolate(script string, args ...interface{}) (string, error) 
 	case err := <-errs:
 		// javascript error
 		return "", err
-	case <-time.After(time.Duration(settings.Javascript_timeout) * time.Millisecond): // get the Isolate from the context
+	case <-time.After(time.Duration(config.Javascript_timeout) * time.Millisecond): // get the Isolate from the context
 		vm.TerminateExecution() // terminate the execution
 		err := <-errs           // will get a termination error back from the running script
 		return "", err
