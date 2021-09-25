@@ -15,8 +15,8 @@ var com_lock = &sync.Mutex{}
 
 type file struct {
 	*os.File
-	lock *sync.RWMutex
-	wg   *sync.WaitGroup
+	lock sync.RWMutex
+	wg   sync.WaitGroup
 }
 
 func ReadFile(name string) ([]byte, error) {

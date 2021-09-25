@@ -73,6 +73,8 @@ class tenserflow_model:
         self.model = model
         self.model_path = model_path
         self.model_type = model_type
+        self.lock = multiprocessing.Lock()
+        multiprocessing.Array()
 
     def lock(self):
         self.locked = True

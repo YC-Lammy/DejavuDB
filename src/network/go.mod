@@ -9,7 +9,7 @@ require (
 	src/meta v0.0.0
 )
 
-replace(
+replace (
 	src/config => ../config
 	src/meta => ../meta
 )
