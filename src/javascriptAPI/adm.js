@@ -37,3 +37,12 @@ DB.adm = {
         return new DB.adm.user(name)
     }
 }
+
+DB.service = {
+    status: function(name){
+        if (typeof(name) != 'string'){
+            throw "expected string on service name, got "+typeof(name);
+        }
+        call_go_fn("service", "status", name)
+    }
+}
