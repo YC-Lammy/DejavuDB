@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/goccy/go-json v0.7.8
 	github.com/mattn/go-sqlite3 v1.14.8
+	github.com/shirou/gopsutil v3.21.8+incompatible // indirect
 	rogchap.com/v8go v0.6.0
 	src/lazy v0.0.0
 	src/network v0.0.0

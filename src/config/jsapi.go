@@ -1,11 +1,15 @@
-package settings
+package config
 
-import "strconv"
+import (
+	"strconv"
 
-func JsHandle(uid, gid uint32, args ...string) (interface{}, error) {
+	"rogchap.com/v8go"
+)
+
+func JsHandle(ctx *v8go.Context, uid, gid uint32, args ...string) (*v8go.Value, error) {
 	switch args[0] {
 	case "ML_enabled":
-		return Enable_ML, nil
+		return ctx.RunScript(strconv.FormatBool(Enable_ML), "cfg.js")
 	case "enable_ML":
 		Enable_ML = true
 
@@ -13,18 +17,19 @@ func JsHandle(uid, gid uint32, args ...string) (interface{}, error) {
 		Enable_ML = false
 
 	case "app_port":
-		return App_port, nil
+
+		return ctx.RunScript("'"+App_port+"'", "cfg.js")
 	case "client_port":
-		return Client_port, nil
+		return ctx.RunScript("'"+Client_port+"'", "cfg.js")
 
 	case "DebugMode":
-		return Debug, nil
+		return ctx.RunScript(strconv.FormatBool(Debug), "cfg.js")
 
 	case "autoShard":
-		return Auto_shard, nil
+		return ctx.RunScript(strconv.FormatBool(Auto_shard), "cfg.js")
 
 	case "jstimeout":
-		return Javascript_timeout, nil
+		return ctx.RunScript(strconv.Itoa(Javascript_timeout), "cfg.js")
 
 	case "chjstimeout":
 		a, err := strconv.Atoi(args[1])

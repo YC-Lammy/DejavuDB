@@ -3,7 +3,7 @@ package javascriptAPI
 import "sync"
 
 var javascript_API_lib = map[string]javascript_module{}
-var javascript_API_lib_lock = sync.Mutex{}
+var javascript_API_lib_lock = sync.RWMutex{}
 
 type javascript_module struct {
 	name         string

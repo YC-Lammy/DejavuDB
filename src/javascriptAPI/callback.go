@@ -7,6 +7,7 @@ import (
 
 	"strconv"
 
+	"src/config"
 	"src/datastore"
 	"src/types"
 	"src/types/int128"
@@ -46,10 +47,12 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 	for _, v := range Args {
 		args_str = append(args_str, v.String())
 	}
-	switch Args[0].String() {
+	switch args_str[0] {
 	case "require":
-		v := Args[1].String()
+		v := args_str[1]
+		javascript_API_lib_lock.RLock()
 		module, ok := javascript_API_lib[v]
+		javascript_API_lib_lock.RUnlock()
 
 		if ok {
 			var body string
@@ -75,7 +78,7 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 		}
 
 	case "Get":
-		dtype, p := datastore.Get(Args[1].String())
+		dtype, p := datastore.Get(args_str[1])
 		if p == nil {
 			return nil
 		}
@@ -103,7 +106,7 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 
 	case "Set":
 	// set function will generate a reverse function
-	// this function will be executed if any error occours
+	// reverse function will be executed if any error occours
 
 	case "Move":
 
@@ -112,7 +115,7 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 	case "Find":
 
 	case "create":
-		val, err := creater(tmp_store, args_str[1:]...)
+		val, err := creater(ctx, tmp_store, args_str[1:]...)
 		return checkerr(err, val, errs)
 
 	case "value":
@@ -138,7 +141,27 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 			}
 
 		case "method": // callfn calls a function from type
-		// call_go_fn("value", "method","pathToValue", "methodName",...args)
+			// call_go_fn("value", "method","pathToValue", "methodName",...args)
+			ptr, ok := tmp_store[args_str[2]]
+			if !ok {
+				errs <- errors.New("cannot find value by path " + args_str[2])
+				return nil
+			}
+			val := reflect.ValueOf(ptr)
+			fn := val.MethodByName(args_str[3])
+			if !fn.IsValid() {
+				errs <- errors.New("type " + val.Type().Name() + " has no method " + args_str[3])
+				return nil
+			}
+			args_r := stringToReflectArgs(fn.Type(), errs, tmp_store, args_str[3:])
+			if args_r == nil {
+				return nil
+			}
+			outputs := fn.Call(args_r)
+			r := []interface{}{}
+			for _, v := range outputs {
+				r = append(r, v.Interface())
+			}
 		case "value":
 		case "string":
 
@@ -153,12 +176,7 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 		for _, v := range Args[1:] {
 			a = append(a, v.String())
 		}
-		b, err := config.JsHandle(uid, gid, a...)
-		if err != nil {
-			errs <- err
-			return nil
-		}
-		val, err := v8go.NewValue(vm, b)
+		val, err := config.JsHandle(ctx, uid, gid, a...)
 		return checkerr(err, val, errs)
 
 	case "tensorflow":

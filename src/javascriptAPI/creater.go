@@ -11,7 +11,7 @@ import (
 	"rogchap.com/v8go"
 )
 
-func creater(vm *v8go.Isolate, store map[string]interface{}, args ...string) (*v8go.Value, error) {
+func creater(ctx *v8go.Context, store map[string]interface{}, args ...string) (*v8go.Value, error) {
 	switch strings.ToLower(args[0]) {
 	case "fn":
 		i := interp.New(interp.Options{})
