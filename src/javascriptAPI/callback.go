@@ -10,8 +10,8 @@ import (
 
 	"src/config"
 	"src/datastore"
-	"src/types"
-	"src/types/int128"
+	"src/types/binjson"
+	"src/types/graph"
 
 	"rogchap.com/v8go"
 )
@@ -79,35 +79,24 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 		}
 
 	case "Get":
-		dtype, p := datastore.Get(args_str[1])
-		if p == nil {
-			return nil
-		}
-		var val *v8go.Value
-		var err error
-		switch dtype {
-		case types.String:
-			val, err = v8go.NewValue(vm, *(*string)(p))
-		case types.Int, types.Int64:
-			val, err = v8go.NewValue(vm, *(*int64)(p))
-		case types.Int32:
-			val, err = v8go.NewValue(vm, *(*int32)(p))
-
-		case types.Int16:
-			val, err = v8go.NewValue(vm, *(*int16)(p))
-
-		case types.Int8:
-			val, err = v8go.NewValue(vm, *(*int8)(p))
-
-		case types.Int128:
-			val, err = ctx.RunScript("BigInt("+(*(*int128.Int128)(p)).String()+")", "int128.js")
-
-		}
+		val, err := datastore.JsGet(ctx, args_str[1])
 		return checkerr(err, val, errs)
 
 	case "Set":
-	// set function will generate a reverse function
-	// reverse function will be executed if any error occours
+		// set function will generate a reverse function
+		// reverse function will be executed if any error occours
+		if len(args_str[2]) > 4 && args_str[2][:5] == "path" { // not basic types
+
+		} else {
+			err := datastore.Set(args_str[1], args_str[2], args_str[3][0])
+			return checkerr(err, nil, errs)
+		}
+
+	case "Update":
+		err := datastore.Update(args_str[1], args_str[2])
+		return checkerr(err, nil, errs)
+
+	case "Delete":
 
 	case "Move":
 
@@ -147,11 +136,7 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 				r = append(r, v)
 			}
 			va, err := ctx.RunScript(fmt.Sprint(r), "return.js")
-			if err != nil {
-				errs <- err
-				return nil
-			}
-			return va
+			return checkerr(err, va, errs)
 
 		case "method": // callfn calls a function from type
 			// call_go_fn("value", "method","pathToValue", "methodName",...args)
@@ -181,13 +166,36 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 				r = append(r, v)
 			}
 			va, err := ctx.RunScript(fmt.Sprint(r), "return.js")
-			if err != nil {
-				errs <- err
-				return nil
-			}
-			return va
+			return checkerr(err, va, errs)
+
 		case "value":
 		case "string":
+			ptr, ok := tmp_store[args_str[2]]
+			if !ok {
+				errs <- errors.New("cannot find value by path " + args_str[2])
+				return nil
+			}
+			var r string
+			switch v := ptr.(type) {
+			case string:
+				r = v
+			case int64:
+				r = strconv.FormatInt(v, 10)
+			case int32:
+				r = strconv.FormatInt(int64(v), 10)
+			case int16:
+				r = strconv.FormatInt(int64(v), 10)
+			case int8:
+				r = strconv.FormatInt(int64(v), 10)
+
+			case *graph.Graph:
+
+			case *binjson.BinaryJson:
+				r = v.String()
+
+			}
+			val, err := ctx.RunScript("'"+r+"'", "string.js")
+			return checkerr(err, val, errs)
 
 		}
 

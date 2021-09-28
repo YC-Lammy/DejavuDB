@@ -22,7 +22,7 @@ func creater(ctx *v8go.Context, store map[string]interface{}, args ...string) (*
 		}
 		l := "path" + strconv.Itoa(len(store))
 		store[l] = val
-		return v8go.NewValue(vm, l)
+		return ctx.RunScript("'"+l+"'", "creator.js")
 
 	case "graph":
 		l := "path" + strconv.Itoa(len(store))
