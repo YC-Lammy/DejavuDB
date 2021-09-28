@@ -9,11 +9,11 @@ type BinaryJson []byte // binjson is in cbor format
 
 func NewBinaryJson(str []byte) (*BinaryJson, error) {
 	m := map[string]interface{}{}
-	b, err := json.Unmarshal([]byte(str), &m)
+	err := json.Unmarshal([]byte(str), &m)
 	if err != nil {
 		return nil, err
 	}
-	b, err = cbor.Marshal(b)
+	b, err := cbor.Marshal(m)
 	if err != nil {
 		return nil, err
 	}

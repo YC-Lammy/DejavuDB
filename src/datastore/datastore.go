@@ -2,6 +2,8 @@ package datastore
 
 import (
 	"errors"
+	"os"
+	"path"
 	"src/types/binjson"
 	"src/types/contract"
 	"src/types/decimal"
@@ -16,6 +18,13 @@ import (
 	"src/types"
 )
 
+var (
+	InvalidKeyError = errors.New("invalid key")
+)
+
+var userhomedir, _ = os.UserHomeDir()
+var database_path = path.Join(userhomedir, "dejavuDB", "database")
+
 var Data = map[string]*Node{}
 
 var Data_lock = sync.RWMutex{}
@@ -28,7 +37,7 @@ type Node struct {
 	dtype byte // declared at types
 }
 
-func (loc *Node) register_data(data interface{}, key ...string) { // send data to channel
+func (loc *Node) register_data(data interface{}, key ...string) error { // send data to channel
 	switch v := data.(type) {
 	case Node:
 		l := loc.lock
@@ -47,11 +56,19 @@ func (loc *Node) register_data(data interface{}, key ...string) { // send data t
 		//loc.data_lock.Unlock()
 
 	case string: // a javascript string from value
-		loc.write_type_to_loc(v, key[0])
+		loc.write_type_to_loc(v, key[0][0])
+
+		f, err := os.Create(path.Join(database_path, key[1]))
+		if err != nil {
+			return err
+		}
+		f.Write([]byte(v))
+		f.Close()
 
 	default:
 
 	}
+	return nil
 }
 
 func Get(key string) (byte, unsafe.Pointer) {
@@ -102,12 +119,12 @@ func Set(key string, data string, dtype byte) error {
 
 	if len(keys) == 1 { // only one key provide
 		if n, ok := pointer[keys[0]]; ok {
-			n.register_data(data, string(dtype))
+			n.register_data(data, string(dtype), key)
 			return nil
 		} else {
 			n := CreateNode()
 			pointer[keys[0]] = n
-			n.register_data(data, string(dtype))
+			n.register_data(data, string(dtype), key)
 			return nil
 		}
 	}
@@ -118,34 +135,70 @@ func Set(key string, data string, dtype byte) error {
 		} else {
 			n := CreateNode()
 			pointer[v] = n
-			n.register_data(data, string(dtype))
+			n.register_data(data, string(dtype), key)
 			return nil
 		}
 	}
 	if n, ok := pointer[keys[len(keys)-1]]; ok {
-		n.register_data(data, string(dtype))
+		n.register_data(data, string(dtype), key)
 
 	} else {
 		n := CreateNode()
 		pointer[keys[len(keys)-1]] = n
-		n.register_data(data, string(dtype))
+		n.register_data(data, string(dtype), key)
 	}
 	return nil
 }
 
 func CreateNode() *Node {
-	return &Node{}
+	return &Node{subkey: map[string]*Node{}, lock: sync.RWMutex{}}
 }
 
 func Update(key, data string) error {
-	dtype, p := Get(key)
+	var node *Node
+	if key == "" {
+		return errors.New("invalid key")
+	}
 
-	return nil
+	Data_lock.RLock()
+	var pointer = Data // copy pointers into steak
+	Data_lock.RUnlock()
+
+	keys := strings.Split(key, ".")
+	if len(keys) == 1 {
+		if v, ok := pointer[keys[0]]; ok {
+			node = v
+		}
+		return InvalidKeyError
+	}
+	for _, v := range keys[0 : len(keys)-1] {
+		if v, ok := pointer[v]; ok {
+			v.lock.RLock()
+			pointer = v.subkey
+			v.lock.RUnlock()
+		} else {
+			return InvalidKeyError
+		}
+	}
+	if v, ok := pointer[keys[len(keys)-1]]; ok {
+		node = v
+	} else {
+		return InvalidKeyError
+	}
+
+	node.lock.RLock()
+	t := node.dtype
+	node.lock.RUnlock()
+
+	err := node.write_type_to_loc(data, t)
+
+	return err
+
 }
 
-func (l *Node) write_type_to_loc(data string, dtype string) error {
+func (l *Node) write_type_to_loc(data string, dtype byte) error {
 
-	switch dtype[0] {
+	switch dtype {
 
 	case types.String:
 		l.data = unsafe.Pointer(&data)
@@ -287,7 +340,7 @@ func (l *Node) write_type_to_loc(data string, dtype string) error {
 	case types.Table: // when set table, table is initialized
 
 	case types.Json:
-		a, err := binjson.NewBinaryJson(data)
+		a, err := binjson.NewBinaryJson([]byte(data))
 		if err != nil {
 			return err
 		}
