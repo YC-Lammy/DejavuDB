@@ -18,11 +18,11 @@ import (
 
 var Data = map[string]*Node{}
 
-var Data_lock = sync.Mutex{}
+var Data_lock = sync.RWMutex{}
 
 type Node struct {
 	subkey map[string]*Node
-	lock   *sync.Mutex // each node has its own mutex
+	lock   sync.RWMutex // each node has its own mutex
 	//data_lock sync.Mutex
 	data  unsafe.Pointer
 	dtype byte // declared at types
@@ -59,24 +59,34 @@ func Get(key string) (byte, unsafe.Pointer) {
 		return 0x00, nil
 	}
 
+	Data_lock.RLock()
 	var pointer = Data // copy pointers into steak
+	Data_lock.RUnlock()
 
 	keys := strings.Split(key, ".")
 	if len(keys) == 1 {
 		if v, ok := pointer[keys[0]]; ok {
-			return v.dtype, v.data
+			v.lock.RLock()
+			a, b := v.dtype, v.data
+			v.lock.RUnlock()
+			return a, b
 		}
 		return 0x00, nil
 	}
 	for _, v := range keys[0 : len(keys)-1] {
 		if v, ok := pointer[v]; ok {
+			v.lock.RLock()
 			pointer = v.subkey
+			v.lock.RUnlock()
 		} else {
 			return 0x00, nil
 		}
 	}
 	if v, ok := pointer[keys[len(keys)-1]]; ok {
-		return v.dtype, v.data
+		v.lock.RLock()
+		a, b := v.dtype, v.data
+		v.lock.RUnlock()
+		return a, b
 	}
 	return 0x00, nil
 }
@@ -91,40 +101,45 @@ func Set(key string, data string, dtype byte) error {
 	keys := strings.Split(key, ".")
 
 	if len(keys) == 1 { // only one key provide
-		if v, ok := pointer[keys[0]]; ok {
-			v.register_data(data, string(dtype))
+		if n, ok := pointer[keys[0]]; ok {
+			n.register_data(data, string(dtype))
 			return nil
 		} else {
-			v := CreateKey(key)
-			v.register_data(data, string(dtype))
+			n := CreateNode()
+			pointer[keys[0]] = n
+			n.register_data(data, string(dtype))
 			return nil
 		}
 	}
 
 	for _, v := range keys[0 : len(keys)-1] {
-		if v, ok := pointer[v]; ok {
-			pointer = v.subkey
+		if n, ok := pointer[v]; ok {
+			pointer = n.subkey
 		} else {
-			v := CreateKey(key)
-			v.register_data(data, string(dtype))
+			n := CreateNode()
+			pointer[v] = n
+			n.register_data(data, string(dtype))
 			return nil
 		}
 	}
-	if v, ok := pointer[keys[len(keys)-1]]; ok {
-		v.register_data(data, string(dtype))
+	if n, ok := pointer[keys[len(keys)-1]]; ok {
+		n.register_data(data, string(dtype))
 
 	} else {
-		v := CreateKey(key)
-		v.register_data(data, string(dtype))
+		n := CreateNode()
+		pointer[keys[len(keys)-1]] = n
+		n.register_data(data, string(dtype))
 	}
 	return nil
 }
 
-func CreateKey(name string) *Node {
+func CreateNode() *Node {
 	return &Node{}
 }
 
 func Update(key, data string) error {
+	dtype, p := Get(key)
+
 	return nil
 }
 

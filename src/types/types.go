@@ -45,6 +45,7 @@ const (
 /* standard switch
 
 case types.String:
+case types.Int, types.Int64:
 case types.Int32:
 case types.Int16:
 case types.Int8:

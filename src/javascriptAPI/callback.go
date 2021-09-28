@@ -2,6 +2,7 @@ package javascriptAPI
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"reflect"
 
@@ -119,6 +120,7 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 		return checkerr(err, val, errs)
 
 	case "value":
+		// call_go_fn("value", action, path, args)
 		switch args_str[1] {
 		case "call": // call calls the value as a function, this is created by the "new GoFunction()"
 
@@ -137,8 +139,19 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 			outputs := fn.Call(args_r)
 			r := []interface{}{}
 			for _, v := range outputs {
-				r = append(r, v.Interface())
+				v := v.Interface()
+
+				if s, ok := v.(string); ok {
+					v = "'" + s + "'"
+				}
+				r = append(r, v)
 			}
+			va, err := ctx.RunScript(fmt.Sprint(r), "return.js")
+			if err != nil {
+				errs <- err
+				return nil
+			}
+			return va
 
 		case "method": // callfn calls a function from type
 			// call_go_fn("value", "method","pathToValue", "methodName",...args)
@@ -160,8 +173,19 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 			outputs := fn.Call(args_r)
 			r := []interface{}{}
 			for _, v := range outputs {
-				r = append(r, v.Interface())
+				v := v.Interface()
+
+				if s, ok := v.(string); ok {
+					v = "'" + s + "'"
+				}
+				r = append(r, v)
 			}
+			va, err := ctx.RunScript(fmt.Sprint(r), "return.js")
+			if err != nil {
+				errs <- err
+				return nil
+			}
+			return va
 		case "value":
 		case "string":
 
@@ -465,4 +489,5 @@ func stringToReflectArgs(fn_t reflect.Type, errs chan error, tmp_store map[strin
 		}
 
 	}
+	return nil
 }
