@@ -3,7 +3,7 @@ package router_interface
 import (
 	"net"
 
-	"../../network"
+	"src/network"
 )
 
 var server_id uint64
