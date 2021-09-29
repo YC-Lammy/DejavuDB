@@ -6,7 +6,8 @@ import (
 
 	json "github.com/goccy/go-json"
 
-	"../register"
+	"src/config"
+	"src/register"
 )
 
 type Handshake struct {
