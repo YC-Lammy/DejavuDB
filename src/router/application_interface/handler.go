@@ -3,9 +3,18 @@ package application_interface
 import (
 	"net"
 
-	"../../javascriptAPI"
 	"../../network"
 )
+
+var JobQueue chan Job
+
+var Jobs = map[uint64]Job{}
+
+type Job struct {
+	id     uint64
+	client *net.Conn
+	msg    []byte // Job does not directly store bytes
+}
 
 func Handle(conn net.Conn) {
 	for {
@@ -14,7 +23,6 @@ func Handle(conn net.Conn) {
 			return
 		}
 		var d string
-		d, err = javascriptAPI.Javascript_run_isolate(string(c))
 		if err != nil {
 			d = err.Error()
 		}
