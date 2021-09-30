@@ -8,7 +8,7 @@ import (
 	"src/config"
 )
 
-func Javascript_run_isolate(vm *v8go.Isolate, script string, mode string, args ...interface{}) (string, error) {
+func Javascript_run_isolate(vm *v8go.Isolate, script string, mode string, args ...[2]string) (string, error) {
 	vals := make(chan *v8go.Value, 1)
 	errs := make(chan error, 1)
 	delay_fns := []func(){}
@@ -19,7 +19,7 @@ func Javascript_run_isolate(vm *v8go.Isolate, script string, mode string, args .
 
 	go func() {
 
-		ctx = Javascript_context_init(vm, errs, &delay_fns, tmp_store, mode) // initiallize context api and functions
+		ctx = Javascript_context_init(vm, errs, &delay_fns, tmp_store, mode, args...) // initiallize context api and functions
 
 		val, err := ctx.RunScript(script, "main.js") // exec a long running script
 		if err != nil {

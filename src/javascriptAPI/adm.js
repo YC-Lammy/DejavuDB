@@ -34,7 +34,7 @@ DB.adm = {
     },
 
     getUser:function(name){
-        return new DB.adm.user(name)
+        return call_go_fn("adm","user","profile",name)
     }
 }
 

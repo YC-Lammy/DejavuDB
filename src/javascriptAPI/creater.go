@@ -27,11 +27,11 @@ func creater(ctx *v8go.Context, store map[string]interface{}, args ...string) (*
 	case "graph":
 		l := "path" + strconv.Itoa(len(store))
 		store[l] = graph.NewGraph()
-		return ctx.RunScript()
+		return ctx.RunScript("new DB.Graph()", "creator.js")
 	case "graphvertex":
 		l := "path" + strconv.Itoa(len(store))
 		store[l] = graph.NewVertex()
-		return ctx.RunScript()
+		return ctx.RunScript("new DB.GraphVertex()", "creator.js")
 
 	case "table":
 	case "json":

@@ -2,6 +2,7 @@ package router
 
 import (
 	"net"
+	"strconv"
 
 	"src/javascriptAPI"
 
@@ -16,12 +17,17 @@ type Job struct {
 	id     uint64
 	client *net.Conn
 	msg    []byte // Job does not directly store bytes
+
+	uid uint32
+	gid uint32
 }
 
-func NewJob(conn *net.Conn, msg []byte) {
+func NewJob(conn *net.Conn, msg []byte, uid, gid uint32) {
 	JobQueue <- Job{
 		client: conn,
 		msg:    msg,
+		uid:    uid,
+		gid:    gid,
 	}
 }
 
@@ -50,7 +56,8 @@ func (w Worker) Start() {
 			select {
 			case job := <-w.JobChannel:
 				// do the work here
-				javascriptAPI.Javascript_run_isolate(iso, string(job.msg), "")
+				javascriptAPI.Javascript_run_isolate(iso, string(job.msg), "",
+					[2]string{"gid", strconv.Itoa(int(job.gid))}, [2]string{"uid", strconv.Itoa(int(job.uid))})
 
 			case <-w.quit:
 				// we have received a signal to stop

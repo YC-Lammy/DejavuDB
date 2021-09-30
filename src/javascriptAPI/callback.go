@@ -79,34 +79,64 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn *[]fun
 		}
 
 	case "Get":
-		val, err := datastore.JsGet(ctx, args_str[1])
-		return checkerr(err, val, errs)
+		switch config.Role {
+		case "router":
+		case "standalone":
+			val, err := datastore.JsGet(ctx, args_str[1])
+			return checkerr(err, val, errs)
+		}
 
 	case "Set":
 		// set function will generate a reverse function
 		// reverse function will be executed if any error occours
-		typ, ptr := datastore.Get(args_str[1])
-		*delayfn = append(*delayfn, func() {
-			datastore.Set(args_str[1], ptr, typ)
-		})
-		if len(args_str[2]) > 4 && args_str[2][:5] == "path" { // not basic types
 
-		} else {
-			err := datastore.Set(args_str[1], args_str[2], args_str[3][0])
-			return checkerr(err, nil, errs)
+		switch config.Role {
+		case "router":
+		case "standalone":
+			if len(args_str[2]) > 4 && args_str[2][:5] == "path" { // not basic types
+
+			} else {
+				r, err := datastore.JsSet(args_str[1], args_str[2], args_str[3][0])
+				*delayfn = append(*delayfn, r)
+				return checkerr(err, nil, errs)
+			}
 		}
 
 	case "Update":
-		err := datastore.Update(args_str[1], args_str[2])
-		return checkerr(err, nil, errs)
+		switch config.Role {
+		case "router":
+		case "standalone":
+			err := datastore.Update(args_str[1], args_str[2])
+			return checkerr(err, nil, errs)
+		}
 
 	case "Delete":
+		switch config.Role {
+		case "router":
+		case "standalone":
+
+		}
 
 	case "Move":
+		switch config.Role {
+		case "router":
+		case "standalone":
+
+		}
 
 	case "Copy":
+		switch config.Role {
+		case "router":
+		case "standalone":
+
+		}
 
 	case "Find":
+		switch config.Role {
+		case "router":
+		case "standalone":
+
+		}
 
 	case "create":
 		val, err := creater(ctx, tmp_store, args_str[1:]...)
@@ -215,7 +245,11 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn *[]fun
 		val, err := config.JsHandle(ctx, uid, gid, a...)
 		return checkerr(err, val, errs)
 
-	case "tensorflow":
+	case "adm":
+		if uid == 19890604 {
+			errs <- errors.New("permission denied")
+			return nil
+		}
 
 	}
 	return nil
