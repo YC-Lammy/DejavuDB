@@ -6,6 +6,7 @@ import (
 	"src/types/int128"
 	"src/types/uint128"
 	"strconv"
+	"strings"
 
 	"rogchap.com/v8go"
 )
@@ -68,4 +69,64 @@ func JsGet(ctx *v8go.Context, key string) (*v8go.Value, error) {
 		return ctx.RunScript("null", "null.js")
 	}
 	return nil, nil
+}
+
+func JsSet(key string, value interface{}, dtype byte) (reversefn func(), err error) {
+	if key == "" {
+		return nil, errors.New("invalid empty key")
+	}
+
+	var pointer = Data // copy pointers into steak
+
+	keys := strings.Split(key, ".")
+
+	var N *Node
+
+	if len(keys) == 1 { // only one key provide
+		if n, ok := pointer[keys[0]]; ok {
+			N = n
+			a := n.data
+			b := n.dtype
+			reversefn = func() {
+				n.register_data(a, b, key)
+			}
+		} else {
+			n := CreateNode()
+			pointer[keys[0]] = n
+			N = n
+			reversefn = func() {
+				delete(pointer, keys[0])
+			}
+		}
+		err = N.register_data(value, dtype, key)
+		return
+	}
+
+	for _, v := range keys[0 : len(keys)-1] {
+		if n, ok := pointer[v]; ok {
+			pointer = n.subkey
+		} else {
+			n := CreateNode()
+			pointer[v] = n
+			pointer = n.subkey
+		}
+	}
+	if n, ok := pointer[keys[len(keys)-1]]; ok {
+		N = n
+		a := n.data
+		b := n.dtype
+		reversefn = func() {
+			n.register_data(a, b, key)
+		}
+
+	} else {
+		n := CreateNode()
+		pointer[keys[len(keys)-1]] = n
+		N = n
+		reversefn = func() {
+			delete(pointer, keys[len(keys)-1])
+		}
+	}
+	err = N.register_data(value, dtype, key)
+	return
 }

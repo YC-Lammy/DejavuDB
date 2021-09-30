@@ -6,6 +6,8 @@ import (
 	"os"
 
 	json "github.com/goccy/go-json"
+
+	"src/config"
 )
 
 func write_json(data map[string]interface{}) error {

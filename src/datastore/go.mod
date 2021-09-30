@@ -7,7 +7,11 @@ require (
 	github.com/goccy/go-json v0.7.8
 	rogchap.com/v8go v0.6.0
 	src/types v0.0.0
+	src/config v0.0.0
 
 )
 
-replace src/types => ../types
+replace( 
+src/types => ../types
+src/config => ../config
+)

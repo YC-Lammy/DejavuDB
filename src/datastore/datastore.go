@@ -37,7 +37,7 @@ type Node struct {
 	dtype byte // declared at types
 }
 
-func (loc *Node) register_data(data interface{}, key ...string) error { // send data to channel
+func (loc *Node) register_data(data interface{}, dtype byte, key ...string) error { // send data to channel
 	switch v := data.(type) {
 	case Node:
 		l := loc.lock
@@ -51,18 +51,36 @@ func (loc *Node) register_data(data interface{}, key ...string) error { // send 
 		l.Unlock()
 
 	case unsafe.Pointer:
-		//loc.data_lock.Lock()
+		loc.lock.RLock()
 		loc.data = v
-		//loc.data_lock.Unlock()
-
-	case string: // a javascript string from value
-		loc.write_type_to_loc(v, key[0][0])
+		loc.lock.RUnlock()
 
 		f, err := os.Create(path.Join(database_path, key[1]))
 		if err != nil {
 			return err
 		}
-		f.Write([]byte(v))
+		b, err := types.ToBytes(v)
+		if err != nil {
+			return err
+		}
+		f.Write(b)
+		f.Close()
+
+	case string: // a javascript string from value
+		ptr, err := loc.write_type_to_loc(v, dtype)
+		if err != nil {
+			return err
+		}
+
+		f, err := os.Create(path.Join(database_path, key[0]))
+		if err != nil {
+			return err
+		}
+		b, err := types.ToBytes(ptr, dtype)
+		if err != nil {
+			return err
+		}
+		f.Write(b)
 		f.Close()
 
 	default:
@@ -119,12 +137,12 @@ func Set(key string, data string, dtype byte) error {
 
 	if len(keys) == 1 { // only one key provide
 		if n, ok := pointer[keys[0]]; ok {
-			n.register_data(data, string(dtype), key)
+			n.register_data(data, dtype, key)
 			return nil
 		} else {
 			n := CreateNode()
 			pointer[keys[0]] = n
-			n.register_data(data, string(dtype), key)
+			n.register_data(data, dtype, key)
 			return nil
 		}
 	}
@@ -135,17 +153,17 @@ func Set(key string, data string, dtype byte) error {
 		} else {
 			n := CreateNode()
 			pointer[v] = n
-			n.register_data(data, string(dtype), key)
+			n.register_data(data, dtype, key)
 			return nil
 		}
 	}
 	if n, ok := pointer[keys[len(keys)-1]]; ok {
-		n.register_data(data, string(dtype), key)
+		n.register_data(data, dtype, key)
 
 	} else {
 		n := CreateNode()
 		pointer[keys[len(keys)-1]] = n
-		n.register_data(data, string(dtype), key)
+		n.register_data(data, dtype, key)
 	}
 	return nil
 }
@@ -190,169 +208,199 @@ func Update(key, data string) error {
 	t := node.dtype
 	node.lock.RUnlock()
 
-	err := node.write_type_to_loc(data, t)
+	_, err := node.write_type_to_loc(data, t)
 
 	return err
 
 }
 
-func (l *Node) write_type_to_loc(data string, dtype byte) error {
+func (l *Node) write_type_to_loc(data string, dtype byte) (unsafe.Pointer, error) {
+	var p unsafe.Pointer
 
 	switch dtype {
 
 	case types.String:
-		l.data = unsafe.Pointer(&data)
+		p = unsafe.Pointer(&data)
+		l.lock.RLock()
+		l.data = p
+		l.lock.RUnlock()
 
 	case types.Int64, types.Int:
 		a, err := strconv.ParseInt(data, 10, 64)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		l.data = unsafe.Pointer(&a)
+		p = unsafe.Pointer(&a)
+		l.lock.RLock()
+		l.data = p
+		l.lock.RUnlock()
 
 	case types.Int32:
 		a, err := strconv.ParseInt(data, 10, 32)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		b := int32(a)
-		l.data = unsafe.Pointer(&b)
+		p = unsafe.Pointer(&b)
+		l.lock.RLock()
+		l.data = p
+		l.lock.RUnlock()
 
 	case types.Int16:
 		a, err := strconv.ParseInt(data, 10, 16)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		b := int16(a)
-		l.data = unsafe.Pointer(&b)
+		p = unsafe.Pointer(&b)
+		l.data = p
 
 	case types.Int8:
 		a, err := strconv.ParseInt(data, 10, 8)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		b := int8(a)
-		l.data = unsafe.Pointer(&b)
+		p = unsafe.Pointer(&b)
+		l.data = p
 
 	case types.Int128:
 		a, err := int128.StrToInt128(data)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		l.data = unsafe.Pointer(&a)
+		p = unsafe.Pointer(&a)
+		l.data = p
 
 	case types.Uint, types.Uint64:
 		a, err := strconv.ParseUint(data, 10, 64)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		l.data = unsafe.Pointer(&a)
+		p = unsafe.Pointer(&a)
+		l.data = p
 
 	case types.Uint32:
 		a, err := strconv.ParseUint(data, 10, 32)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		b := uint32(a)
-		l.data = unsafe.Pointer(&b)
+		p = unsafe.Pointer(&b)
+		l.data = p
 
 	case types.Uint16:
 		a, err := strconv.ParseUint(data, 10, 16)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		b := uint16(a)
-		l.data = unsafe.Pointer(&b)
+		p = unsafe.Pointer(&b)
+		l.data = p
 
 	case types.Uint8:
 		a, err := strconv.ParseUint(data, 10, 8)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		b := uint8(a)
-		l.data = unsafe.Pointer(&b)
+		p = unsafe.Pointer(&b)
+		l.data = p
 
 	case types.Uint128:
 		a, err := uint128.StrToUint128(data)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		l.data = unsafe.Pointer(&a)
+		p = unsafe.Pointer(&a)
+		l.data = p
 
 	case types.Decimal, types.Decimal64:
 		a, err := decimal.StrToDecimal64(data)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		l.data = unsafe.Pointer(&a)
+		p = unsafe.Pointer(&a)
+		l.data = p
 
 	case types.Decimal32:
 		a, err := decimal.StrToDecimal32(data)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		l.data = unsafe.Pointer(&a)
+		p = unsafe.Pointer(&a)
+		l.data = p
 
 	case types.Decimal128:
 		a, err := decimal.StrToDecimal128(data)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		l.data = unsafe.Pointer(&a)
+		p = unsafe.Pointer(&a)
+		l.data = p
 
 	case types.Float, types.Float64:
 		a, err := strconv.ParseFloat(data, 64)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		l.data = unsafe.Pointer(&a)
+		p = unsafe.Pointer(&a)
+		l.data = p
 
 	case types.Float32:
 		a, err := strconv.ParseFloat(data, 32)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		b := float32(a)
-		l.data = unsafe.Pointer(&b)
+		p = unsafe.Pointer(&b)
+		l.data = p
 
 	case types.Float128:
 		a, err := float128.StrToFloat128(data)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		l.data = unsafe.Pointer(&a)
+		p = unsafe.Pointer(&a)
+		l.data = p
 
 	case types.Byte:
 		a := data[0]
-		l.data = unsafe.Pointer(&a)
+		p = unsafe.Pointer(&a)
+		l.data = p
 
 	case types.Byte_arr: // a string
 		a := []byte(data)
-		l.data = unsafe.Pointer(&a)
+		p = unsafe.Pointer(&a)
+		l.data = p
 
 	case types.Bool:
 		a, err := strconv.ParseBool(data)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		l.data = unsafe.Pointer(&a)
+		p = unsafe.Pointer(&a)
+		l.data = p
+
 	case types.Graph:
 	case types.Table: // when set table, table is initialized
 
 	case types.Json:
 		a, err := binjson.NewBinaryJson([]byte(data))
 		if err != nil {
-			return err
+			return nil, err
 		}
-		l.data = unsafe.Pointer(a)
+		p = unsafe.Pointer(a)
+		l.data = p
 
 	case types.SmartContract:
 	case types.Contract: // in a json format
 		a, err := contract.NewContract(data)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		l.data = unsafe.Pointer(a)
+		p = unsafe.Pointer(a)
+		l.data = p
 
 	case types.Money:
 	case types.SmallMoney:
@@ -363,7 +411,8 @@ func (l *Node) write_type_to_loc(data string, dtype byte) error {
 
 	case types.Null:
 		l.data = nil
+		p = nil
 
 	}
-	return nil
+	return p, nil
 }
