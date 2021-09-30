@@ -4,14 +4,14 @@ import (
 	"crypto/aes"
 	"net"
 
-	"github.com/YC-Lammy/DejavuDB/user"
+	"src/user"
 
-	"github.com/YC-Lammy/DejavuDB/network"
+	"src/network"
 
 	json "github.com/goccy/go-json"
 
-	"github.com/YC-Lammy/DejavuDB/javascriptAPI"
-	"github.com/YC-Lammy/DejavuDB/lazy"
+	"src/javascriptAPI"
+	"src/lazy"
 )
 
 type user_ struct {

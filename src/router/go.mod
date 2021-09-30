@@ -1,5 +1,5 @@
 module router
 
-go 1.17
+go 1.16
 
 require github.com/goccy/go-json v0.7.9
