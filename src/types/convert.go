@@ -5,9 +5,10 @@ import (
 	"unsafe"
 )
 
-func ToBytes(data unsafe.Pointer, dtype ...byte) ([]byte, error) {
+func ToBytes(data unsafe.Pointer, dtype byte) ([]byte, error) {
 	var B []byte
-	switch d := dtype[0]; d {
+	v := data
+	switch dtype {
 	case String:
 		return ToBytes(*(*string)(v), dtype...)
 	case Int, Int64:
@@ -53,7 +54,7 @@ func ToBytes(data unsafe.Pointer, dtype ...byte) ([]byte, error) {
 	case Null:
 	}
 
-	return dtype + B, nil
+	return append([]byte{dtype}, B...), nil
 }
 
 func FromBytes(bs []byte) (p unsafe.Pointer, dtype byte, err error) {

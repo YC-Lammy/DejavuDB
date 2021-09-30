@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+
+	"src/types"
 )
 
 func init() {
