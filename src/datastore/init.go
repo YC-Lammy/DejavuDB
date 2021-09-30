@@ -18,6 +18,7 @@ func init() {
 			panic(err)
 		}
 		v, _ := ioutil.ReadAll(f)
-		Set(f.Name(), string(v[1:]), v[0])
+		dtype, ptr, err := types.FromBytes(v)
+		JsSet(f.Name(), ptr, dtype)
 	}
 }
