@@ -8,11 +8,10 @@ require (
 	rogchap.com/v8go v0.6.0 // indirect
 	src/config v0.0.0
 	src/meta v0.0.0
-	src/register v0.0.0
 )
 
 replace (
+	src => ../../src
 	src/config => ../config
 	src/meta => ../meta
-	src/register => ../register
 )

@@ -46,7 +46,7 @@ func Router_Shard_Send(conn net.Conn, Process_Id uint64, script []byte) (int, er
 
 func Router_Shard_Recv(conn net.Conn) (Package, error) {
 	var p = Package{}
-	b, err := Receive(conn)
+	b, err := Recieve(conn)
 	if err != nil {
 		return p, err
 	}

@@ -7,7 +7,6 @@ import (
 	json "github.com/goccy/go-json"
 
 	"src/config"
-	"src/register"
 )
 
 type Handshake struct {
@@ -59,10 +58,6 @@ func RecvHandshake(conn net.Conn) (Handshake, error) {
 	if handshake.Pass != config.Password {
 		Send(conn, []byte("password incorrect"))
 		return handshake, errors.New("password incorrect")
-	}
-
-	register.Shards[handshake.ID] = &register.Conn_register{
-		Conn: conn,
 	}
 
 	Send(conn, []byte("ok"))
