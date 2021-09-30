@@ -14,7 +14,40 @@ func ToBytes(data interface{}, dtype ...byte) ([]byte, error) {
 	case unsafe.Pointer:
 		switch dtype[0] {
 		case String:
+			return ToBytes(*(*string)(v), dtype...)
+		case Int, Int64:
+		case Int32:
+		case Int16:
+		case Int8:
+		case Int128:
+		case Uint, Uint64:
+		case Uint32:
+		case Uint16:
+		case Uint8:
+		case Uint128:
+		case Decimal, Decimal64:
+		case Decimal32:
+		case Decimal128:
+		case Float, Float64:
+		case Float32:
+		case Float128:
+		case Byte:
+		case Byte_arr:
+			return *(*[]byte)(v), nil
 		case Bool:
+			return ToBytes(*(*bool)(v), dtype...)
+		case Graph:
+		case Table:
+		case Json:
+		case SmartContract:
+		case Contract:
+		case Money:
+		case SmallMoney:
+		case Time:
+		case Date:
+		case Datetime:
+		case Smalldatetime:
+		case Null:
 		}
 	case string:
 		v = strings.ReplaceAll(v, "\n", `\n`)
