@@ -1,7 +1,6 @@
-package standalone
+package client_interface
 
 import (
-	"net"
 	"strconv"
 
 	"src/javascriptAPI"
@@ -15,19 +14,14 @@ var jobcount uint64
 
 type Job struct {
 	id     uint64
-	client *net.Conn
+	client *Client_conn
 	msg    []byte // Job does not directly store bytes
-
-	uid uint32
-	gid uint32
 }
 
-func NewJob(conn *net.Conn, msg []byte, uid, gid uint32) {
+func NewJob(conn *Client_conn, msg []byte) {
 	JobQueue <- Job{
 		client: conn,
 		msg:    msg,
-		uid:    uid,
-		gid:    gid,
 	}
 }
 
@@ -56,8 +50,14 @@ func (w Worker) Start() {
 			select {
 			case job := <-w.JobChannel:
 				// do the work here
-				javascriptAPI.Javascript_run_isolate(iso, string(job.msg), "",
-					[2]string{"gid", strconv.Itoa(int(job.gid))}, [2]string{"uid", strconv.Itoa(int(job.uid))})
+				s, err := javascriptAPI.Javascript_run_isolate(iso, string(job.msg), "",
+					[2]string{"gid", strconv.Itoa(int(job.client.gid))}, [2]string{"uid", strconv.Itoa(int(job.client.id))})
+
+				if err != nil {
+					Send(*job.client, []byte(err.Error()))
+				} else {
+					Send(*job.client, []byte(s))
+				}
 
 			case <-w.quit:
 				// we have received a signal to stop
