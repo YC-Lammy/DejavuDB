@@ -16,7 +16,7 @@ import (
 	"rogchap.com/v8go"
 )
 
-func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *func(), args map[string]string, tmp_store map[string]interface{}) *v8go.Value { // when the JS function is called this Go callback will execute
+func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn *[]func(), args map[string]string, tmp_store map[string]interface{}) *v8go.Value { // when the JS function is called this Go callback will execute
 	defer func() {
 		if err := recover(); err != nil {
 			errs <- err.(error)
@@ -85,6 +85,10 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn chan *
 	case "Set":
 		// set function will generate a reverse function
 		// reverse function will be executed if any error occours
+		typ, ptr := datastore.Get(args_str[1])
+		*delayfn = append(*delayfn, func() {
+			datastore.Set(args_str[1], ptr, typ)
+		})
 		if len(args_str[2]) > 4 && args_str[2][:5] == "path" { // not basic types
 
 		} else {

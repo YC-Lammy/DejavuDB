@@ -12,7 +12,7 @@ var javascript_API_Script string
 //go:embed adm.js
 var javascript_ADM_Script string
 
-func Javascript_context_init(vm *v8go.Isolate, errs chan error, delay_fn chan *func(), tmp_store map[string]interface{}, mode string, args ...[2]string) *v8go.Context {
+func Javascript_context_init(vm *v8go.Isolate, errs chan error, delay_fn *[]func(), tmp_store map[string]interface{}, mode string, args ...[2]string) *v8go.Context {
 
 	adm := false
 
