@@ -31,6 +31,9 @@ func GroupByKey(key string) *ReplicaGroup {
 	return nil
 }
 
-func (r *ReplicaGroup) Send() {
-	network.Router_Shard_Send()
+func (r *ReplicaGroup) Send(ProcessId uint64, Script []byte) {
+	for _, v := range r.Shards {
+		network.Router_Shard_Send(v.Conn, ProcessId, Script)
+	}
+
 }
