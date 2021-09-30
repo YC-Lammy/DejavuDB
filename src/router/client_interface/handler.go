@@ -36,7 +36,7 @@ func Handle(conn net.Conn) {
 	if err != nil {
 		return
 	}
-	con := client_conn{Conn: conn, aes: aesk}
+	con := Client_conn{Conn: conn, aes: aesk}
 	u, err := Recv(con) // {Username:"name", Password:"password"}
 	if err != nil {
 		return
@@ -58,7 +58,7 @@ func Handle(conn net.Conn) {
 		if err != nil {
 			return
 		}
-		router.NewJob(&con.Conn, c)
+		router.NewJob(&con, c)
 		if err != nil {
 			c = []byte(err.Error())
 		}

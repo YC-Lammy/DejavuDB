@@ -9,7 +9,7 @@ import (
 	"src/network"
 )
 
-type client_conn struct {
+type Client_conn struct {
 	net.Conn
 	aes cipher.Block
 	id  uint32
@@ -32,7 +32,7 @@ func init_client() {
 	}
 }
 
-func Send(conn client_conn, msg []byte) (int, error) {
+func Send(conn Client_conn, msg []byte) (int, error) {
 	a, err := AESencrypt(conn.aes, msg)
 	if err != nil {
 		return 1, err
@@ -40,7 +40,7 @@ func Send(conn client_conn, msg []byte) (int, error) {
 	return network.Send(conn, a)
 }
 
-func Recv(conn client_conn) ([]byte, error) {
+func Recv(conn Client_conn) ([]byte, error) {
 	b, err := network.Recieve(conn)
 	if err != nil {
 		return nil, err
