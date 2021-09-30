@@ -3,13 +3,15 @@ package client_interface
 import (
 	"crypto/aes"
 	"net"
-	"src/network"
-	"src/user"
+
+	"github.com/YC-Lammy/DejavuDB/user"
+
+	"github.com/YC-Lammy/DejavuDB/network"
 
 	json "github.com/goccy/go-json"
 
-	"src/javascriptAPI"
-	"src/lazy"
+	"github.com/YC-Lammy/DejavuDB/javascriptAPI"
+	"github.com/YC-Lammy/DejavuDB/lazy"
 )
 
 type user_ struct {

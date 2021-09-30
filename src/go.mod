@@ -1,4 +1,4 @@
-module src
+module github.com/YC-Lammy/DejavuDB
 
 go 1.16
 
