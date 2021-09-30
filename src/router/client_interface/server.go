@@ -32,22 +32,22 @@ func init_client() {
 	}
 }
 
-func Send(conn client_conn, msg string) (int, error) {
+func Send(conn client_conn, msg []byte) (int, error) {
 	a, err := AESencrypt(conn.aes, msg)
 	if err != nil {
 		return 1, err
 	}
-	return network.Send(conn, []byte(a))
+	return network.Send(conn, a)
 }
 
-func Recv(conn client_conn) (string, error) {
+func Recv(conn client_conn) ([]byte, error) {
 	b, err := network.Recieve(conn)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	c, err := AESdecrypt(conn.aes, string(b))
+	c, err := AESdecrypt(conn.aes, b)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	return c, nil
 }

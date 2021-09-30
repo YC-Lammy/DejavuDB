@@ -72,7 +72,7 @@ func ParseRsaPublicKeyFromPemStr(pubPEM string) (*rsa.PublicKey, error) {
 	return nil, errors.New("Key type is not RSA")
 }
 
-func AESencrypt(block cipher.Block, message string) (encmess string, err error) {
+func AESencrypt(block cipher.Block, message []byte) (encmess []byte, err error) {
 	plainText := []byte(message)
 
 	//IV needs to be unique, but doesn't have to be secure.
@@ -87,15 +87,12 @@ func AESencrypt(block cipher.Block, message string) (encmess string, err error) 
 	stream.XORKeyStream(cipherText[aes.BlockSize:], plainText)
 
 	//returns to base64 encoded string
-	encmess = base64.URLEncoding.EncodeToString(cipherText)
+	encmess = cipherText
 	return
 }
 
-func AESdecrypt(block cipher.Block, securemess string) (decodedmess string, err error) {
-	cipherText, err := base64.URLEncoding.DecodeString(securemess)
-	if err != nil {
-		return
-	}
+func AESdecrypt(block cipher.Block, securemess []byte) (decodedmess []byte, err error) {
+	cipherText := securemess
 
 	if len(cipherText) < aes.BlockSize {
 		err = errors.New("Ciphertext block size is too short!")
@@ -111,6 +108,6 @@ func AESdecrypt(block cipher.Block, securemess string) (decodedmess string, err 
 	// XORKeyStream can work in-place if the two arguments are the same.
 	stream.XORKeyStream(cipherText, cipherText)
 
-	decodedmess = string(cipherText)
+	decodedmess = cipherText
 	return
 }
