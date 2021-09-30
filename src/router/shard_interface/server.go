@@ -5,14 +5,14 @@ import (
 	"src/network"
 )
 
-type Server_conn struct {
+type Shard_conn struct {
 	Conn      net.Conn
 	Heartbeat net.Conn
 	Meta      net.Conn
 }
 
 var Shard_connected uint64
-var Shard_conns = map[uint64]Server_conn{}
+var Shard_conns = map[uint64]Shard_conn{}
 
 func Send_to_all_shard(msg []byte) {
 	for _, v := range Shard_conns {
