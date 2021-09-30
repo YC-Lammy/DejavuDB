@@ -9,6 +9,7 @@ import (
 	"path"
 	"time"
 
+	"src/config"
 	"src/lazy"
 
 	json "github.com/goccy/go-json"
