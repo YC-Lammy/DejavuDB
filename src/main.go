@@ -56,8 +56,6 @@ func main() {
 
 	os.Chdir("database")
 
-	os.Mkdir("tables", os.ModePerm)
-
 	os.Chdir(path.Join(home_dir, "dejavuDB"))
 
 	if config.Password != "a empty password" {

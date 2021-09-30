@@ -52,7 +52,7 @@ type Contract struct {
 
 func NewContract(jsawn string) (*Contract, error) {
 	c := Contract{}
-	err := json.Unmarshal(jsawn, &c)
+	err := json.Unmarshal([]byte(jsawn), &c)
 	if err != nil {
 		return nil, err
 	}

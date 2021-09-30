@@ -2,7 +2,6 @@ package graph
 
 import (
 	"crypto/rand"
-	"math"
 	"math/big"
 )
 
@@ -30,6 +29,7 @@ func NewEmbedVertex() *EmbedVertex {
 	return &EmbedVertex{Vertex: *NewVertex(), X: uint32(x.Uint64()), Y: uint32(y.Uint64())}
 }
 
+/*
 func (e *EmbedVertex) ApplyForce(weight uint32, fromX, fromY uint32) {
 
 	var p float64
@@ -58,6 +58,7 @@ func (e *EmbedVertex) ApplyForce(weight uint32, fromX, fromY uint32) {
 
 	hy := math.Sqrt(float64((lenX * lenX) + (lenY * lenY)))
 
-	e.Applied_force += weight
+	e.Applied_force += uint64(weight)
 
 }
+*/

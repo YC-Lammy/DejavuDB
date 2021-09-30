@@ -5,7 +5,9 @@ import (
 	json "github.com/goccy/go-json"
 )
 
-type BinaryJson []byte // binjson is in cbor format
+type BinaryJson struct {
+	B []byte
+} // binjson is in cbor format
 
 func NewBinaryJson(str []byte) (*BinaryJson, error) {
 	m := map[string]interface{}{}
@@ -17,12 +19,13 @@ func NewBinaryJson(str []byte) (*BinaryJson, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &b, err
+	a := &BinaryJson{B: b}
+	return a, err
 }
 
 func (b *BinaryJson) String() string {
 	m := map[string]interface{}{}
-	cbor.Unmarshal(*b, &m)
+	cbor.Unmarshal(b.B, &m)
 	d, _ := json.Marshal(m)
 	return string(d)
 }

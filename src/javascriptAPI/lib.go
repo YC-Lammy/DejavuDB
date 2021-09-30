@@ -1,6 +1,9 @@
 package javascriptAPI
 
-import "sync"
+import (
+	_ "embed"
+	"sync"
+)
 
 var javascript_API_lib = map[string]javascript_module{}
 var javascript_API_lib_lock = sync.RWMutex{}

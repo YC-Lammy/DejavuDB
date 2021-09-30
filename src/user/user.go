@@ -115,7 +115,7 @@ func init() {
 		if new.Group == "" {
 			panic("group not exist")
 		}
-		groups[new.Group].Users[new.Name] = new
+		//groups[new.Group].Users[new.Name] = new
 		fmt.Println(new.Name)
 	}
 

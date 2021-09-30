@@ -20,7 +20,7 @@ func init() {
 			panic(err)
 		}
 		v, _ := ioutil.ReadAll(f)
-		dtype, ptr, err := types.FromBytes(v)
+		ptr, dtype, err := types.FromBytes(v)
 		JsSet(f.Name(), ptr, dtype)
 	}
 }

@@ -2,6 +2,8 @@ package types
 
 import (
 	"errors"
+	"src/types/decimal"
+	"src/types/float128"
 	"unsafe"
 )
 
@@ -10,7 +12,7 @@ func ToBytes(data unsafe.Pointer, dtype byte) ([]byte, error) {
 	v := data
 	switch dtype {
 	case String:
-		return ToBytes(*(*string)(v), dtype...)
+		B = []byte(*(*string)(v))
 	case Int, Int64:
 		b := *(*[8]byte)(v)
 		B = b[:]
@@ -25,21 +27,26 @@ func ToBytes(data unsafe.Pointer, dtype byte) ([]byte, error) {
 	case Uint128:
 	case Decimal, Decimal64:
 	case Decimal32:
-		a := unsafe.Pointer(&v.I)
-		b := unsafe.Pointer(&v.P)
+		d := (*decimal.Decimal32)(v)
+		a := unsafe.Pointer(&d.I)
+		b := unsafe.Pointer(&d.P)
 		c := []byte{}
 		copy(c, (*(*[2]byte)(a))[:])
-		c = append(c, (*(*[2]byte)(b))...)
+		c = append(c, (*(*[2]byte)(b))[:]...)
 	case Decimal128:
 	case Float, Float64:
 	case Float32:
 	case Float128:
-		B = v[:]
+		B = (*float128.Float128)(v)[:]
 	case Byte:
 	case Byte_arr:
-		return *(*[]byte)(v), nil
+		B = *(*[]byte)(v)
 	case Bool:
-		return ToBytes(*(*bool)(v), dtype...)
+		if *(*bool)(v) {
+			B = []byte{0x01}
+		} else {
+			B = []byte{0x00}
+		}
 	case Graph:
 	case Table:
 	case Json:

@@ -59,7 +59,7 @@ func (loc *Node) register_data(data interface{}, dtype byte, key ...string) erro
 		if err != nil {
 			return err
 		}
-		b, err := types.ToBytes(v)
+		b, err := types.ToBytes(v, dtype)
 		if err != nil {
 			return err
 		}

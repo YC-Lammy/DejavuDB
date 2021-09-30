@@ -28,13 +28,13 @@ var Javascript_timeout int // milli seconds
 var ID uint16
 
 func init() {
-	flag.StringVar(&Role, "role", "full", "Specify role. Default is router, option: shard, client")
+	flag.StringVar(&Role, "role", "standalone", "Specify role. Default is router, option: shard, client")
 	flag.StringVar(&Leader_addr, "ip", "", "Specify router ip. Default is stand alone router")
 	flag.StringVar(&Password, "pwd", "a empty password", "Specify password. Default is empty")
 	flag.StringVar(&AES_key, "Aes_key", "a empty password", "Specify aes key. Default is empty")
 	flag.StringVar(&Host, "host", "localhost", "specify host addr")
 	flag.StringVar(&Port, "port", "8080", "specify hosting port")
-	flag.StringVar(&Client_port, "client_port", "54620", "specify client port")
+	flag.StringVar(&Client_port, "client_port", ":54620", "specify client port")
 	flag.StringVar(&App_port, "app_port", "36730", "specify application port")
 
 	flag.Uint64Var(&Max_Worker, "max_worker", 1200, "maximum concurrent workers")
