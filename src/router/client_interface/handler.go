@@ -58,7 +58,7 @@ func Handle(conn net.Conn) {
 		if err != nil {
 			return
 		}
-		router.NewJob(&con, c)
+		router.NewJob(&con.Conn, c, con.id, con.gid)
 		if err != nil {
 			c = []byte(err.Error())
 		}
