@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 
+	"src/config"
 	"src/network"
 )
 

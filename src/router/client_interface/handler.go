@@ -10,8 +10,8 @@ import (
 
 	json "github.com/goccy/go-json"
 
-	"src/javascriptAPI"
 	"src/lazy"
+	"src/router"
 )
 
 type user_ struct {
@@ -58,7 +58,7 @@ func Handle(conn net.Conn) {
 		if err != nil {
 			return
 		}
-		c, err = javascriptAPI.Javascript_run_isolate(c)
+		router.NewJob(&con.Conn, []byte(c))
 		if err != nil {
 			c = err.Error()
 		}
