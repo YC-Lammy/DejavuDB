@@ -59,7 +59,7 @@ func Handle(conn net.Conn) {
 			return
 		}
 		if config.Debug {
-			fmt.Println("NewJob : ")
+			fmt.Println("NewJob : " + string(c))
 		}
 		NewJob(&con, c)
 	}
