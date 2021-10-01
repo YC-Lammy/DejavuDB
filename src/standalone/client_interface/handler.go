@@ -6,6 +6,7 @@ import (
 	"net"
 	"strings"
 
+	"src/config"
 	"src/user"
 
 	"src/network"
@@ -56,6 +57,9 @@ func Handle(conn net.Conn) {
 		c, err := Recv(con)
 		if err != nil {
 			return
+		}
+		if config.Debug {
+			fmt.Println("NewJob : " + string(c))
 		}
 		NewJob(&con, c)
 	}
