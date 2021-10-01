@@ -1,16 +1,18 @@
 package client_interface
 
 import (
+	"fmt"
 	"strconv"
 
+	"src/config"
 	"src/javascriptAPI"
 
 	"rogchap.com/v8go"
 )
 
-var JobQueue chan Job
+var JobQueue = make(chan Job)
 
-var jobcount uint64
+var jobcount uint64 = 0
 
 type Job struct {
 	id     uint64
@@ -22,6 +24,9 @@ func NewJob(conn *Client_conn, msg []byte) {
 	JobQueue <- Job{
 		client: conn,
 		msg:    msg,
+	}
+	if config.Debug {
+		fmt.Println("job sent to job queue")
 	}
 }
 
@@ -49,6 +54,9 @@ func (w Worker) Start() {
 
 			select {
 			case job := <-w.JobChannel:
+				if config.Debug {
+					fmt.Println("worker recieve job")
+				}
 				// do the work here
 				s, err := javascriptAPI.Javascript_run_isolate(iso, string(job.msg), "",
 					[2]string{"gid", strconv.Itoa(int(job.client.gid))}, [2]string{"uid", strconv.Itoa(int(job.client.id))})
@@ -57,6 +65,9 @@ func (w Worker) Start() {
 					Send(*job.client, []byte(err.Error()))
 				} else {
 					Send(*job.client, []byte(s))
+				}
+				if config.Debug {
+					fmt.Println("worker finish job")
 				}
 
 			case <-w.quit:
@@ -104,22 +115,29 @@ func (d *Dispatcher) NewWorker() {
 
 func (d *Dispatcher) dispatch() {
 	for {
-		select {
-		case job := <-JobQueue:
-			if jobcount == 18446744073709551615 {
-				jobcount = 0
-			}
-			jobcount += 1
-			job.id = jobcount
-			// a job request has been received
-			go func(job Job) {
-				// try to obtain a worker job channel that is available.
-				// this will block until a worker is idle
-				jobChannel := <-d.WorkerPool
-
-				// dispatch the job to the worker job channel
-				jobChannel <- job
-			}(job)
+		job := <-JobQueue
+		if config.Debug {
+			fmt.Println("job queue recieve job")
 		}
+		if jobcount == 18446744073709551615 {
+			jobcount = 0
+		}
+		jobcount += 1
+		job.id = jobcount
+		// a job request has been received
+		go func(job Job) {
+			// try to obtain a worker job channel that is available.
+			// this will block until a worker is idle
+			jobChannel := <-d.WorkerPool
+
+			// dispatch the job to the worker job channel
+			jobChannel <- job
+		}(job)
+
 	}
+}
+
+func init() {
+	d := NewDispatcher(1000)
+	d.Run()
 }

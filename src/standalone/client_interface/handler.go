@@ -44,6 +44,9 @@ func Handle(conn net.Conn) {
 		return
 	}
 	up := strings.Split(string(u), ",")
+	if config.Debug {
+		fmt.Println(up)
+	}
 	if u, ok := user.Login(up[0], up[1]); ok {
 		con.gid = u.Gid
 		con.id = u.Id

@@ -2,8 +2,10 @@ package datastore
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path"
+	"src/config"
 	"src/types/binjson"
 	"src/types/contract"
 	"src/types/decimal"
@@ -37,17 +39,17 @@ type Node struct {
 	dtype byte // declared at types
 }
 
-func (loc *Node) register_data(data interface{}, dtype byte, key ...string) error { // send data to channel
+func (loc *Node) register_data(data interface{}, dtype byte, key string) error { // send data to channel
 	switch v := data.(type) {
 	case Node:
 		l := loc.lock
 		l.Lock() // more testing needed, but adding a lock makes the assignment faster
-		loc.subkey[key[0]] = &v
+		loc.subkey[key] = &v
 		l.Unlock()
 	case *Node:
 		l := loc.lock
 		l.Lock() // more testing needed, but adding a lock makes the assignment faster
-		loc.subkey[key[0]] = v
+		loc.subkey[key] = v
 		l.Unlock()
 
 	case unsafe.Pointer:
@@ -55,7 +57,7 @@ func (loc *Node) register_data(data interface{}, dtype byte, key ...string) erro
 		loc.data = v
 		loc.lock.RUnlock()
 
-		f, err := os.Create(path.Join(database_path, key[1]))
+		f, err := os.Create(path.Join(database_path, key))
 		if err != nil {
 			return err
 		}
@@ -72,7 +74,7 @@ func (loc *Node) register_data(data interface{}, dtype byte, key ...string) erro
 			return err
 		}
 
-		f, err := os.Create(path.Join(database_path, key[0]))
+		f, err := os.Create(path.Join(database_path, key))
 		if err != nil {
 			return err
 		}
@@ -92,6 +94,9 @@ func (loc *Node) register_data(data interface{}, dtype byte, key ...string) erro
 func Get(key string) (byte, unsafe.Pointer) {
 	if key == "" {
 		return 0x00, nil
+	}
+	if config.Debug {
+		fmt.Println("Get key " + key)
 	}
 
 	Data_lock.RLock()

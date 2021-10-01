@@ -21,7 +21,7 @@ func Javascript_run_isolate(vm *v8go.Isolate, script string, mode string, args .
 
 		ctx = Javascript_context_init(vm, errs, &delay_fns, tmp_store, mode, args...) // initiallize context api and functions
 
-		val, err := ctx.RunScript(script, "main.js") // exec a long running script
+		val, err := ctx.RunScript(script+";returning_print_buffer", "main.js") // exec a long running script
 		if err != nil {
 			errs <- err
 			return
@@ -33,10 +33,6 @@ func Javascript_run_isolate(vm *v8go.Isolate, script string, mode string, args .
 	case val := <-vals:
 		// sucess
 
-		val, err := ctx.RunScript("return_print_buffer", "return.js")
-		if err != nil {
-			return "", err
-		}
 		s := val.String()
 		ctx.Close()
 		return s, nil

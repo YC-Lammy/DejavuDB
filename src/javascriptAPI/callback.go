@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"reflect"
+	"runtime/debug"
+	"strings"
 
 	"strconv"
 
 	"src/config"
 	"src/datastore"
+	"src/types"
 	"src/types/binjson"
 	"src/types/graph"
 
@@ -19,7 +22,12 @@ import (
 func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn *[]func(), args map[string]string, tmp_store map[string]interface{}) *v8go.Value { // when the JS function is called this Go callback will execute
 	defer func() {
 		if err := recover(); err != nil {
-			errs <- err.(error)
+
+			if config.Debug {
+				errs <- errors.New(err.(error).Error() + "\n" + string(debug.Stack()))
+			} else {
+				errs <- err.(error)
+			}
 		}
 	}()
 	ctx := info.Context()
@@ -93,10 +101,15 @@ func callbackfn(info *v8go.FunctionCallbackInfo, errs chan error, delayfn *[]fun
 		switch config.Role {
 		case "router":
 		case "standalone":
+			var dtype byte
+			switch strings.ToLower(args_str[3]) {
+			case "string":
+				dtype = types.String
+			}
 			if len(args_str[2]) > 4 && args_str[2][:5] == "path" { // not basic types
 
 			} else {
-				r, err := datastore.JsSet(args_str[1], args_str[2], args_str[3][0])
+				r, err := datastore.JsSet(args_str[1], args_str[2], dtype)
 				*delayfn = append(*delayfn, r)
 				return checkerr(err, nil, errs)
 			}

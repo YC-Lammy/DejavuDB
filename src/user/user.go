@@ -98,7 +98,7 @@ func init() {
 	arr, _ := ioutil.ReadDir(origin)
 	for _, v := range arr {
 		var new = user{}
-		f, err := os.Open(v.Name())
+		f, err := os.Open(path.Join(origin, v.Name()))
 		if err != nil {
 			fmt.Println(err)
 			panic(err)

@@ -12,9 +12,10 @@ import (
 func init() {
 	s, _ := os.UserHomeDir()
 
-	arr, _ := ioutil.ReadDir(path.Join(s, "dejavuDB", "database"))
+	origin := path.Join(s, "dejavuDB", "database")
+	arr, _ := ioutil.ReadDir(origin)
 	for _, v := range arr {
-		f, err := os.Open(v.Name())
+		f, err := os.Open(path.Join(origin, v.Name()))
 		if err != nil {
 			fmt.Println(err)
 			panic(err)
