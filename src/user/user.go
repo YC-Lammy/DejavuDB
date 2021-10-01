@@ -88,7 +88,7 @@ func init() {
 		h.Write(sauce)
 		h.Write([]byte(""))
 		root := user{Name: "root", Id: 1, Gid: 1, Group: "adm", Domain: "localhost", Password_sauce: sauce, Password_sum: h.Sum(nil)}
-		groups["adm"].Users["root"] = root
+		//groups["adm"].Users["root"] = root
 		f, _ := os.Create("root")
 		b, _ := json.Marshal(root)
 		f.Write(b)
