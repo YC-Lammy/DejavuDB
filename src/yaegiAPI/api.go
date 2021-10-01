@@ -1,6 +1,8 @@
 package yaegiAPI
 
-import "unsafe"
+import (
+	"unsafe"
+)
 
 type db interface {
 	Set(key string, data interface{}, dtype byte) error
