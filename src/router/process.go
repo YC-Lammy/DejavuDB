@@ -59,6 +59,10 @@ func (w Worker) Start() {
 				javascriptAPI.Javascript_run_isolate(iso, string(job.msg), "",
 					[2]string{"gid", strconv.Itoa(int(job.gid))}, [2]string{"uid", strconv.Itoa(int(job.uid))})
 
+				iso.TerminateExecution()
+				iso.Dispose()
+				iso, _ = v8go.NewIsolate()
+
 			case <-w.quit:
 				// we have received a signal to stop
 				return
