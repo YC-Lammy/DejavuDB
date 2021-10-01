@@ -14,8 +14,7 @@ import (
 var log_logfile *os.File
 
 func Start() {
-	multiWriter := io.MultiWriter(log.Writer(), log_logfile)
-	log.SetOutput(multiWriter)
+	go log_file_date()
 	c, err := net.Listen("tcp", config.Client_port) // client interface
 	if err != nil {
 		panic(err)
@@ -39,7 +38,10 @@ func log_file_date() { // this func loop once every day and create a new log fil
 	log_path := path.Join(home_dir, "dejavuDB", "log")
 
 	f, _ := os.Create(path.Join(log_path, time.Now().Format("2006-01-02")))
-	*log_logfile = *f
+	log_logfile = f
+
+	multiWriter := io.MultiWriter(log.Writer(), log_logfile)
+	log.SetOutput(multiWriter)
 
 	t := time.Now()
 	n := time.Date(t.Year(), t.Month(), t.Day()+1, 00, 0, 0, 1, t.Location())

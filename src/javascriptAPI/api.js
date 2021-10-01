@@ -76,6 +76,11 @@ DB = function(){
 		}
 	}
 
+	exports.types = {
+		string: '\x00',
+		String: '\x00'
+	}
+
 return exports
 
 }()

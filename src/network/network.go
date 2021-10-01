@@ -1,18 +1,14 @@
 package network
 
 import (
-	"bytes"
-	"encoding/binary"
 	"net"
+	"unsafe"
 )
 
 func Send(conn net.Conn, message []byte) (int, error) {
-	buf := new(bytes.Buffer)
-	err := binary.Write(buf, binary.LittleEndian, uint64(len(message)))
-	if err != nil {
-		return 0, err
-	}
-	conn.Write(buf.Bytes())
+	l := uint64(len(message))
+
+	conn.Write((*(*[8]byte)(unsafe.Pointer(&l)))[:])
 	return conn.Write(message)
 }
 
@@ -20,8 +16,9 @@ func Recieve(conn net.Conn) ([]byte, error) {
 	var length uint64
 	var lenbuf = make([]byte, 8)
 	conn.Read(lenbuf)
-	buf := bytes.NewReader(lenbuf)
-	binary.Read(buf, binary.LittleEndian, &length)
+	leng := [8]byte{}
+	copy(leng[:], lenbuf)
+	length = *(*uint64)(unsafe.Pointer(&leng))
 	message := make([]byte, length)
 	_, err := conn.Read(message)
 	if err != nil {

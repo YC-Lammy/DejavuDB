@@ -2,13 +2,13 @@ package client_interface
 
 import (
 	"crypto/aes"
+	"fmt"
 	"net"
+	"strings"
 
 	"src/user"
 
 	"src/network"
-
-	json "github.com/goccy/go-json"
 
 	"src/lazy"
 )
@@ -28,6 +28,7 @@ func Handle(conn net.Conn) {
 	if err != nil {
 		return
 	}
+
 	a := lazy.RandString(32)
 
 	network.Send(conn, []byte(RSA_OAEP_Encrypt(a, *key)))
@@ -38,17 +39,16 @@ func Handle(conn net.Conn) {
 	con := Client_conn{Conn: conn, aes: aesk}
 	u, err := Recv(con) // {Username:"name", Password:"password"}
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
-	f := user_{}
-	err = json.Unmarshal([]byte(u), &a)
-	if err != nil {
-		return
-	}
-	if u, ok := user.Login(f.Username, f.Password); ok {
+	up := strings.Split(string(u), ",")
+	if u, ok := user.Login(up[0], up[1]); ok {
 		con.gid = u.Gid
 		con.id = u.Id
+		Send(con, []byte("login sucess"))
 	} else {
+		Send(con, []byte("login failed"))
 		return
 	}
 
