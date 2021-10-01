@@ -19,6 +19,8 @@ func JsGet(ctx *v8go.Context, key string) (*v8go.Value, error) {
 	switch dtype {
 
 	case types.String:
+		i, _ := ctx.Isolate()
+		return v8go.NewValue(i, *(*string)(p))
 		return ctx.RunScript("'"+*(*string)(p)+"'", "string.js")
 
 	case types.Int, types.Int64:
