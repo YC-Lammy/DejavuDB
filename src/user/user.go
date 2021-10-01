@@ -75,12 +75,10 @@ func init() {
 	d, _ := os.UserHomeDir()
 	home_dir = d
 
-	origin := path.Join(home_dir, "dejavuDB")
-	os.Chdir(origin)
-	os.Mkdir("users", os.ModePerm)
-	os.Chdir("users")
+	origin := path.Join(home_dir, "dejavuDB", "users")
+	os.Mkdir(origin, os.ModePerm)
 
-	if _, err := os.Stat("root"); os.IsNotExist(err) {
+	if _, err := os.Stat(path.Join(origin, "root")); os.IsNotExist(err) {
 
 		sauce := make([]byte, 16)
 		rand.Read(sauce)
@@ -89,7 +87,7 @@ func init() {
 		h.Write([]byte(""))
 		root := user{Name: "root", Id: 1, Gid: 1, Group: "adm", Domain: "localhost", Password_sauce: sauce, Password_sum: h.Sum(nil)}
 		//groups["adm"].Users["root"] = root
-		f, _ := os.Create("root")
+		f, _ := os.Create(path.Join(origin, "root"))
 		b, _ := json.Marshal(root)
 		f.Write(b)
 		if err != nil {
@@ -97,7 +95,7 @@ func init() {
 		}
 		f.Close()
 	}
-	arr, _ := ioutil.ReadDir(path.Join(origin, "users"))
+	arr, _ := ioutil.ReadDir(origin)
 	for _, v := range arr {
 		var new = user{}
 		f, err := os.Open(v.Name())
