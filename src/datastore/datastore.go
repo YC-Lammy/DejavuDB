@@ -40,17 +40,20 @@ type Node struct {
 }
 
 func (loc *Node) register_data(data interface{}, dtype byte, key string) error { // send data to channel
+	var t unsafe.Pointer
 	switch v := data.(type) {
 	case Node:
-		l := loc.lock
-		l.Lock() // more testing needed, but adding a lock makes the assignment faster
+
+		loc.lock.Lock() // more testing needed, but adding a lock makes the assignment faster
 		loc.subkey[key] = &v
-		l.Unlock()
+		loc.lock.Unlock()
+		return nil
 	case *Node:
-		l := loc.lock
-		l.Lock() // more testing needed, but adding a lock makes the assignment faster
+
+		loc.lock.Lock() // more testing needed, but adding a lock makes the assignment faster
 		loc.subkey[key] = v
-		l.Unlock()
+		loc.lock.Unlock()
+		return nil
 
 	case unsafe.Pointer:
 		loc.lock.RLock()
@@ -69,27 +72,45 @@ func (loc *Node) register_data(data interface{}, dtype byte, key string) error {
 		f.Close()
 
 	case string: // a javascript string from value
-		ptr, err := loc.write_type_to_loc(v, dtype)
+		ptr, err := loc.write_string_to_loc(v, dtype)
 		if err != nil {
 			return err
 		}
+		t = ptr
 
-		f, err := os.Create(path.Join(database_path, key))
-		if err != nil {
-			return err
+	case int:
+		if dtype != types.Int && dtype != types.Int64 {
+			return errors.New("register: unexpected type int")
 		}
-		b, err := types.ToBytes(ptr, dtype)
-		if err != nil {
-			return err
-		}
-		f.Write(b)
-		f.Close()
+		a := int64(v)
+		b := unsafe.Pointer(&a)
+		loc.lock.Lock()
+		loc.data = b
+		loc.dtype = dtype
+		loc.lock.Unlock()
+		t = b
 
 	default:
+		return errors.New("register: unsupported type")
 
 	}
+	f, err := os.Create(path.Join(database_path, key))
+	if err != nil {
+		return err
+	}
+	b, err := types.ToBytes(t, dtype)
+	if err != nil {
+		return err
+	}
+	f.Write(b)
+	f.Close()
 	return nil
 }
+
+//
+//
+//
+//
 
 func Get(key string) (byte, unsafe.Pointer) {
 	if key == "" {
@@ -130,6 +151,11 @@ func Get(key string) (byte, unsafe.Pointer) {
 	}
 	return 0x00, nil
 }
+
+//
+//
+//
+//
 
 func Set(key string, data string, dtype byte) error {
 	if key == "" {
@@ -173,11 +199,21 @@ func Set(key string, data string, dtype byte) error {
 	return nil
 }
 
+//
+//
+//
+//
+
 func CreateNode() *Node {
 	return &Node{subkey: map[string]*Node{}, lock: sync.RWMutex{}}
 }
 
-func Update(key, data string) error {
+//
+//
+//
+//
+
+func Update(key string, data interface{}, dtype ...byte) error {
 	var node *Node
 	if key == "" {
 		return errors.New("invalid key")
@@ -213,13 +249,23 @@ func Update(key, data string) error {
 	t := node.dtype
 	node.lock.RUnlock()
 
-	_, err := node.write_type_to_loc(data, t)
+	switch data.(type) {
+	case unsafe.Pointer:
+		if dtype[0] != t {
+			return errors.New("Update: type mismatch")
+		}
+		return node.register_data(data, dtype[0], key)
+	}
 
-	return err
-
+	return node.register_data(data, t, key)
 }
 
-func (l *Node) write_type_to_loc(data string, dtype byte) (unsafe.Pointer, error) {
+/*
+//
+//
+*/
+
+func (l *Node) write_string_to_loc(data string, dtype byte) (unsafe.Pointer, error) {
 	var p unsafe.Pointer
 
 	switch dtype {
