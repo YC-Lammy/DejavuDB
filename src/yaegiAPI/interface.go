@@ -23,6 +23,9 @@ type types_struct struct {
 
 type value interface{
 	String() string
+	Interface() interface{}
+	Add() error
+	Sub() error
 }
 
 func main(DB db) (err error) {

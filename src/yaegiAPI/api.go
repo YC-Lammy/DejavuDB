@@ -1,13 +1,14 @@
 package yaegiAPI
 
 import (
+	"errors"
 	"src/datastore"
 )
 
 type db interface {
 	Set(key string, data interface{}, dtype byte) error
 	Get(key string) value
-	Update(key string, data interface{})
+	Update(key string, data interface{}) error
 	Move(string, string) error
 	Types() types_struct
 }
@@ -20,20 +21,38 @@ type types_struct struct {
 }
 
 type database struct {
-	uid uint64
-	gid uint64
+	uid       uint64
+	gid       uint64
+	reversefn []func()
 }
 
 func (d *database) Set(key string, data interface{}, dtype byte) error {
+	switch v := data.(type) {
+	case value:
+		if v.(val).Dtype != dtype {
+			return errors.New("Set: type mismatch")
+		}
+	}
 	return nil
 }
 
 func (d *database) Get(key string) value {
 	dtype, ptr := datastore.Get(key)
-	return value{Ptr: ptr, Dtype: dtype}
+	return val{Ptr: ptr, Dtype: dtype}
 }
 
-func (d *database) Update(key string, data interface{}) {}
+func (d *database) Update(key string, data interface{}) error {
+	switch v := data.(type) {
+	case value:
+		s := v.(val)
+		fn, err := datastore.JsSet(key, s.Ptr, s.Dtype)
+		if err != nil {
+			return err
+		}
+		d.reversefn = append(d.reversefn, fn)
+	}
+	return nil
+}
 
 func (d *database) Move(src, dst string) error {
 	return nil

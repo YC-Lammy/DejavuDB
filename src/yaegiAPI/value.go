@@ -9,12 +9,19 @@ import (
 	"unsafe"
 )
 
-type value struct {
+type value interface {
+	String() string
+	Interface() interface{}
+	Add(interface{}) error
+	Sub(interface{}) error
+}
+
+type val struct {
 	Ptr   unsafe.Pointer
 	Dtype byte
 }
 
-func (v value) String() string {
+func (v val) String() string {
 	switch v.Dtype {
 	case types.String:
 		return *(*string)(v.Ptr)
@@ -62,14 +69,14 @@ func (v value) String() string {
 	return ""
 }
 
-func (v value) Interface() interface{} {
+func (v val) Interface() interface{} {
 	switch v.Dtype {
 	case types.String:
 	}
 	return nil
 }
 
-func (v value) Add(substance interface{}) error {
+func (v val) Add(substance interface{}) error {
 
 	switch val := substance.(type) {
 	case string:
@@ -208,11 +215,28 @@ func (v value) Add(substance interface{}) error {
 		case types.Int128:
 			(*uint128.Uint128)(v.Ptr).Add(uint(val))
 		}
+	case float64:
+		switch v.Dtype {
+		case types.Float, types.Float64:
+		case types.Float32:
+		case types.Float128:
+		}
+	case float32:
+		switch v.Dtype {
+		case types.Float, types.Float64:
+		case types.Float32:
+		case types.Float128:
+		}
+
+	case value:
+
+	default:
+		return errors.New("Add: invalid operation: operator + not defined on type")
 	}
 	return nil
 }
 
-func (v value) Sub(substance interface{}) error {
+func (v val) Sub(substance interface{}) error {
 	switch val := substance.(type) {
 	case int:
 		switch v.Dtype {
@@ -344,6 +368,23 @@ func (v value) Sub(substance interface{}) error {
 		case types.Int128:
 			(*uint128.Uint128)(v.Ptr).Sub(uint(val))
 		}
+	case float64:
+		switch v.Dtype {
+		case types.Float, types.Float64:
+		case types.Float32:
+		case types.Float128:
+		}
+	case float32:
+		switch v.Dtype {
+		case types.Float, types.Float64:
+		case types.Float32:
+		case types.Float128:
+		}
+
+	case value:
+
+	default:
+		return errors.New("Add: invalid operation: operator - not defined on type")
 	}
 	return nil
 
