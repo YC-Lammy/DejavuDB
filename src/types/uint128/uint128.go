@@ -87,3 +87,11 @@ func (u Uint128) String() string {
 	c := C.GoString(b)
 	return c
 }
+
+func (u *Uint128) Add(e uint) {
+
+}
+
+func (u *Uint128) Sub(e uint) {
+
+}
