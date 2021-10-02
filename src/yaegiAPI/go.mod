@@ -6,6 +6,7 @@ require (
 	github.com/traefik/yaegi v0.10.0
 	src/datastore v0.0.0
 	src/types v0.0.0
+	src/types/int128 v0.0.0
 )
 
 replace (

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"src/types"
 	"src/types/int128"
+	"src/types/uint128"
 	"strconv"
 	"unsafe"
 )
@@ -61,6 +62,13 @@ func (v value) String() string {
 	return ""
 }
 
+func (v value) Interface() interface{} {
+	switch v.Dtype {
+	case types.String:
+	}
+	return nil
+}
+
 func (v value) Add(substance interface{}) error {
 
 	switch val := substance.(type) {
@@ -84,59 +92,259 @@ func (v value) Add(substance interface{}) error {
 			(*int128.Int128)(v.Ptr).Add(val)
 		}
 	case int64:
+		switch v.Dtype {
+		case types.Int, types.Int64:
+			*(*int64)(v.Ptr) += int64(val)
+		case types.Int32:
+			*(*int32)(v.Ptr) += int32(val)
+		case types.Int16:
+			*(*int16)(v.Ptr) += int16(val)
+		case types.Int8:
+			*(*int8)(v.Ptr) += int8(val)
+		case types.Int128:
+			(*int128.Int128)(v.Ptr).Add(int(val))
+		}
 	case int32:
+		switch v.Dtype {
+		case types.Int, types.Int64:
+			*(*int64)(v.Ptr) += int64(val)
+		case types.Int32:
+			*(*int32)(v.Ptr) += int32(val)
+		case types.Int16:
+			*(*int16)(v.Ptr) += int16(val)
+		case types.Int8:
+			*(*int8)(v.Ptr) += int8(val)
+		case types.Int128:
+			(*int128.Int128)(v.Ptr).Add(int(val))
+		}
 	case int16:
+		switch v.Dtype {
+		case types.Int, types.Int64:
+			*(*int64)(v.Ptr) += int64(val)
+		case types.Int32:
+			*(*int32)(v.Ptr) += int32(val)
+		case types.Int16:
+			*(*int16)(v.Ptr) += int16(val)
+		case types.Int8:
+			*(*int8)(v.Ptr) += int8(val)
+		case types.Int128:
+			(*int128.Int128)(v.Ptr).Add(int(val))
+		}
 	case int8:
+		switch v.Dtype {
+		case types.Int, types.Int64:
+			*(*int64)(v.Ptr) += int64(val)
+		case types.Int32:
+			*(*int32)(v.Ptr) += int32(val)
+		case types.Int16:
+			*(*int16)(v.Ptr) += int16(val)
+		case types.Int8:
+			*(*int8)(v.Ptr) += int8(val)
+		case types.Int128:
+			(*int128.Int128)(v.Ptr).Add(int(val))
+		}
 	case uint:
+		switch v.Dtype {
+		case types.Uint, types.Uint64:
+			*(*uint64)(v.Ptr) += uint64(val)
+		case types.Int32:
+			*(*uint32)(v.Ptr) += uint32(val)
+		case types.Int16:
+			*(*uint16)(v.Ptr) += uint16(val)
+		case types.Int8:
+			*(*uint8)(v.Ptr) += uint8(val)
+		case types.Int128:
+			(*uint128.Uint128)(v.Ptr).Add(uint(val))
+		}
 	case uint64:
+		switch v.Dtype {
+		case types.Uint, types.Uint64:
+			*(*uint64)(v.Ptr) += uint64(val)
+		case types.Int32:
+			*(*uint32)(v.Ptr) += uint32(val)
+		case types.Int16:
+			*(*uint16)(v.Ptr) += uint16(val)
+		case types.Int8:
+			*(*uint8)(v.Ptr) += uint8(val)
+		case types.Int128:
+			(*uint128.Uint128)(v.Ptr).Add(uint(val))
+		}
 	case uint32:
+		switch v.Dtype {
+		case types.Uint, types.Uint64:
+			*(*uint64)(v.Ptr) += uint64(val)
+		case types.Int32:
+			*(*uint32)(v.Ptr) += uint32(val)
+		case types.Int16:
+			*(*uint16)(v.Ptr) += uint16(val)
+		case types.Int8:
+			*(*uint8)(v.Ptr) += uint8(val)
+		case types.Int128:
+			(*uint128.Uint128)(v.Ptr).Add(uint(val))
+		}
 	case uint16:
+		switch v.Dtype {
+		case types.Uint, types.Uint64:
+			*(*uint64)(v.Ptr) += uint64(val)
+		case types.Int32:
+			*(*uint32)(v.Ptr) += uint32(val)
+		case types.Int16:
+			*(*uint16)(v.Ptr) += uint16(val)
+		case types.Int8:
+			*(*uint8)(v.Ptr) += uint8(val)
+		case types.Int128:
+			(*uint128.Uint128)(v.Ptr).Add(uint(val))
+		}
 	case uint8:
-	}
-	switch v.Dtype {
-	case types.String:
-		if s, ok := substance.(string); ok {
-			*(*string)(v.Ptr) += s
-		} else {
-			return errors.New("Add: type mismatch, expected string")
+		switch v.Dtype {
+		case types.Uint, types.Uint64:
+			*(*uint64)(v.Ptr) += uint64(val)
+		case types.Int32:
+			*(*uint32)(v.Ptr) += uint32(val)
+		case types.Int16:
+			*(*uint16)(v.Ptr) += uint16(val)
+		case types.Int8:
+			*(*uint8)(v.Ptr) += uint8(val)
+		case types.Int128:
+			(*uint128.Uint128)(v.Ptr).Add(uint(val))
 		}
-	case types.Int, types.Int64, types.Int32, types.Int16, types.Int8, types.Int128:
-		switch substance.(type) {
-		case int:
-		}
-		if s, ok := substance.(int64); ok {
-			*(*int64)(v.Ptr) += s
-		} else {
-			return errors.New("type mismatch, expected int64")
-		}
-	case types.Uint, types.Uint64:
-	case types.Uint32:
-
-	case types.Uint16:
-
-	case types.Uint8:
-	case types.Uint128:
-	case types.Decimal, types.Decimal64:
-	case types.Decimal32:
-	case types.Decimal128:
-	case types.Float, types.Float64:
-	case types.Float32:
-	case types.Float128:
-	case types.Byte:
-	case types.Byte_arr:
-	case types.Bool:
-	case types.Graph:
-	case types.Table:
-	case types.Json:
-	case types.SmartContract:
-	case types.Contract:
-	case types.Money:
-	case types.SmallMoney:
-	case types.Time:
-	case types.Date:
-	case types.Datetime:
-	case types.Smalldatetime:
-	case types.Null:
 	}
 	return nil
+}
+
+func (v value) Sub(substance interface{}) error {
+	switch val := substance.(type) {
+	case int:
+		switch v.Dtype {
+		case types.Int, types.Int64:
+			*(*int64)(v.Ptr) -= int64(val)
+		case types.Int32:
+			*(*int32)(v.Ptr) -= int32(val)
+		case types.Int16:
+			*(*int16)(v.Ptr) -= int16(val)
+		case types.Int8:
+			*(*int8)(v.Ptr) -= int8(val)
+		case types.Int128:
+			(*int128.Int128)(v.Ptr).Sub(val)
+		}
+	case int64:
+		switch v.Dtype {
+		case types.Int, types.Int64:
+			*(*int64)(v.Ptr) -= int64(val)
+		case types.Int32:
+			*(*int32)(v.Ptr) -= int32(val)
+		case types.Int16:
+			*(*int16)(v.Ptr) -= int16(val)
+		case types.Int8:
+			*(*int8)(v.Ptr) -= int8(val)
+		case types.Int128:
+			(*int128.Int128)(v.Ptr).Sub(int(val))
+		}
+	case int32:
+		switch v.Dtype {
+		case types.Int, types.Int64:
+			*(*int64)(v.Ptr) -= int64(val)
+		case types.Int32:
+			*(*int32)(v.Ptr) -= int32(val)
+		case types.Int16:
+			*(*int16)(v.Ptr) -= int16(val)
+		case types.Int8:
+			*(*int8)(v.Ptr) -= int8(val)
+		case types.Int128:
+			(*int128.Int128)(v.Ptr).Sub(int(val))
+		}
+	case int16:
+		switch v.Dtype {
+		case types.Int, types.Int64:
+			*(*int64)(v.Ptr) -= int64(val)
+		case types.Int32:
+			*(*int32)(v.Ptr) -= int32(val)
+		case types.Int16:
+			*(*int16)(v.Ptr) -= int16(val)
+		case types.Int8:
+			*(*int8)(v.Ptr) -= int8(val)
+		case types.Int128:
+			(*int128.Int128)(v.Ptr).Sub(int(val))
+		}
+	case int8:
+		switch v.Dtype {
+		case types.Int, types.Int64:
+			*(*int64)(v.Ptr) -= int64(val)
+		case types.Int32:
+			*(*int32)(v.Ptr) -= int32(val)
+		case types.Int16:
+			*(*int16)(v.Ptr) -= int16(val)
+		case types.Int8:
+			*(*int8)(v.Ptr) -= int8(val)
+		case types.Int128:
+			(*int128.Int128)(v.Ptr).Sub(int(val))
+		}
+	case uint:
+		switch v.Dtype {
+		case types.Uint, types.Uint64:
+			*(*uint64)(v.Ptr) -= uint64(val)
+		case types.Int32:
+			*(*uint32)(v.Ptr) -= uint32(val)
+		case types.Int16:
+			*(*uint16)(v.Ptr) -= uint16(val)
+		case types.Int8:
+			*(*uint8)(v.Ptr) -= uint8(val)
+		case types.Int128:
+			(*uint128.Uint128)(v.Ptr).Sub(uint(val))
+		}
+	case uint64:
+		switch v.Dtype {
+		case types.Uint, types.Uint64:
+			*(*uint64)(v.Ptr) -= uint64(val)
+		case types.Int32:
+			*(*uint32)(v.Ptr) -= uint32(val)
+		case types.Int16:
+			*(*uint16)(v.Ptr) -= uint16(val)
+		case types.Int8:
+			*(*uint8)(v.Ptr) -= uint8(val)
+		case types.Int128:
+			(*uint128.Uint128)(v.Ptr).Sub(uint(val))
+		}
+	case uint32:
+		switch v.Dtype {
+		case types.Uint, types.Uint64:
+			*(*uint64)(v.Ptr) -= uint64(val)
+		case types.Int32:
+			*(*uint32)(v.Ptr) -= uint32(val)
+		case types.Int16:
+			*(*uint16)(v.Ptr) -= uint16(val)
+		case types.Int8:
+			*(*uint8)(v.Ptr) -= uint8(val)
+		case types.Int128:
+			(*uint128.Uint128)(v.Ptr).Sub(uint(val))
+		}
+	case uint16:
+		switch v.Dtype {
+		case types.Uint, types.Uint64:
+			*(*uint64)(v.Ptr) -= uint64(val)
+		case types.Int32:
+			*(*uint32)(v.Ptr) -= uint32(val)
+		case types.Int16:
+			*(*uint16)(v.Ptr) -= uint16(val)
+		case types.Int8:
+			*(*uint8)(v.Ptr) -= uint8(val)
+		case types.Int128:
+			(*uint128.Uint128)(v.Ptr).Sub(uint(val))
+		}
+	case uint8:
+		switch v.Dtype {
+		case types.Uint, types.Uint64:
+			*(*uint64)(v.Ptr) -= uint64(val)
+		case types.Int32:
+			*(*uint32)(v.Ptr) -= uint32(val)
+		case types.Int16:
+			*(*uint16)(v.Ptr) -= uint16(val)
+		case types.Int8:
+			*(*uint8)(v.Ptr) -= uint8(val)
+		case types.Int128:
+			(*uint128.Uint128)(v.Ptr).Sub(uint(val))
+		}
+	}
+	return nil
+
 }
