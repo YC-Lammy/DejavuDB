@@ -76,6 +76,14 @@ char *itoa128(char *buf, __int128_t v, int base) {
         utoa128(p, uv, base);
     return buf;
 }
+
+__int128_t Sub(__int128_t v, long long e){
+    return v-e;
+}
+
+__int128_t Add(__int128_t v, long long e){
+    return v+e;
+}
 */
 import "C"
 import "unsafe"
@@ -99,4 +107,9 @@ func StrToInt128(str string) (Int128, error) {
 
 func (i *Int128) Add(e int) {
 
+}
+
+func (i *Int128) Sub(e int) {
+	cint := C.longlong(e)
+	*i = Int128(C.Sub([16]byte(*i), cint))
 }
