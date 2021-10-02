@@ -32,6 +32,11 @@ func (d *database) Set(key string, data interface{}, dtype byte) error {
 		if v.(val).Dtype != dtype {
 			return errors.New("Set: type mismatch")
 		}
+		fn, err := datastore.JsSet(key, v.(val).Ptr, v.(val).Dtype)
+		if err != nil {
+			return err
+		}
+		d.reversefn = append(d.reversefn, fn)
 	}
 	return nil
 }
@@ -45,11 +50,11 @@ func (d *database) Update(key string, data interface{}) error {
 	switch v := data.(type) {
 	case value:
 		s := v.(val)
-		fn, err := datastore.JsSet(key, s.Ptr, s.Dtype)
+		err := datastore.Update(key, s.Ptr, s.Dtype)
 		if err != nil {
 			return err
 		}
-		d.reversefn = append(d.reversefn, fn)
+		//d.reversefn = append(d.reversefn, fn)
 	}
 	return nil
 }

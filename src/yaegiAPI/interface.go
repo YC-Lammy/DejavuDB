@@ -7,10 +7,10 @@ import (
 	"math"
 )
 type db interface {
-	Set(key string, data interface{}) error
-	Get(key string)value
-	Update(key, data interface{})
-	Move(string, string)
+	Set(key string, data interface{}, dtype byte) error
+	Get(key string) value
+	Update(key string, data interface{}) error
+	Move(string, string) error
 	Types() types_struct
 }
 
