@@ -84,6 +84,12 @@ __int128_t Sub(__int128_t v, long long e){
 __int128_t Add(__int128_t v, long long e){
     return v+e;
 }
+__int128_t Times(__int128_t v, long long e){
+    return v*e;
+}
+__int128_t Divide(__int128_t v, long long e){
+    return v/e;
+}
 */
 import "C"
 import "unsafe"
@@ -106,10 +112,25 @@ func StrToInt128(str string) (Int128, error) {
 }
 
 func (i *Int128) Add(e int) {
-
+	cint := C.longlong(e)
+	*i = Int128(C.Add([16]byte(*i), cint))
+	C.free(unsafe.Pointer(&cint))
 }
 
 func (i *Int128) Sub(e int) {
 	cint := C.longlong(e)
 	*i = Int128(C.Sub([16]byte(*i), cint))
+	C.free(unsafe.Pointer(&cint))
+}
+
+func (i *Int128) Times(e int) {
+	cint := C.longlong(e)
+	*i = Int128(C.Times([16]byte(*i), cint))
+	C.free(unsafe.Pointer(&cint))
+}
+
+func (i *Int128) Divide(e int) {
+	cint := C.longlong(e)
+	*i = Int128(C.Divide([16]byte(*i), cint))
+	C.free(unsafe.Pointer(&cint))
 }
