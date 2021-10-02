@@ -96,3 +96,7 @@ func StrToInt128(str string) (Int128, error) {
 	b := C.atoi128(a)
 	return Int128(b), nil
 }
+
+func (i *Int128) Add(e int) {
+
+}
