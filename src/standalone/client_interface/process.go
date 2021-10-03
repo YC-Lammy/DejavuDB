@@ -47,13 +47,14 @@ func NewWorker(workerPool chan chan Job) Worker {
 // case we need to stop it
 func (w Worker) Start() {
 	go func() {
-		iso, _ := v8go.NewIsolate()
+
 		for {
 			// register the current worker into the worker queue.
 			w.WorkerPool <- w.JobChannel
 
 			select {
 			case job := <-w.JobChannel:
+				iso, _ := v8go.NewIsolate()
 				if config.Debug {
 					fmt.Println("worker recieve job")
 				}
@@ -68,7 +69,10 @@ func (w Worker) Start() {
 				}
 				if config.Debug {
 					fmt.Println("worker finish job")
+					fmt.Println("used heap", iso.GetHeapStatistics().UsedHeapSize)
 				}
+				iso.TerminateExecution()
+				iso.Dispose()
 
 			case <-w.quit:
 				// we have received a signal to stop

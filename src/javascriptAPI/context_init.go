@@ -53,15 +53,7 @@ func Javascript_context_init(vm *v8go.Isolate, errs chan error, delay_fn *[]func
 		errs <- err
 		return nil
 	}
-
-	ctx.RunScript(javascript_API_Script, "DB.js")
-
 	if adm {
-		ctx.RunScript(javascript_ADM_Script, "ADM.js")
-	}
-
-	switch mode {
-	case "adm":
 		ctx.RunScript(javascript_ADM_Script, "ADM.js")
 	}
 
