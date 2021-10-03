@@ -7,6 +7,7 @@ require (
 	rogchap.com/v8go v0.6.0
 	src/config v0.0.0
 	src/javascriptAPI v0.0.0
+	src/yaegiAPI v0.0.0
 	src/lazy v0.0.0
 	src/network v0.0.0-00010101000000-000000000000
 	src/user v0.0.0
@@ -16,6 +17,7 @@ replace (
 	src/config => ../../config
 	src/datastore => ../../datastore
 	src/javascriptAPI => ../../javascriptAPI
+	src/yaegiAPI => ../../yaegiAPI
 	src/lazy => ../../lazy
 	src/meta => ../../meta
 	src/network => ../../network

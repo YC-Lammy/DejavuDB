@@ -11,6 +11,7 @@ replace (
 	src/config => ../config
 	src/datastore => ../datastore
 	src/javascriptAPI => ../javascriptAPI
+	src/yaegiAPI => ../../yaegiAPI
 	src/lazy => ../lazy
 	src/meta => ../meta
 	src/network => ../network

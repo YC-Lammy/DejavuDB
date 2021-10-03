@@ -29,4 +29,5 @@ replace (
 	src/types/float128 => ./types/float128
 	src/types/int128 => ./types/int128
 	src/user => ./user
+	src/yaegiAPI => ./yaegiAPI
 )

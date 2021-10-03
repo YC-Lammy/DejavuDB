@@ -7,6 +7,9 @@ import (
 	"path"
 	"sync"
 
+	"net/http"
+	_ "net/http/pprof"
+
 	"src/config"
 	"src/lazy"
 
@@ -23,6 +26,10 @@ var sql_file string = ""
 var wg sync.WaitGroup // working group
 
 func main() {
+
+	if config.Debug {
+		go http.ListenAndServe(":6060", nil)
+	}
 
 	for _, v := range os.Args {
 		if v == "help" {
@@ -80,7 +87,8 @@ func main() {
 	case "client":
 
 	case "standalone":
-		standalone.Start()
+		go standalone.Start()
+		wg.Add(1)
 
 	case "log":
 

@@ -1,11 +1,20 @@
 package yaegiAPI
 
 var init_script = `
+package foo
 import (
 	"fmt"
 	"log"
 	"math"
+	"unsafe"
 )
+
+type value interface {
+	String() string
+	Interface() interface{}
+	Add(interface{}) error
+	Sub(interface{}) error
+}
 type db interface {
 	Set(key string, data interface{}, dtype byte) error
 	Get(key string) value
@@ -21,19 +30,9 @@ type types_struct struct {
 	Float, Float64, Float32, Float128 byte
 }
 
-type value interface{
-	String() string
-	Interface() interface{}
-	Add() error
-	Sub() error
-}
 
-func main(DB db) (err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			err = e.(error)
-		}
-	}()
+func m(DB db) (err error) {
+	//DB := *(*db)(huijk)
 
 `
 var ending = `

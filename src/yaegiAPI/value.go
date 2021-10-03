@@ -16,12 +16,12 @@ type value interface {
 	Sub(interface{}) error
 }
 
-type val struct {
+type Val struct {
 	Ptr   unsafe.Pointer
 	Dtype byte
 }
 
-func (v val) String() string {
+func (v Val) String() string {
 	switch v.Dtype {
 	case types.String:
 		return *(*string)(v.Ptr)
@@ -69,14 +69,14 @@ func (v val) String() string {
 	return ""
 }
 
-func (v val) Interface() interface{} {
+func (v Val) Interface() interface{} {
 	switch v.Dtype {
 	case types.String:
 	}
 	return nil
 }
 
-func (v val) Add(substance interface{}) error {
+func (v Val) Add(substance interface{}) error {
 
 	switch val := substance.(type) {
 	case string:
@@ -236,7 +236,7 @@ func (v val) Add(substance interface{}) error {
 	return nil
 }
 
-func (v val) Sub(substance interface{}) error {
+func (v Val) Sub(substance interface{}) error {
 	switch val := substance.(type) {
 	case int:
 		switch v.Dtype {

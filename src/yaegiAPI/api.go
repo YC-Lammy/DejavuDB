@@ -20,36 +20,37 @@ type types_struct struct {
 	Float, Float64, Float32, Float128 byte
 }
 
-type database struct {
+type Database struct {
 	uid       uint64
 	gid       uint64
 	reversefn []func()
 }
 
-func (d *database) Set(key string, data interface{}, dtype byte) error {
+func (d *Database) Set(key string, data interface{}, dtype byte) error {
 	switch v := data.(type) {
 	case value:
-		if v.(val).Dtype != dtype {
+		if v.(Val).Dtype != dtype {
 			return errors.New("Set: type mismatch")
 		}
-		fn, err := datastore.JsSet(key, v.(val).Ptr, v.(val).Dtype)
+		fn, err := datastore.JsSet(key, v.(Val).Ptr, v.(Val).Dtype)
 		if err != nil {
 			return err
 		}
 		d.reversefn = append(d.reversefn, fn)
+	case string:
 	}
 	return nil
 }
 
-func (d *database) Get(key string) value {
+func (d *Database) Get(key string) Val {
 	dtype, ptr := datastore.Get(key)
-	return val{Ptr: ptr, Dtype: dtype}
+	return Val{Ptr: ptr, Dtype: dtype}
 }
 
-func (d *database) Update(key string, data interface{}) error {
+func (d *Database) Update(key string, data interface{}) error {
 	switch v := data.(type) {
 	case value:
-		s := v.(val)
+		s := v.(Val)
 		err := datastore.Update(key, s.Ptr, s.Dtype)
 		if err != nil {
 			return err
@@ -59,11 +60,11 @@ func (d *database) Update(key string, data interface{}) error {
 	return nil
 }
 
-func (d *database) Move(src, dst string) error {
+func (d *Database) Move(src, dst string) error {
 	return nil
 }
 
-func (d *database) Types() types_struct {
+func (d *Database) Types() types_struct {
 	return types_struct{
 		String: 0x00,
 	}

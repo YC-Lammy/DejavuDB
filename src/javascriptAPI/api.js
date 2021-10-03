@@ -81,6 +81,12 @@ DB = function(){
 		String: '\x00'
 	}
 
+	exports.Types = function(){
+		return{
+			string: '\x00',
+			String: '\x00'}
+	}
+
 return exports
 
 }()

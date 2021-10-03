@@ -6,8 +6,6 @@ import (
 
 	"src/config"
 	"src/javascriptAPI"
-
-	"rogchap.com/v8go"
 )
 
 var JobQueue = make(chan Job)
@@ -54,25 +52,31 @@ func (w Worker) Start() {
 
 			select {
 			case job := <-w.JobChannel:
-				iso, _ := v8go.NewIsolate()
 				if config.Debug {
 					fmt.Println("worker recieve job")
 				}
 				// do the work here
-				s, err := javascriptAPI.Javascript_run_isolate(iso, string(job.msg), "",
+				s, err := javascriptAPI.Javascript_run_isolate(string(job.msg), "",
 					[2]string{"gid", strconv.Itoa(int(job.client.gid))}, [2]string{"uid", strconv.Itoa(int(job.client.id))})
+				/*
+					if err != nil {
+						Send(*job.client, []byte(err.Error()))
+						continue
+					}
+					d, err := yaegiAPI.Run(string(job.msg))
+				*/
 
 				if err != nil {
+					if config.Debug {
+						fmt.Println(err)
+					}
 					Send(*job.client, []byte(err.Error()))
 				} else {
 					Send(*job.client, []byte(s))
 				}
 				if config.Debug {
 					fmt.Println("worker finish job")
-					fmt.Println("used heap", iso.GetHeapStatistics().UsedHeapSize)
 				}
-				iso.TerminateExecution()
-				iso.Dispose()
 
 			case <-w.quit:
 				// we have received a signal to stop
@@ -142,6 +146,6 @@ func (d *Dispatcher) dispatch() {
 }
 
 func init() {
-	d := NewDispatcher(1000)
+	d := NewDispatcher(1)
 	d.Run()
 }

@@ -8,7 +8,10 @@ import (
 	"src/config"
 )
 
-func Javascript_run_isolate(vm *v8go.Isolate, script string, mode string, args ...[2]string) (string, error) {
+func Javascript_run_isolate(script string, mode string, args ...[2]string) (string, error) {
+
+	vm, _ := v8go.NewIsolate()
+	defer vm.Dispose()
 	vals := make(chan string, 1)
 	errs := make(chan error, 1)
 	delay_fns := []func(){}
