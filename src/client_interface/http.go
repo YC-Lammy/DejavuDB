@@ -1,0 +1,125 @@
+package client_interface
+
+import (
+	"dejavuDB/src/config"
+	"dejavuDB/src/network"
+	"dejavuDB/src/user"
+	"encoding/base64"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+)
+
+var websocket_UpGrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func Http_client() {
+	router := gin.Default()
+	router.GET("/", func(c *gin.Context) {
+		name := c.Param("name")
+		c.String(http.StatusOK, "Hello %s", name)
+	})
+	authed := router.Group("/", BasicAuth)
+	authed.GET("/storage", handleGet)
+	authed.POST("/storage")
+	authed.DELETE("/storage")
+	authed.PUT("/storage")
+	authed.PATCH("/storage")
+	authed.HEAD("/storage")
+	authed.Any("/sql")
+	authed.Any("/js")
+	authed.Any("/websocket", handleWebsocket)
+	authed.Any("/tcp")
+	//router.RunTLS()
+	router.Run("127.0.0.1:" + config.Client_port)
+}
+
+func BasicAuth(c *gin.Context) {
+	realm := "Basic realm=" + strconv.Quote("Authorization Required")
+	cred := c.Request.Header.Get("Authorization")
+	if cred == "" || len(cred) < 7 || cred[:7] != "Basic " {
+		c.Header("WWW-Authenticate", realm)
+		c.AbortWithStatus(401)
+		return
+	}
+	cred = strings.Replace(cred, "Basic ", "", 1)
+	b, err := base64.StdEncoding.DecodeString(cred)
+	if err != nil {
+		c.Header("WWW-Authenticate", realm)
+		c.AbortWithStatus(401)
+		return
+	}
+	u := strings.SplitN(string(b), ":", 1)
+	if len(u) != 2 {
+		c.Header("WWW-Authenticate", realm)
+		c.AbortWithStatus(401)
+		return
+	}
+	_, ok := user.Login(u[0], u[1])
+	if !ok {
+		c.Header("WWW-Authenticate", realm)
+		c.AbortWithStatus(401)
+		return
+	}
+	log.Println("User logged in: " + u[0])
+	c.Set(gin.AuthUserKey, u[0])
+}
+
+func handleGet(c *gin.Context) {
+	// get user, it was set by the BasicAuth middleware
+	username := c.MustGet(gin.AuthUserKey).(string)
+}
+
+func handleWebsocket(c *gin.Context) {
+	username := c.MustGet(gin.AuthUserKey).(string)
+	ws, err := websocket_UpGrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer ws.Close()
+
+}
+
+func handleTCP(c *gin.Context) {
+	h, ok := c.Writer.(http.Hijacker)
+	if !ok {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	netconn, conbuf, err := h.Hijack()
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	netconn.SetDeadline(time.Time{})
+	if conbuf.Reader.Buffered() != 0 {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	p := []byte{}
+	p = append(p, "HTTP/1.1 101 Switching Protocols\r\nUpgrade: tcp\r\nConnection: Upgrade\r\n"...)
+
+	netconn.Write(p)
+	conn := network.NewConn(netconn)
+	err = conn.ClientHandshake()
+	if err != nil {
+		return
+	}
+	for {
+		msg, err := conn.ReadMesaage()
+		if err != nil {
+			conn.Write([]byte(err.Error()))
+			return
+		}
+	}
+}

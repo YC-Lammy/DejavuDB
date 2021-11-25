@@ -1,16 +1,28 @@
 package types
 
 import (
+	"clayDB/src/types/decimal"
+	"clayDB/src/types/float128"
 	"errors"
-	"src/types/decimal"
-	"src/types/float128"
 	"unsafe"
 )
 
-func ToBytes(data unsafe.Pointer, dtype byte) ([]byte, error) {
+type Value struct {
+	Dtype     DType
+	Pointer   unsafe.Pointer
+	Timestamp uint64
+}
+
+func ValueFromBytes(s []byte) (Value, error) {
+	v := &Value{}
+	err := v.FromBytes(s)
+	return *v, err
+}
+
+func (val Value) ToBytes() ([]byte, error) {
 	var B []byte
-	v := data
-	switch dtype {
+	v := val.Pointer
+	switch val.Dtype {
 	case String:
 		B = []byte(*(*string)(v))
 	case Int, Int64:
@@ -21,6 +33,8 @@ func ToBytes(data unsafe.Pointer, dtype byte) ([]byte, error) {
 	case Int8:
 	case Int128:
 	case Uint, Uint64:
+		b := *(*[8]byte)(v)
+		B = b[:]
 	case Uint32:
 	case Uint16:
 	case Uint8:
@@ -34,11 +48,16 @@ func ToBytes(data unsafe.Pointer, dtype byte) ([]byte, error) {
 		copy(c, (*(*[2]byte)(a))[:])
 		c = append(c, (*(*[2]byte)(b))[:]...)
 	case Decimal128:
+
 	case Float, Float64:
+		b := *(*[8]byte)(v)
+		B = b[:]
 	case Float32:
 	case Float128:
 		B = (*float128.Float128)(v)[:]
+
 	case Byte:
+		B = []byte{*(*byte)(v)}
 	case Byte_arr:
 		B = *(*[]byte)(v)
 	case Bool:
@@ -61,33 +80,33 @@ func ToBytes(data unsafe.Pointer, dtype byte) ([]byte, error) {
 	case Null:
 	}
 
-	return append([]byte{dtype}, B...), nil
+	return append([]byte{byte(val.Dtype)}, B...), nil
 }
 
-func FromBytes(bs []byte) (p unsafe.Pointer, dtype byte, err error) {
+func (v *Value) FromBytes(bs []byte) (err error) {
 
 	if len(bs) == 0 {
 		err = errors.New("no bytes provided")
 		return
 	}
-	dtype = bs[0]
+	v.Dtype = DType(bs[0])
 	bs = bs[1:]
-	switch dtype {
+	switch DType(v.Dtype) {
 	case String:
 		a := string(bs)
-		p = unsafe.Pointer(&a)
+		v.Pointer = unsafe.Pointer(&a)
 
 	case Bool:
 		var a bool = false
 		if bs[0] > 0x00 {
 			a = true
 		}
-		p = unsafe.Pointer(&a)
+		v.Pointer = unsafe.Pointer(&a)
 	case Byte:
 		a := bs[0]
-		p = unsafe.Pointer(&a)
+		v.Pointer = unsafe.Pointer(&a)
 	case Byte_arr:
-		p = unsafe.Pointer(&bs)
+		v.Pointer = unsafe.Pointer(&bs)
 
 	}
 	return

@@ -1,17 +1,19 @@
 package contract
 
-import(
-	"rogchap.com/v8go "
+import (
 	"strings"
+	"time"
+
+	"rogchap.com/v8go"
 )
 
 type Contract struct {
 	LocalStore map[string]*v8go.Value
-	Script string
-	Name string
+	Script     string
+	Name       string
 }
 
-func (contr *Contract) Run(function string,args ...*v8go.Value)(string,error){
+func (contr *Contract) Run(function string, args ...*v8go.Value) (string, error) {
 	vals := make(chan *v8go.Value, 1)
 	errs := make(chan error, 1)
 	ctx, err := v8go.NewContext()
@@ -30,35 +32,35 @@ func (contr *Contract) Run(function string,args ...*v8go.Value)(string,error){
 		_, err := ctx.RunScript(contr.Script, "contract.js") // exec a long running script
 		if err != nil {
 			errs <- err
-			return "",nil
+			return "", nil
 		}
 
 		glob := ctx.Global()
 
-		for key, val := range contr.LocalStore{
-			err := glob.Set(key,val)
+		for key, val := range contr.LocalStore {
+			err := glob.Set(key, val)
 			if err != nil {
 				errs <- err
-				return "",nil
+				return "", nil
 			}
 		}
 
 		v, err := glob.Get(function)
 		if err != nil {
 			errs <- err
-			return "",nil
+			return "", nil
 		}
 
 		fn, err := v.AsFunction()
 		if err != nil {
 			errs <- err
-			return "",nil
+			return "", nil
 		}
 
-		val, err:= fn.Call(args...)
+		val, err := fn.Call(args...)
 		if err != nil {
 			errs <- err
-			return "",nil
+			return "", nil
 		}
 		vals <- val
 	}()
@@ -66,26 +68,26 @@ func (contr *Contract) Run(function string,args ...*v8go.Value)(string,error){
 	select {
 	case val := <-vals:
 		// sucess
-		keys, err:= ctx.RunScript(`
+		keys, err := ctx.RunScript(`
 		const keys = [];
 		for (const [key, value] of Object.entries(object1)) {
 			keys.push(key);
 		  };
-		String(keys);`,"storage.js")
-		if err != nil{
+		String(keys);`, "storage.js")
+		if err != nil {
 			return "", err
 		}
 
 		glob := ctx.Global()
 		tmp := map[string]*v8go.Value{}
-		for _,k := range strings.Split(keys,","){
+		for _, k := range strings.Split(keys, ",") {
 			v, err := glob.Get(k)
-			if err != nil{
+			if err != nil {
 				return "", err
 			}
 			tmp[k] = v
 		}
-		
+
 		contr.LocalStore = tmp
 		return val.String(), nil
 

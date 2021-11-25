@@ -9,8 +9,8 @@ import (
 	"path"
 	"time"
 
-	"src/config"
-	"src/lazy"
+	"dejavuDB/src/config"
+	"dejavuDB/src/lazy"
 
 	json "github.com/goccy/go-json"
 )
@@ -29,7 +29,7 @@ func Login_from_file(username, password string) bool {
 	if _, err := os.Stat(name); os.IsNotExist(err) {
 		return false
 	}
-	var new = user{}
+	var new = User{}
 	f, err := os.Open(name)
 	if err != nil {
 		fmt.Println(err)
@@ -52,7 +52,7 @@ func Login_from_file(username, password string) bool {
 	return false
 }
 
-func Login(username, password string) (*user, bool) {
+func Login(username, password string) (*User, bool) {
 	user, _ := UserExist(username)
 	if user == nil {
 		return user, false

@@ -10,11 +10,11 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
-	"src/config"
-	"src/lazy"
+	"dejavuDB/src/config"
+	"dejavuDB/src/lazy"
 
-	"src/standalone"
-	"src/static"
+	"dejavuDB/src/standalone"
+	"dejavuDB/src/static"
 )
 
 var mycfg = []byte{}

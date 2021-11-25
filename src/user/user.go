@@ -21,8 +21,9 @@ import (
    application authorization is strongly unrecomanded for security concerns
 */
 
-type user struct {
+type User struct {
 	Name           string
+	BasicAuthValue []byte
 	Password_sum   []byte
 	Password_sauce []byte // some random bytes to secure the password sum
 	Id             uint32
@@ -36,26 +37,17 @@ type user struct {
 
 type user_group struct {
 	Id    int
-	Users map[string]user // name of user
+	Users map[string]User // name of user
 	Name  string
 }
 
-type user_token struct {
-	name        string
-	user_name   string
-	user_group  string
-	expiry_time time.Time
-}
-
-var user_tokens = map[string]*user_token{}
-
 var number_of_users int = 1
 
-var users = map[string]*user{}
+var users = map[string]*User{}
 
 var home_dir string
 
-var groups = map[string]*user_group{ // user_map will not be exposed to the out front
+var Groups = map[string]*user_group{ // user_map will not be exposed to the out front
 	/*
 		GID 1–99 are reserved for the system and application use.
 		GID 100+ allocated for the user’s group.
@@ -85,7 +77,7 @@ func init() {
 		h := sha256.New()
 		h.Write(sauce)
 		h.Write([]byte(""))
-		root := user{Name: "root", Id: 1, Gid: 1, Group: "adm", Domain: "localhost", Password_sauce: sauce, Password_sum: h.Sum(nil)}
+		root := User{Name: "root", Id: 1, Gid: 1, Group: "adm", Domain: "localhost", Password_sauce: sauce, Password_sum: h.Sum(nil)}
 		//groups["adm"].Users["root"] = root
 		f, _ := os.Create(path.Join(origin, "root"))
 		b, _ := json.Marshal(root)
@@ -97,7 +89,7 @@ func init() {
 	}
 	arr, _ := ioutil.ReadDir(origin)
 	for _, v := range arr {
-		var new = user{}
+		var new = User{}
 		f, err := os.Open(path.Join(origin, v.Name()))
 		if err != nil {
 			fmt.Println(err)
@@ -120,7 +112,7 @@ func init() {
 	os.Chdir(origin)
 }
 
-func UserExist(username string) (*user, bool) { // return the user and bool
+func UserExist(username string) (*User, bool) { // return the user and bool
 
 	if v, ok := users[username]; ok {
 		return v, true
@@ -168,7 +160,7 @@ func Useradd(message string) error { //this function can only be executed on rou
 		}
 	}
 	// check if user group exist
-	if _, ok := groups[group]; !ok {
+	if _, ok := Groups[group]; !ok {
 		return errors.New("user group does not exist")
 	}
 	// generate password hash
@@ -177,9 +169,9 @@ func Useradd(message string) error { //this function can only be executed on rou
 	h := sha256.New()
 	h.Write(sauce)
 	h.Write([]byte(password))
-	new := user{Name: name, Id: uint32(id), Issue_date: time.Now(),
+	new := User{Name: name, Id: uint32(id), Issue_date: time.Now(),
 		Expiry_time: expire, Password_sum: h.Sum(nil), Password_sauce: sauce}
-	groups[group].Users[name] = new
+	Groups[group].Users[name] = new
 
 	f, _ := os.Create(path.Join(home_dir, "dejavuDB", "users") + string(os.PathSeparator) + name)
 	enc := gob.NewEncoder(f)
@@ -197,7 +189,7 @@ func Groupadd(message string) error {
 	name := splited[len(splited)-1]
 	id := 1000 + number_of_users
 
-	groups[name] = &user_group{Id: id, Users: map[string]user{}}
+	Groups[name] = &user_group{Id: id, Users: map[string]User{}}
 
 	return nil
 }

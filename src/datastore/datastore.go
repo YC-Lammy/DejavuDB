@@ -112,7 +112,7 @@ func (loc *Node) register_data(data interface{}, dtype byte, key string) error {
 //
 //
 
-func Get(key string) (byte, unsafe.Pointer) {
+func Get(key string) interface{} {
 	if key == "" {
 		return 0x00, nil
 	}
@@ -157,7 +157,7 @@ func Get(key string) (byte, unsafe.Pointer) {
 //
 //
 
-func Set(key string, data string, dtype byte) error {
+func Set(key string, data interface{}) error {
 	if key == "" {
 		return errors.New("invalid empty key")
 	}
@@ -198,6 +198,8 @@ func Set(key string, data string, dtype byte) error {
 	}
 	return nil
 }
+
+func Delete(key string) error
 
 //
 //

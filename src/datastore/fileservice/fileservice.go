@@ -15,10 +15,10 @@ const (
 )
 
 var opened_file map[string]*file
-var map_lock = &sync.RWMutex{}
+var map_lock = sync.RWMutex{}
 
 var com string
-var com_lock = &sync.Mutex{}
+var com_lock = sync.Mutex{}
 
 var Services chan Service
 

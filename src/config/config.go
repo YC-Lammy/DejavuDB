@@ -2,6 +2,8 @@ package config
 
 import (
 	"flag"
+	"os"
+	"path"
 )
 
 var Role string //role can either be "router", "shard", "client" or "standalone"
@@ -25,7 +27,9 @@ var Encrypt_disk bool
 var Encrypt_bit_length bool
 var Enable_ML bool
 var Javascript_timeout int // milli seconds
-var ID uint16
+var ID uint64
+
+var RootDir string
 
 func init() {
 	flag.StringVar(&Role, "role", "standalone", "Specify role. Default is router, option: shard, client")
@@ -45,5 +49,9 @@ func init() {
 	flag.BoolVar(&Enable_ML, "ML", false, "Enable built in machine learning service")
 	flag.BoolVar(&Secure_connect, "sc", false, "specify to use securite connection and the bit width")
 	flag.IntVar(&Javascript_timeout, "jstimeout", 500, "javascript vm timeout duration in milliseconds")
+
+	h, _ := os.UserConfigDir()
+	flag.StringVar(&RootDir, "rootdir", path.Join(h, "dejavuDB"), "specify application root directory")
+	os.Chdir(RootDir)
 	flag.Parse()
 }

@@ -1,9 +1,9 @@
 package types
 
 import (
-	"src/types/float128"
-	"src/types/int128"
-	"src/types/uint128"
+	"dejavuDB/src/types/float128"
+	"dejavuDB/src/types/int128"
+	"dejavuDB/src/types/uint128"
 	"unsafe"
 )
 
@@ -12,10 +12,10 @@ type embedInterface struct {
 	_   unsafe.Pointer
 }
 
-var TypePtrRegister = map[unsafe.Pointer]byte{}
+var TypePtrRegister = map[unsafe.Pointer]DType{}
 
 func init() {
-	l := map[interface{}]byte{
+	l := map[interface{}]DType{
 		"hello":             String,
 		int(0):              Int,
 		int64(0):            Int64,

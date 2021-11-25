@@ -66,32 +66,20 @@ char *utoa128_t(char *buf, __uint128_t uv, int base) {
     return buf;
 }
 */
-import "C"
-import "unsafe"
+import (
+	"errors"
+	"math/big"
 
-type Uint128 [16]byte // a true __uint128_t
+	u "lukechampine.com/uint128"
+)
+
+type Uint128 = u.Uint128
 
 func StrToUint128(s string) (Uint128, error) {
-	a := C.CString(s)
-	defer C.free(unsafe.Pointer(a))
-	b := C.atou128(a)
-
-	return Uint128(b), nil
-}
-
-func (u Uint128) String() string {
-	a := C.CString("")
-	defer C.free(unsafe.Pointer(a))
-	b := C.utoa128_t(a, [16]byte(u), 10)
-	defer C.free(unsafe.Pointer(b))
-	c := C.GoString(b)
-	return c
-}
-
-func (u *Uint128) Add(e uint) {
-
-}
-
-func (u *Uint128) Sub(e uint) {
-
+	a := Uint128{}
+	i, ok := new(big.Int).SetString(s, 10)
+	if !ok {
+		return a, errors.New("uint128: Format Error")
+	}
+	return u.FromBig(i), nil
 }

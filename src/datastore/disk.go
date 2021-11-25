@@ -2,59 +2,7 @@ package datastore
 
 import (
 	"crypto/aes"
-	"io/ioutil"
-	"os"
-
-	json "github.com/goccy/go-json"
-
-	"src/config"
 )
-
-func write_json(data map[string]interface{}) error {
-
-	a, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	a, err = EncryptAES([]byte(config.AES_key), a)
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile("file.json", a, 0777)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func read_json(filename string) (map[string]interface{}, error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err = DecryptAES([]byte(config.AES_key), data)
-
-	if err != nil {
-		return nil, err
-	}
-	var value map[string]interface{}
-
-	err = json.Unmarshal(data, &value)
-	if err != nil {
-		return nil, err
-	}
-
-	return value, nil
-}
 
 func EncryptAES(key []byte, plaintext []byte) ([]byte, error) {
 	// create cipher
