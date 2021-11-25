@@ -4,7 +4,6 @@ import (
 	"dejavuDB/src/config"
 
 	"github.com/dop251/goja"
-	"rogchap.com/v8go"
 )
 
 type Insruction struct {
@@ -70,12 +69,4 @@ func (d *DatabaseObject) Get(key string) goja.Value {
 		}
 	}
 	return nil
-}
-
-func checkerr(err error, val *v8go.Value, errs chan error) *v8go.Value {
-	if err != nil {
-		errs <- err
-		return nil
-	}
-	return val
 }
