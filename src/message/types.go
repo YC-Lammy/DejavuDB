@@ -4,4 +4,5 @@ type MessageType byte
 
 const (
 	ErrorMessageType MessageType = iota
+	JsMessageType
 )

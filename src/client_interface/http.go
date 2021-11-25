@@ -2,6 +2,8 @@ package client_interface
 
 import (
 	"dejavuDB/src/config"
+	"dejavuDB/src/javascriptAPI"
+	"dejavuDB/src/message"
 	"dejavuDB/src/network"
 	"dejavuDB/src/user"
 	"encoding/base64"
@@ -86,10 +88,20 @@ func handleWebsocket(c *gin.Context) {
 		return
 	}
 	defer ws.Close()
-
+	for {
+		m, msg, err := ws.ReadMessage()
+		if err != nil {
+			ws.WriteMessage(
+				websocket.BinaryMessage,
+				message.NewErrorClientMessage(err).ToBytes())
+			return
+		}
+	}
 }
 
 func handleTCP(c *gin.Context) {
+	username := c.MustGet(gin.AuthUserKey).(string)
+
 	h, ok := c.Writer.(http.Hijacker)
 	if !ok {
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -110,16 +122,34 @@ func handleTCP(c *gin.Context) {
 	p = append(p, "HTTP/1.1 101 Switching Protocols\r\nUpgrade: tcp\r\nConnection: Upgrade\r\n"...)
 
 	netconn.Write(p)
+
 	conn := network.NewConn(netconn)
+	defer conn.Conn.Close()
+
 	err = conn.ClientHandshake()
 	if err != nil {
 		return
 	}
 	for {
-		msg, err := conn.ReadMesaage()
+		b, err := conn.ReadMesaage()
 		if err != nil {
 			conn.Write([]byte(err.Error()))
 			return
+		}
+		msg := message.ClientMessageFromBytes(b)
+
+		switch msg.Type {
+		case message.JsMessageType:
+			re, err := javascriptAPI.JavascriptRun(
+				string(msg.Content),
+				javascriptAPI.JsOptions{
+					UserName: username,
+				})
+			if err != nil {
+				conn.Write(message.NewErrorClientMessage(err).ToBytes())
+			} else {
+				conn.Write(re)
+			}
 		}
 	}
 }

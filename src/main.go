@@ -13,7 +13,6 @@ import (
 	"dejavuDB/src/config"
 	"dejavuDB/src/lazy"
 
-	"dejavuDB/src/standalone"
 	"dejavuDB/src/static"
 )
 
