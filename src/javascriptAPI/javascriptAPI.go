@@ -7,7 +7,9 @@ import (
 	"github.com/dop251/goja_nodejs/require"
 
 	"dejavuDB/src/config"
+	"dejavuDB/src/javascriptAPI/native/fmt"
 	"dejavuDB/src/javascriptAPI/native/http"
+	"dejavuDB/src/javascriptAPI/native/tar"
 )
 
 type JsOptions struct {
@@ -25,9 +27,11 @@ func JavascriptRun(script string, options JsOptions) ([]byte, error) {
 
 	if jsRegister == nil {
 		jsRegister = require.
-			NewRegistry(require.WithGlobalFolders(path.Join(config.RootDir, "")))
+			NewRegistry(require.WithGlobalFolders(path.Join(config.RootDir, "modules")))
 
 		jsRegister.RegisterNativeModule("http", http.HttpModuleLoader)
+		jsRegister.RegisterNativeModule("fmt", fmt.FmtModuleLoader)
+		jsRegister.RegisterNativeModule("tar", tar.TarModuleLoader)
 	}
 
 	db := NewVmDatabase(vm)

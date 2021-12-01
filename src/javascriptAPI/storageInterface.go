@@ -52,6 +52,7 @@ func (s *StorageInterface) Get(key string) goja.Value {
 			if len(arg.Arguments) > 1 {
 				v := s.Get(arg.Arguments[0].String())
 				s.Set(arg.Arguments[1].String(), v)
+				s.Delete(arg.Arguments[0].String())
 			}
 			return goja.Undefined()
 		})

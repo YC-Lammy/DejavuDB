@@ -6,7 +6,7 @@ import (
 	"os"
 	"path"
 
-	"src/types"
+	"dejavuDB/src/types"
 )
 
 func init() {
@@ -18,10 +18,13 @@ func init() {
 		f, err := os.Open(path.Join(origin, v.Name()))
 		if err != nil {
 			fmt.Println(err)
-			panic(err)
+			continue
 		}
 		v, _ := ioutil.ReadAll(f)
-		ptr, dtype, err := types.FromBytes(v)
-		JsSet(f.Name(), ptr, dtype)
+		val, err := types.ValueFromBytes(v)
+		if err != nil {
+			continue
+		}
+		Set(f.Name(), val)
 	}
 }

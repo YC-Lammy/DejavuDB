@@ -1,12 +1,15 @@
 package client_interface
 
 import (
+	"dejavuDB/src/auth"
 	"dejavuDB/src/config"
+	"dejavuDB/src/datastore"
 	"dejavuDB/src/javascriptAPI"
 	"dejavuDB/src/message"
 	"dejavuDB/src/network"
 	"dejavuDB/src/user"
 	"encoding/base64"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -36,6 +39,7 @@ func Http_client() {
 	authed.PUT("/storage")
 	authed.PATCH("/storage")
 	authed.HEAD("/storage")
+	authed.Any("/adm")
 	authed.Any("/sql")
 	authed.Any("/js")
 	authed.Any("/websocket", handleWebsocket)
@@ -78,6 +82,22 @@ func BasicAuth(c *gin.Context) {
 func handleGet(c *gin.Context) {
 	// get user, it was set by the BasicAuth middleware
 	username := c.MustGet(gin.AuthUserKey).(string)
+
+	key, ok := c.Get("key")
+	if !ok {
+		c.AbortWithError(http.StatusBadRequest, errors.New("key not provided"))
+		return
+	}
+	if !auth.HasPermission(username, key.(string)) {
+		c.AbortWithStatus(401)
+		return
+	}
+	switch config.Role {
+	case "groupLeader":
+	case "groupMember":
+	case "standalone":
+		c.Writer.Write(datastore.Get(key.(string)).ToBytes())
+	}
 }
 
 func handleWebsocket(c *gin.Context) {
@@ -96,6 +116,10 @@ func handleWebsocket(c *gin.Context) {
 				message.NewErrorClientMessage(err).ToBytes())
 			return
 		}
+		if m != websocket.BinaryMessage {
+			continue
+		}
+		handleClientMessage(msg, username)
 	}
 }
 
@@ -136,20 +160,25 @@ func handleTCP(c *gin.Context) {
 			conn.Write([]byte(err.Error()))
 			return
 		}
-		msg := message.ClientMessageFromBytes(b)
-
-		switch msg.Type {
-		case message.JsMessageType:
-			re, err := javascriptAPI.JavascriptRun(
-				string(msg.Content),
-				javascriptAPI.JsOptions{
-					UserName: username,
-				})
-			if err != nil {
-				conn.Write(message.NewErrorClientMessage(err).ToBytes())
-			} else {
-				conn.Write(re)
-			}
+		re, err := handleClientMessage(b, username)
+		if err != nil {
+			conn.Write(message.NewErrorClientMessage(err).ToBytes())
+		} else {
+			conn.Write(re)
 		}
 	}
+}
+
+func handleClientMessage(b []byte, username string) ([]byte, error) {
+	msg := message.ClientMessageFromBytes(b)
+
+	switch msg.Type {
+	case message.JsMessageType:
+		return javascriptAPI.JavascriptRun(
+			string(msg.Content),
+			javascriptAPI.JsOptions{
+				UserName: username,
+			})
+	}
+	return nil, nil
 }

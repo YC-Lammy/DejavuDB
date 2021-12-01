@@ -3,6 +3,7 @@ module dejavuDB
 go 1.16
 
 require (
+	github.com/anthonynsimon/bild v0.13.0
 	github.com/dop251/goja v0.0.0-20211121151210-cc28e89bfc81
 	github.com/dop251/goja_nodejs v0.0.0-20210225215109-d91c329300e7
 	github.com/fxamacker/cbor/v2 v2.3.0
@@ -13,8 +14,8 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.9
 	github.com/shirou/gopsutil v3.21.10+incompatible
 	github.com/shirou/gopsutil/v3 v3.21.10
-	github.com/traefik/yaegi v0.11.0
 	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2
+	golang.org/x/image v0.0.0-20190703141733-d6a02ce849c9
 	lukechampine.com/uint128 v1.1.1
 	rogchap.com/v8go v0.6.0
 )

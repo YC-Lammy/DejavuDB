@@ -6,7 +6,7 @@ import (
 	"github.com/xwb1989/sqlparser"
 )
 
-func Expr(expr *sqlparser.Expr, table ...*Result) (*Result, error) {
+func Expr(expr sqlparser.Expr, table ...*Result) (*Result, error) {
 	var result = new(Result)
 	switch expr := expr.(type) {
 	case *sqlparser.AndExpr:

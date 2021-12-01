@@ -1,23 +1,13 @@
 package datastore
 
 import (
+	"dejavuDB/src/types"
 	"errors"
-	"fmt"
 	"os"
 	"path"
-	"src/config"
-	"src/types/binjson"
-	"src/types/contract"
-	"src/types/decimal"
-	"src/types/float128"
-	"src/types/int128"
-	"src/types/uint128"
-	"strconv"
 	"strings"
 	"sync"
 	"unsafe"
-
-	"src/types"
 )
 
 var (
@@ -39,6 +29,7 @@ type Node struct {
 	dtype byte // declared at types
 }
 
+/*
 func (loc *Node) register_data(data interface{}, dtype byte, key string) error { // send data to channel
 	var t unsafe.Pointer
 	switch v := data.(type) {
@@ -106,50 +97,99 @@ func (loc *Node) register_data(data interface{}, dtype byte, key string) error {
 	f.Close()
 	return nil
 }
+*/
 
 //
 //
 //
 //
 
-func Get(key string) interface{} {
-	if key == "" {
-		return 0x00, nil
-	}
-	if config.Debug {
-		fmt.Println("Get key " + key)
-	}
+func Get(key string) types.Value {
+	/*
+		if key == "" {
+			return nil
+		}
+		if config.Debug {
+			fmt.Println("Get key " + key)
+		}
 
-	Data_lock.RLock()
-	var pointer = Data // copy pointers into steak
-	Data_lock.RUnlock()
+		Data_lock.RLock()
+		var pointer = Data // copy pointers into steak
+		Data_lock.RUnlock()
 
-	keys := strings.Split(key, ".")
-	if len(keys) == 1 {
-		if v, ok := pointer[keys[0]]; ok {
+		keys := strings.Split(key, ".")
+		if len(keys) == 1 {
+			if v, ok := pointer[keys[0]]; ok {
+				v.lock.RLock()
+				a, b := v.dtype, v.data
+				v.lock.RUnlock()
+				return a, b
+			}
+			return 0x00, nil
+		}
+		for _, v := range keys[0 : len(keys)-1] {
+			if v, ok := pointer[v]; ok {
+				v.lock.RLock()
+				pointer = v.subkey
+				v.lock.RUnlock()
+			} else {
+				return 0x00, nil
+			}
+		}
+		if v, ok := pointer[keys[len(keys)-1]]; ok {
 			v.lock.RLock()
 			a, b := v.dtype, v.data
 			v.lock.RUnlock()
 			return a, b
 		}
 		return 0x00, nil
-	}
-	for _, v := range keys[0 : len(keys)-1] {
-		if v, ok := pointer[v]; ok {
-			v.lock.RLock()
-			pointer = v.subkey
-			v.lock.RUnlock()
-		} else {
-			return 0x00, nil
+	*/
+	f := strings.Split(key, ".")
+	switch len(f) {
+	case 1:
+		if v, ok := layer1[key]; ok {
+			return v
+		}
+	case 2:
+		if v, ok := layer2[key]; ok {
+			return v
+		}
+	case 3:
+		if v, ok := layer3[key]; ok {
+			return v
+		}
+	case 4:
+		if v, ok := layer4[key]; ok {
+			return v
+		}
+	case 5:
+		if v, ok := layer5[key]; ok {
+			return v
+		}
+	case 6:
+		if v, ok := layer6[key]; ok {
+			return v
+		}
+	case 7:
+		if v, ok := layer7[key]; ok {
+			return v
+		}
+	case 8:
+		if v, ok := layer8[key]; ok {
+			return v
+		}
+	case 9:
+		if v, ok := layer9[key]; ok {
+			return v
+		}
+	case 10:
+		if v, ok := layer10[key]; ok {
+			return v
 		}
 	}
-	if v, ok := pointer[keys[len(keys)-1]]; ok {
-		v.lock.RLock()
-		a, b := v.dtype, v.data
-		v.lock.RUnlock()
-		return a, b
+	return types.Value{
+		Dtype: types.Null,
 	}
-	return 0x00, nil
 }
 
 //
@@ -157,49 +197,95 @@ func Get(key string) interface{} {
 //
 //
 
-func Set(key string, data interface{}) error {
+func Set(key string, val types.Value) error {
 	if key == "" {
 		return errors.New("invalid empty key")
 	}
+	/*
 
-	var pointer = Data // copy pointers into steak
+		var pointer = Data // copy pointers into steak
 
-	keys := strings.Split(key, ".")
+		keys := strings.Split(key, ".")
 
-	if len(keys) == 1 { // only one key provide
-		if n, ok := pointer[keys[0]]; ok {
+		if len(keys) == 1 { // only one key provide
+			if n, ok := pointer[keys[0]]; ok {
+				n.register_data(data, dtype, key)
+				return nil
+			} else {
+				n := CreateNode()
+				pointer[keys[0]] = n
+				n.register_data(data, dtype, key)
+				return nil
+			}
+		}
+
+		for _, v := range keys[0 : len(keys)-1] {
+			if n, ok := pointer[v]; ok {
+				pointer = n.subkey
+			} else {
+				n := CreateNode()
+				pointer[v] = n
+				n.register_data(data, dtype, key)
+				return nil
+			}
+		}
+		if n, ok := pointer[keys[len(keys)-1]]; ok {
 			n.register_data(data, dtype, key)
-			return nil
+
 		} else {
 			n := CreateNode()
-			pointer[keys[0]] = n
+			pointer[keys[len(keys)-1]] = n
 			n.register_data(data, dtype, key)
-			return nil
 		}
-	}
+	*/
 
-	for _, v := range keys[0 : len(keys)-1] {
-		if n, ok := pointer[v]; ok {
-			pointer = n.subkey
-		} else {
-			n := CreateNode()
-			pointer[v] = n
-			n.register_data(data, dtype, key)
-			return nil
-		}
-	}
-	if n, ok := pointer[keys[len(keys)-1]]; ok {
-		n.register_data(data, dtype, key)
+	f := strings.Split(key, ".")
 
-	} else {
-		n := CreateNode()
-		pointer[keys[len(keys)-1]] = n
-		n.register_data(data, dtype, key)
+	switch len(f) {
+	case 1:
+		layer1[key] = val
+	case 2:
+		layer2[key] = val
+	case 3:
+		layer3[key] = val
+	case 4:
+		layer4[key] = val
+	case 5:
+		layer5[key] = val
+	case 6:
+		layer6[key] = val
+	case 7:
+		layer7[key] = val
+	case 8:
+		layer8[key] = val
+	case 9:
+		layer9[key] = val
+	case 10:
+		layer10[key] = val
 	}
 	return nil
 }
 
-func Delete(key string) error
+func Delete(key string) error {
+	if key == "" {
+		return errors.New("invalid empty key")
+	}
+
+	f := strings.Split(key, ".")
+	switch len(f) {
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+	case 8:
+	case 9:
+	case 10:
+	}
+	return nil
+}
 
 //
 //
@@ -215,6 +301,7 @@ func CreateNode() *Node {
 //
 //
 
+/*
 func Update(key string, data interface{}, dtype ...byte) error {
 	var node *Node
 	if key == "" {
@@ -261,211 +348,9 @@ func Update(key string, data interface{}, dtype ...byte) error {
 
 	return node.register_data(data, t, key)
 }
+*/
 
 /*
 //
 //
 */
-
-func (l *Node) write_string_to_loc(data string, dtype byte) (unsafe.Pointer, error) {
-	var p unsafe.Pointer
-
-	switch dtype {
-
-	case types.String:
-		p = unsafe.Pointer(&data)
-		l.lock.RLock()
-		l.data = p
-		l.lock.RUnlock()
-
-	case types.Int64, types.Int:
-		a, err := strconv.ParseInt(data, 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		p = unsafe.Pointer(&a)
-		l.lock.RLock()
-		l.data = p
-		l.lock.RUnlock()
-
-	case types.Int32:
-		a, err := strconv.ParseInt(data, 10, 32)
-		if err != nil {
-			return nil, err
-		}
-		b := int32(a)
-		p = unsafe.Pointer(&b)
-		l.lock.RLock()
-		l.data = p
-		l.lock.RUnlock()
-
-	case types.Int16:
-		a, err := strconv.ParseInt(data, 10, 16)
-		if err != nil {
-			return nil, err
-		}
-		b := int16(a)
-		p = unsafe.Pointer(&b)
-		l.data = p
-
-	case types.Int8:
-		a, err := strconv.ParseInt(data, 10, 8)
-		if err != nil {
-			return nil, err
-		}
-		b := int8(a)
-		p = unsafe.Pointer(&b)
-		l.data = p
-
-	case types.Int128:
-		a, err := int128.StrToInt128(data)
-		if err != nil {
-			return nil, err
-		}
-		p = unsafe.Pointer(&a)
-		l.data = p
-
-	case types.Uint, types.Uint64:
-		a, err := strconv.ParseUint(data, 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		p = unsafe.Pointer(&a)
-		l.data = p
-
-	case types.Uint32:
-		a, err := strconv.ParseUint(data, 10, 32)
-		if err != nil {
-			return nil, err
-		}
-		b := uint32(a)
-		p = unsafe.Pointer(&b)
-		l.data = p
-
-	case types.Uint16:
-		a, err := strconv.ParseUint(data, 10, 16)
-		if err != nil {
-			return nil, err
-		}
-		b := uint16(a)
-		p = unsafe.Pointer(&b)
-		l.data = p
-
-	case types.Uint8:
-		a, err := strconv.ParseUint(data, 10, 8)
-		if err != nil {
-			return nil, err
-		}
-		b := uint8(a)
-		p = unsafe.Pointer(&b)
-		l.data = p
-
-	case types.Uint128:
-		a, err := uint128.StrToUint128(data)
-		if err != nil {
-			return nil, err
-		}
-		p = unsafe.Pointer(&a)
-		l.data = p
-
-	case types.Decimal, types.Decimal64:
-		a, err := decimal.StrToDecimal64(data)
-		if err != nil {
-			return nil, err
-		}
-		p = unsafe.Pointer(&a)
-		l.data = p
-
-	case types.Decimal32:
-		a, err := decimal.StrToDecimal32(data)
-		if err != nil {
-			return nil, err
-		}
-		p = unsafe.Pointer(&a)
-		l.data = p
-
-	case types.Decimal128:
-		a, err := decimal.StrToDecimal128(data)
-		if err != nil {
-			return nil, err
-		}
-		p = unsafe.Pointer(&a)
-		l.data = p
-
-	case types.Float, types.Float64:
-		a, err := strconv.ParseFloat(data, 64)
-		if err != nil {
-			return nil, err
-		}
-		p = unsafe.Pointer(&a)
-		l.data = p
-
-	case types.Float32:
-		a, err := strconv.ParseFloat(data, 32)
-		if err != nil {
-			return nil, err
-		}
-		b := float32(a)
-		p = unsafe.Pointer(&b)
-		l.data = p
-
-	case types.Float128:
-		a, err := float128.StrToFloat128(data)
-		if err != nil {
-			return nil, err
-		}
-		p = unsafe.Pointer(&a)
-		l.data = p
-
-	case types.Byte:
-		a := data[0]
-		p = unsafe.Pointer(&a)
-		l.data = p
-
-	case types.Byte_arr: // a string
-		a := []byte(data)
-		p = unsafe.Pointer(&a)
-		l.data = p
-
-	case types.Bool:
-		a, err := strconv.ParseBool(data)
-		if err != nil {
-			return nil, err
-		}
-		p = unsafe.Pointer(&a)
-		l.data = p
-
-	case types.Graph:
-	case types.Table: // when set table, table is initialized
-
-	case types.Json:
-		a, err := binjson.NewBinaryJson([]byte(data))
-		if err != nil {
-			return nil, err
-		}
-		p = unsafe.Pointer(a)
-		l.data = p
-
-	case types.SmartContract:
-	case types.Contract: // in a json format
-		a, err := contract.NewContract(data)
-		if err != nil {
-			return nil, err
-		}
-		p = unsafe.Pointer(a)
-		l.data = p
-
-	case types.Money:
-	case types.SmallMoney:
-	case types.Time:
-	case types.Date:
-	case types.Datetime:
-	case types.Smalldatetime:
-
-	case types.Null:
-		l.data = nil
-		p = nil
-
-	}
-	return p, nil
-}

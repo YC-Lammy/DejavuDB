@@ -1,6 +1,8 @@
 package http
 
 import (
+	"context"
+	"crypto/tls"
 	"net"
 	"net/http"
 	"time"
@@ -32,7 +34,11 @@ func HttpModuleLoader(vm *goja.Runtime, module *goja.Object) {
 			}
 			return nil
 		}), 1, 1, 1)
+
+	export.Set("get", vm.ToValue(http_get))
 }
+
+func http_get(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {}
 
 var _ goja.DynamicObject = (*http_Agent)(nil)
 
@@ -158,4 +164,99 @@ func (a *http_Agent) Keys() []string {
 		"scheduling",
 		"timeout",
 		"createConnection"}
+}
+
+type http_clientrequest struct {
+	this *goja.Object
+
+	context   context.Context
+	cancel    context.CancelFunc
+	destroyed bool
+
+	request  *http.Request
+	response *http.Response
+	client   *http.Client
+
+	listeners map[string]goja.Callable
+
+	vm *goja.Runtime
+}
+
+func (c *http_clientrequest) Get(key string) goja.Value {
+	switch key {
+	case "on":
+		return c.vm.ToValue(c.addeventListener)
+	case "end":
+		return c.vm.ToValue(c.end)
+
+	case "destroy":
+		return c.vm.ToValue(c.destroy)
+	case "destroyed":
+		return c.vm.ToValue(c.destroyed)
+	}
+	return goja.Undefined()
+}
+
+func (c *http_clientrequest) Set(key string, val goja.Value) bool
+
+func (c *http_clientrequest) Delete(key string) bool {
+	return false
+}
+
+func (c *http_clientrequest) Has(key string) bool {
+	for _, v := range c.Keys() {
+		if v == key {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *http_clientrequest) Keys() []string {
+	return []string{
+		"on",
+		"end",
+		"destroy",
+	}
+}
+
+func (c *http_clientrequest) addeventListener(arg goja.FunctionCall) goja.Value {
+	if len(arg.Arguments) > 1 {
+		callback, ok := goja.AssertFunction(arg.Arguments[1])
+		if !ok {
+			return goja.Undefined()
+		}
+		switch arg.Arguments[0].String() {
+		case "connect":
+			d := &net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}
+			var conn net.Conn
+			var err error
+			switch c.request.URL.Scheme {
+			case "https":
+				conn, err = tls.DialWithDialer(d, "tcp", c.request.URL.Hostname()+":https", nil)
+
+			case "http":
+				if c.request.URL.Port() == "" {
+					conn, err = net.Dial("tcp", c.request.URL.Host+":http")
+				} else {
+					conn, err = net.Dial("tcp", c.request.URL.Host)
+				}
+
+			}
+		}
+	}
+	return goja.Undefined()
+}
+
+func (c *http_clientrequest) end(arg goja.FunctionCall) goja.Value {
+	return c.this
+}
+
+func (c *http_clientrequest) destroy(arg goja.FunctionCall) goja.Value {
+	c.cancel()
+	c.destroyed = true
+	return c.this
 }

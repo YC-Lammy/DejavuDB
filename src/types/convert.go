@@ -1,8 +1,8 @@
 package types
 
 import (
-	"clayDB/src/types/decimal"
-	"clayDB/src/types/float128"
+	"dejavuDB/src/types/decimal"
+	"dejavuDB/src/types/float128"
 	"errors"
 	"unsafe"
 )
@@ -19,7 +19,7 @@ func ValueFromBytes(s []byte) (Value, error) {
 	return *v, err
 }
 
-func (val Value) ToBytes() ([]byte, error) {
+func (val Value) ToBytes() []byte {
 	var B []byte
 	v := val.Pointer
 	switch val.Dtype {
@@ -80,7 +80,7 @@ func (val Value) ToBytes() ([]byte, error) {
 	case Null:
 	}
 
-	return append([]byte{byte(val.Dtype)}, B...), nil
+	return append([]byte{byte(val.Dtype)}, B...)
 }
 
 func (v *Value) FromBytes(bs []byte) (err error) {

@@ -1,7 +1,14 @@
 package javascriptAPI
 
 import (
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
+	"dejavuDB/src/config"
 	_ "embed"
+	"io"
+	"os"
+	"path"
 	"sync"
 
 	"github.com/dop251/goja"
@@ -15,7 +22,8 @@ type javascript_module struct {
 	version      string
 	version_info string
 	auther       string
-	describtion  string
+	description  string
+	license      string
 	model_path   string
 
 	is_in_ram bool
@@ -24,17 +32,48 @@ type javascript_module struct {
 	enabled   bool
 }
 
-func NewModule(name, version, version_info, auther, desc, js string) {
+func NewModule(targz []byte) error {
+	greader, err := gzip.NewReader(bytes.NewReader(targz))
+	if err != nil {
+		return err
+	}
+	tarreader := tar.NewReader(greader)
+	header, err := tarreader.Next()
+	for err != nil {
 
+		p := path.Join(config.RootDir, "modules", header.Name)
+		switch header.Typeflag {
+		case tar.TypeDir:
+			err := os.Mkdir(p, 0755)
+			if err != nil {
+				return err
+			}
+		case tar.TypeReg:
+			outFile, err := os.Create(p)
+			if err != nil {
+				return err
+			}
+			if _, err := io.Copy(outFile, tarreader); err != nil {
+				return err
+			}
+			outFile.Close()
+		case tar.TypeSymlink:
+
+		default:
+		}
+
+		header, err = tarreader.Next()
+	}
+	return nil
 }
 
 func init() {
 	javascript_API_lib["http"] = javascript_module{
 		name:         "http",
-		version:      "",
-		version_info: "",
+		version:      "0.0.1",
+		version_info: "experiment",
 		auther:       "YC",
-		describtion:  "javascript wrapper for go http",
+		description:  "javascript wrapper for go http",
 		model_path:   "builtin",
 
 		is_in_ram: true,
@@ -43,10 +82,10 @@ func init() {
 
 	javascript_API_lib["fmt"] = javascript_module{
 		name:         "fmt",
-		version:      "",
-		version_info: "",
+		version:      "0.0.1",
+		version_info: "expiriment",
 		auther:       "YC",
-		describtion:  "javascript wrapper fo go fmt",
+		description:  "javascript wrapper fo go fmt",
 		model_path:   "builtin",
 
 		is_in_ram: true,
