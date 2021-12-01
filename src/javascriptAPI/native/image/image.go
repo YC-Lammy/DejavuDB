@@ -225,13 +225,11 @@ func (im *Image) Get(key string) goja.Value {
 				case *rect:
 					rec = v.rect
 				default:
-					vm.RunString("throw 'TypeError: image.image.rotate: argument 1 must be number or object, got " + arg.Arguments[0].ExportType().Name() + "'")
-					return goja.Undefined()
+					panic(vm.ToValue("TypeError: image.image.rotate: argument 1 must be number or object, got " + arg.Arguments[0].ExportType().Name()))
 				}
 			} else {
 				if len(arg.Arguments) != 4 {
-					vm.RunString("throw 'TypeError: image.image.crop: at least 4 argument required, got " + strconv.Itoa(len(arg.Arguments)) + "'")
-					return goja.Undefined()
+					panic(vm.ToValue("TypeError: image.image.crop: at least 4 argument required, got " + strconv.Itoa(len(arg.Arguments))))
 				}
 				var x0, y0, x1, y1 int
 				x0 = int(arg.Arguments[0].ToInteger())
@@ -258,8 +256,7 @@ func (im *Image) Get(key string) goja.Value {
 		return im.vm.ToValue(func(arg goja.FunctionCall) goja.Value {
 			var filter = transform.Linear
 			if len(arg.Arguments) < 2 {
-				im.vm.RunString("throw 'TypeError: image.image.resize: at least 2 argument required, got " + strconv.Itoa(len(arg.Arguments)) + "'")
-				return goja.Undefined()
+				panic(im.vm.ToValue("TypeError: image.image.resize: at least 2 argument required, got " + strconv.Itoa(len(arg.Arguments))))
 			}
 			if len(arg.Arguments) >= 3 {
 				switch strings.ToLower(arg.Arguments[2].String()) {
@@ -289,8 +286,7 @@ func (im *Image) Get(key string) goja.Value {
 		return im.vm.ToValue(func(arg goja.FunctionCall) goja.Value {
 
 			if len(arg.Arguments) < 1 {
-				im.vm.RunString("throw 'TypeError: image.image.rotate: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(im.vm.ToValue("TypeError: image.image.rotate: at least 1 argument required, got 0"))
 			}
 
 			var rOptions = &transform.RotationOptions{}
@@ -372,8 +368,7 @@ func (im *Image) Get(key string) goja.Value {
 					}
 				}
 			default:
-				im.vm.RunString("throw 'TypeError: image.image.rotate: argument 1 must be number or object, got " + arg.Arguments[0].ExportType().Name() + "'")
-				return goja.Undefined()
+				panic(im.vm.ToValue("TypeError: image.image.rotate: argument 1 must be number or object, got " + arg.Arguments[0].ExportType().Name()))
 			}
 			if len(arg.Arguments) >= 2 {
 				if options, ok := arg.Arguments[1].Export().(map[string]interface{}); ok {
@@ -439,8 +434,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "shearH":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) == 0 {
-				vm.RunString("throw 'TypeError: image.image.shearH: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.shearH: at least 1 argument required, got 0"))
 			}
 			im.image = transform.ShearH(im.image, arg.Arguments[0].ToFloat())
 			return goja.Undefined()
@@ -448,8 +442,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "shearV":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) == 0 {
-				vm.RunString("throw 'TypeError: image.image.shearV: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.shearV: at least 1 argument required, got 0"))
 			}
 			im.image = transform.ShearV(im.image, arg.Arguments[0].ToFloat())
 			return goja.Undefined()
@@ -457,8 +450,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "translate":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 2 {
-				vm.RunString("throw 'TypeError: image.image.translate: at least 2 argument required, got " + strconv.Itoa(len(arg.Arguments)) + "'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.translate: at least 2 argument required, got " + strconv.Itoa(len(arg.Arguments))))
 			}
 			im.image = transform.Translate(im.image, int(arg.Arguments[0].ToInteger()), int(arg.Arguments[1].ToInteger()))
 			return goja.Undefined()
@@ -468,8 +460,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "brightness":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.brightness: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.brightness: at least 1 argument required, got 0"))
 			}
 			im.image = adjust.Brightness(im.image, arg.Arguments[0].ToFloat())
 			return goja.Undefined()
@@ -477,8 +468,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "contrast":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.contrast: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.contrast: at least 1 argument required, got 0"))
 			}
 			im.image = adjust.Contrast(im.image, arg.Arguments[0].ToFloat())
 			return goja.Undefined()
@@ -486,8 +476,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "gamma":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.gamma: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.gamma: at least 1 argument required, got 0"))
 			}
 			im.image = adjust.Gamma(im.image, arg.Arguments[0].ToFloat())
 			return goja.Undefined()
@@ -495,8 +484,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "hue":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.hue: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.hue: at least 1 argument required, got 0"))
 			}
 			im.image = adjust.Hue(im.image, int(arg.Arguments[0].ToInteger()))
 			return goja.Undefined()
@@ -504,8 +492,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "saturation":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.saturation: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.saturation: at least 1 argument required, got 0"))
 			}
 			im.image = adjust.Saturation(im.image, arg.Arguments[0].ToFloat())
 			return goja.Undefined()
@@ -514,8 +501,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "blur":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.blur: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.blur: at least 1 argument required, got 0"))
 			}
 			radius := arg.Arguments[0].ToFloat()
 			if len(arg.Arguments) >= 2 {
@@ -535,8 +521,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "extractChannels":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.extractChannels: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.extractChannels: at least 1 argument required, got 0"))
 			}
 			chanels := []channel.Channel{}
 			for _, a := range arg.Arguments {
@@ -550,8 +535,7 @@ func (im *Image) Get(key string) goja.Value {
 				case "alpha", "a":
 					chanels = append(chanels, channel.Alpha)
 				default:
-					vm.RunString("throw 'TypeError: image.image.extractChannels: unregconized channel: " + s + "'")
-					return goja.Undefined()
+					panic(vm.ToValue("TypeError: image.image.extractChannels: expected 'red', 'green', 'blue' or 'alpha', got '" + s + "'"))
 				}
 			}
 			im.image = channel.ExtractMultiple(im.image, chanels...)
@@ -561,8 +545,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "dilate":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.dilate: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.dilate: at least 1 argument required, got 0"))
 			}
 			im.image = effect.Dilate(im.image, arg.Arguments[0].ToFloat())
 			return goja.Undefined()
@@ -571,8 +554,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "edgeDetection":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.edgeDetection: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.edgeDetection: at least 1 argument required, got 0"))
 			}
 			im.image = effect.EdgeDetection(im.image, arg.Arguments[0].ToFloat())
 			return goja.Undefined()
@@ -586,8 +568,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "erode":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.erode: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.erode: at least 1 argument required, got 0"))
 			}
 			im.image = effect.Erode(im.image, arg.Arguments[0].ToFloat())
 			return goja.Undefined()
@@ -595,8 +576,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "grayscale":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.grayscale: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.grayscale: at least 1 argument required, got 0"))
 			}
 			im.image = effect.Grayscale(im.image)
 			return goja.Undefined()
@@ -609,8 +589,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "median":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.median: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.median: at least 1 argument required, got 0"))
 			}
 			im.image = effect.Median(im.image, arg.Arguments[0].ToFloat())
 			return goja.Undefined()
@@ -633,8 +612,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "unsharpMask":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 2 {
-				vm.RunString("throw 'TypeError: image.image.unsharpMask: at least 2 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.unsharpMask: at least 2 argument required, got " + strconv.Itoa(len(arg.Arguments))))
 			}
 			im.image = effect.UnsharpMask(im.image, arg.Arguments[0].ToFloat(), arg.Arguments[1].ToFloat())
 			return goja.Undefined()
@@ -642,8 +620,7 @@ func (im *Image) Get(key string) goja.Value {
 	case "segmentThreshold":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.segmentThreshold: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.segmentThreshold: at least 1 argument required, got 0"))
 			}
 			im.image = segment.Threshold(im.image, uint8(arg.Arguments[0].ToInteger()))
 			return goja.Undefined()
@@ -652,21 +629,19 @@ func (im *Image) Get(key string) goja.Value {
 	case "add":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.add: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.add: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.Add(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.add: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.add: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "blend":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 2 {
-				vm.RunString("throw 'TypeError: image.image.blend: at least 2 argument required, got " + strconv.Itoa(len(arg.Arguments)) + "'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.blend: at least 2 argument required, got " + strconv.Itoa(len(arg.Arguments))))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				callback, ok := goja.AssertFunction(arg.Arguments[1])
@@ -697,10 +672,10 @@ func (im *Image) Get(key string) goja.Value {
 
 					im.image = blend.Blend(im.image, fg.image, call)
 				} else {
-					vm.RunString("throw 'TypeError: image.image.blend: argument 2 must be function")
+					panic(vm.ToValue("TypeError: image.image.blend: argument 2 must be function"))
 				}
 			} else {
-				vm.RunString("throw 'TypeError: image.image.blend: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.blend: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
@@ -708,26 +683,24 @@ func (im *Image) Get(key string) goja.Value {
 	case "colorBurn":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.colorBurn: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.colorBurn: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.ColorBurn(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.colorBurn: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.colorBurn: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "colorDodge":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.colorDodge: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.colorDodge: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.ColorDodge(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.colorDodge: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.colorDodge: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
@@ -735,13 +708,12 @@ func (im *Image) Get(key string) goja.Value {
 	case "darken":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.darken: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.darken: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.Darken(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.darken: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.darken: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
@@ -749,169 +721,156 @@ func (im *Image) Get(key string) goja.Value {
 	case "difference":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.difference: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.different: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.Difference(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.difference: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.difference: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "divide":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.divide: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.divide: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.Divide(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.divide: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.divide: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "exclusion":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.exclusion: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.exclusion: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.Exclusion(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.exclusion: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.exclusion: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "lighten":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.lighten: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.lighten: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.Lighten(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.lighten: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.lighten: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "linearBurn":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.linearBurn: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.linearBurn: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.LinearBurn(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.linearBurn: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.linearBurn: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "linearLight":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.linearLight: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.linearLight: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.LinearLight(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.linearLight: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.linearLight: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "multiply":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.multiply: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.multiply: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.Multiply(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.multiply: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.multiply: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "normal":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.normal: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.normal: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.Normal(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.normal: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.normal: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "opacity":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 2 {
-				vm.RunString("throw 'TypeError: image.image.opacity: at least 2 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.opacity: at least 2 argument required, got " + strconv.Itoa(len(arg.Arguments))))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.Opacity(im.image, fg.image, arg.Arguments[1].ToFloat())
 			} else {
-				vm.RunString("throw 'TypeError: image.image.opacity: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.opacity: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "overlay":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.overlay: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.overlay: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.Overlay(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.overlay: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.overlay: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "screen":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.screen: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.screen: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.Screen(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.screen: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.screen: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "softLight":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.softLight: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.softLight: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.SoftLight(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.softLight: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.softLight: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
 	case "subtract":
 		return im.vm.ToValue(func(arg goja.FunctionCall, vm *goja.Runtime) goja.Value {
 			if len(arg.Arguments) < 1 {
-				vm.RunString("throw 'TypeError: image.image.subtract: at least 1 argument required, got 0'")
-				return goja.Undefined()
+				panic(vm.ToValue("TypeError: image.image.subtract: at least 1 argument required, got 0"))
 			}
 			if fg, ok := arg.Arguments[0].Export().(*Image); ok {
 				im.image = blend.Subtract(im.image, fg.image)
 			} else {
-				vm.RunString("throw 'TypeError: image.image.subtract: argument 1 must be image.image")
+				panic(vm.ToValue("TypeError: image.image.subtract: argument 1 must be image.image"))
 			}
 			return goja.Undefined()
 		})
